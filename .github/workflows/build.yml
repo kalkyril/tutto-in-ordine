@@ -40,11 +40,13 @@ jobs:
   installer:
     name: Installer (${{ matrix.os }})
     needs: verifica
-    if: startsWith(github.ref, 'refs/tags/v')
+    # con un tag «v…» e anche a mano («Run workflow» in Actions) per provare gli installer senza pubblicare nulla
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     strategy:
       matrix:
         os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -76,6 +78,7 @@ jobs:
   pubblica:
     name: Pubblica la Release
     needs: installer
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions: { contents: write }
     steps:
