@@ -125,6 +125,12 @@
   .sidebar .nav-section { padding-bottom: 3px; }
   .sidebar .brand { padding-bottom: 10px; }
 }
+/* Windows alla misura minima (980×640): titolo e menu tolgono ~50 px alla pagina, le voci si stringono ancora un po' */
+@media (max-height: 600px) {
+  .sidebar .nav-list { gap: 8px; }
+  .sidebar .nav-item { min-height: 30px; padding-top: 3px; padding-bottom: 3px; }
+  .sidebar .brand { padding-bottom: 6px; }
+}
 /* selettore Anonimizza / Ripristina: icona e testo con il loro spazio */
 .anonimizza .page-head-actions .segmented button { display: inline-flex; align-items: center; gap: 6px; }
 
