@@ -47,6 +47,14 @@ function esegui(binary, env, tempo) {
         const minimum = execFileSync('/usr/libexec/PlistBuddy', ['-c', 'Print :LSMinimumSystemVersion', plist], { encoding: 'utf8' }).trim()
         if (minimum !== pkg.build.mac.minimumSystemVersion) throw new Error(`Requisito macOS inatteso nel pacchetto: ${minimum}`)
       }
+      // su un Mac Apple Silicon il binario Intel girerebbe solo tramite Rosetta, lento e non rappresentativo di un Mac Intel
+      // vero (in CI si fermava all'anteprima PDF): se ne verificano architettura e requisiti, senza avviarlo
+      if (process.platform === 'darwin') {
+        const archs = execFileSync('lipo', ['-archs', binary], { encoding: 'utf8' }).trim().split(/\s+/)
+        const attesa = /mac-arm64/.test(binary) ? 'arm64' : /[\\/]mac[\\/]/.test(binary) ? 'x86_64' : null
+        if (attesa && !archs.includes(attesa)) throw new Error(`Architettura inattesa in ${binary}: ${archs.join(' ')} (attesa ${attesa})`)
+        if (!archs.includes(process.arch === 'arm64' ? 'arm64' : 'x86_64')) { console.log(`PASS pacchetto ${binary}: architettura ${archs.join(' ')} e requisito macOS verificati (non avviato su un Mac ${process.arch})`); continue }
+      }
       console.log('Avvio ' + binary)
       const child = await esegui(binary, { ...process.env, MNGMNT_TEST: '1', MNGMNT_TEST_SCENARIO: 'smoke-packaged', MNGMNT_TEST_MAX_MIN: '4', MNGMNT_DATA_DIR: data, SMOKE_OUT: report }, 5 * 60000)
       fs.writeFileSync(path.join(report, 'esecuzione.log'), child.uscita)

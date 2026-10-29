@@ -12,7 +12,9 @@ function attach({getWindow,db}) {
  wc.once('did-finish-load',async()=>{
   try {
    await new Promise(r=>setTimeout(r,600));db.setSettings({onboarding_fatto:true,backup_automatico:false});wc.send('data-changed',['settings'])
-   check('interfaccia caricata dal pacchetto',await js("!!document.querySelector('.app')"))
+   // su un computer lento l'interfaccia può metterci qualche secondo: si attende fino a 20 s invece di una pausa fissa
+   let caricata=false;for(let t0=Date.now();!caricata&&Date.now()-t0<20000;await new Promise(r=>setTimeout(r,200)))caricata=await js("!!document.querySelector('.app')")
+   check('interfaccia caricata dal pacchetto',caricata)
    const expectedRuntime=JSON.parse(fs.readFileSync(path.join(process.resourcesPath,'licenses/native/manifest.json'),'utf8')).versions.electron
    check('CSP di produzione e runtime previsto nel pacchetto',process.versions.electron===expectedRuntime&&require('../electron/aggiornamenti').confronta(process.versions.electron,'44.9.1')>=0&&await js("document.querySelector('meta[http-equiv=\"Content-Security-Policy\"]').content.includes(\"connect-src 'none'\")"))
    let printRequests=0;const printServer=require('node:http').createServer((_req,res)=>{printRequests++;res.end('risorsa di prova')})
