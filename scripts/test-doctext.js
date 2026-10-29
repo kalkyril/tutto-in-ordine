@@ -1,0 +1,57 @@
+'use strict'
+// Ricerca nel contenuto dei documenti: estrazione dai formati supportati e indice.
+const assert = require('node:assert/strict')
+const fs = require('node:fs')
+const os = require('node:os')
+const path = require('node:path')
+const { creaZip } = require('../electron/zip')
+const db = require('../electron/db')
+const dt = require('../electron/doctext')
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mngmnt-doctext-'))
+let n = 0; const ok = (t) => console.log(`ok ${++n} - ${t}`)
+const Z = (parti) => creaZip(Object.entries(parti).map(([nome, d]) => ({ nome, dati: Buffer.from(d) })))
+const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
+
+const docxBuf = Z({ '[Content_Types].xml': '<Types/>', 'word/document.xml': `<w:document ${W}><w:body><w:p><w:r><w:t>Atto di citazione per </w:t></w:r><w:r><w:t>Zanzibar S.r.l.</w:t></w:r></w:p></w:body></w:document>`, 'word/footer1.xml': `<w:ftr ${W}><w:p><w:r><w:t>Pié di pagina riservato</w:t></w:r></w:p></w:ftr>` })
+assert.match(dt.estrai(docxBuf, 'a.docx'), /Atto di citazione per Zanzibar S\.r\.l\./); assert.match(dt.estrai(docxBuf, 'a.docx'), /Pié di pagina riservato/)
+const xlsxBuf = Z({ 'xl/sharedStrings.xml': '<sst><si><t>Fattura &amp; Lampone</t></si><si><r><t>Rata </t></r><r><t>mensile</t></r></si></sst>', 'xl/worksheets/sheet1.xml': '<worksheet><sheetData><row><c t="inlineStr"><is><t>Cella diretta</t></is></c></row></sheetData></worksheet>' })
+const tx = dt.estrai(xlsxBuf, 'f.xlsx'); assert.match(tx, /Fattura & Lampone/); assert.match(tx, /Rata mensile/); assert.match(tx, /Cella diretta/)
+const odt = Z({ 'content.xml': '<office:document-content><text:p>Contratto di <text:span>locazione</text:span> Ypsilon</text:p></office:document-content>' }); assert.match(dt.estrai(odt, 'c.odt'), /Contratto di\s+locazione\s+Ypsilon/)
+assert.match(dt.estrai(Buffer.from('Nota di Xilofono\r\nseconda riga'), 'n.txt'), /Xilofono/); assert.match(dt.estrai(Buffer.from('<html><style>x{}</style><body><p>Verbale <b>Quokka</b></p></body></html>'), 'v.html'), /Verbale\s+Quokka/); assert.ok(!/x\{\}/.test(dt.estrai(Buffer.from('<style>x{}</style>ciao'), 'v.html')))
+assert.equal(dt.estrai(Buffer.from('%PDF-1.4 testo'), 'a.pdf'), ''); assert.equal(dt.estrai(Buffer.from('x'), 'a.bin'), '')
+ok('estrazione del testo: Word (anche piè di pagina), Excel (testi condivisi e diretti), OpenDocument, txt, html senza stili; PDF e sconosciuti ignorati')
+const eml = ['From: =?UTF-8?B?TWFyaW8gUm9zc2k=?= <mario@esempio.it>', 'To: studio@esempio.it', 'Subject: =?UTF-8?Q?Comunicazione_PEC_per_l=27udienza?=', 'Date: Mon, 12 Oct 2026 09:00:00 +0200', 'MIME-Version: 1.0', 'Content-Type: multipart/mixed; boundary="B1"', '',
+  '--B1', 'Content-Type: multipart/alternative; boundary="B2"', '', '--B2', 'Content-Type: text/plain; charset=utf-8', 'Content-Transfer-Encoding: quoted-printable', '', 'Gentile avvocato, la causa =C3=A8 stata rinviata al Pappagallo=\r\n verde.', '--B2', 'Content-Type: text/html; charset=utf-8', '', '<p>duplicato html</p>', '--B2--',
+  '--B1', 'Content-Type: application/pdf; name="x.pdf"', 'Content-Transfer-Encoding: base64', '', 'SEVMTE8gQUxMRUdBVE8=', '--B1--', ''].join('\r\n')
+const te = dt.estrai(Buffer.from(eml), 'm.eml')
+assert.match(te, /subject: Comunicazione PEC per l'udienza/); assert.match(te, /from: Mario Rossi/); assert.match(te, /la causa è stata rinviata al Pappagallo verde/); assert.ok(!/HELLO|SEVMTE8/.test(te))
+ok('email .eml: oggetto e mittente decodificati, corpo (quoted-printable) letto, allegati non letti')
+assert.equal(dt.estrai(Buffer.from('a'.repeat(3 * 1024 * 1024)), 'g.txt').length, 2 * 1024 * 1024)
+assert.throws(() => dt.estrai(Buffer.from('non zip'), 'x.docx')); ok('limite di 2 MB di testo per documento; file Word guasto segnalato (l\'indice lo salta)')
+
+db.open(path.join(tmp, 'dati'))
+const pr = db.save('pratiche', { numero: '2026/001', titolo: 'Causa', colore: '#123456' })
+const dir = path.join(db.getDataDir(), 'documenti', String(pr.id)); fs.mkdirSync(dir, { recursive: true })
+const agg = (nome, buf) => { fs.writeFileSync(path.join(dir, nome), buf); return db.save('documenti', { pratica_id: pr.id, nome, file: `${pr.id}/${nome}`, dimensione: buf.length }) }
+const d1 = agg('Citazione.docx', docxBuf), d2 = agg('guasto.docx', Buffer.from('non zip')), d3 = agg('Scansione.pdf', Buffer.from('%PDF')), d4 = agg('Email PEC.eml', Buffer.from(eml)), d5 = agg('Tabella.xlsx', xlsxBuf)
+assert.equal(dt.indicizzaPendenti(), 5); assert.equal(dt.indicizzaPendenti(), 0)
+const trova = (q) => dt.cercaNeiDocumenti(q)
+assert.deepEqual(trova('zanzibar').map((h) => h.id), [d1.id]); assert.match(trova('zanzibar')[0].sub, /…?.*Zanzibar S\.r\.l\./i); assert.equal(trova('zanzibar')[0].color, '#123456'); assert.equal(trova('zanzibar')[0].pratica_id, pr.id)
+assert.deepEqual(trova('pappagallo verde').map((h) => h.id), [d4.id]); assert.deepEqual(trova('lampone').map((h) => h.id), [d5.id]); assert.deepEqual(trova('inesistente'), [])
+assert.equal(trova('zz').length, 0); assert.doesNotThrow(() => trova("100% _ \\ '"))
+ok('indice: documenti letti una volta sola, file guasti o PDF segnati senza ripetere; ricerca per contenuto con brano attorno alla parola, caratteri speciali e testi corti sicuri')
+const d6 = agg('Nuovo.txt', Buffer.from('aggiunto dopo: Ornitorinco')); assert.equal(dt.indicizzaPendenti(), 1); assert.deepEqual(trova('ornitorinco').map((h) => h.id), [d6.id])
+db.remove('documenti', d6.id); assert.equal(trova('ornitorinco').length, 0); assert.equal(db.getDb().prepare('SELECT COUNT(*) c FROM documenti_testo WHERE documento_id = ?').get(d6.id).c, 0)
+ok('documenti nuovi indicizzati al volo; eliminando il documento sparisce anche dall\'indice')
+assert.match(dt.brano('x'.repeat(200) + ' parola ' + 'y'.repeat(200), 'PAROLA'), /^….*parola.*…$/); ok('brano con ellissi ai lati')
+// documenti collegati (file nelle cartelle dell'utente): indicizzati dal percorso reale; se il file non c'è, si riprova più tardi
+const utente = path.join(tmp, 'Utente'); fs.mkdirSync(utente)
+const fl = path.join(utente, 'Perizia.txt'); fs.writeFileSync(fl, 'perizia sul Cinghiale bianco')
+const dl = db.save('documenti', { pratica_id: pr.id, nome: 'Perizia.txt', file: '', percorso: fl, dimensione: 28 })
+const sp = path.join(utente, 'Spostato.txt'); fs.writeFileSync(sp, 'testo Fenicottero'); const ds = db.save('documenti', { pratica_id: pr.id, nome: 'Spostato.txt', file: '', percorso: sp, dimensione: 17 }); fs.renameSync(sp, sp + '.nuovo')
+assert.equal(dt.indicizzaPendenti(), 2); assert.deepEqual(trova('cinghiale').map((h) => h.id), [dl.id]); assert.equal(trova('fenicottero').length, 0)
+assert.equal(db.getDb().prepare('SELECT COUNT(*) c FROM documenti_testo WHERE documento_id = ?').get(ds.id).c, 0) // file assente: non segnato come indicizzato
+fs.renameSync(sp + '.nuovo', sp); assert.equal(dt.indicizzaPendenti(), 1); assert.deepEqual(trova('fenicottero').map((h) => h.id), [ds.id])
+ok('documenti collegati: il testo si legge dal file nella cartella dell\'utente; se il file non c\'è non si segna come letto e si riprova quando riappare')
+db.close(); fs.rmSync(tmp, { recursive: true, force: true })
+console.log(`\n${n} prove superate`)

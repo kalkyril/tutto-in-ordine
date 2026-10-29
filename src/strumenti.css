@@ -1,0 +1,187 @@
+/* Strumenti: Documenti (modelli) e Anonimizza (anonimizzazione). Stessi token dell'app, chiaro e scuro. */
+
+/* ---------- Documenti ---------- */
+.documenti-pagina { max-width: 1500px; }
+.documenti-griglia { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 22px; align-items: start; }
+.documenti-elenco { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.documenti-elenco .nav-section { padding: 0 10px 4px; }
+.documenti-voce { display: flex; gap: 9px; align-items: center; width: 100%; min-height: 34px; padding: 6px 10px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text); text-align: left; }
+.documenti-voce span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; flex-direction: column; }
+.documenti-voce small { font-size: var(--fs-2xs); font-weight: 400; overflow: hidden; text-overflow: ellipsis; }
+.documenti-voce svg { flex: none; color: var(--muted); }
+.documenti-voce:hover { background: var(--sidebar-hover, var(--surface-2)); }
+.documenti-voce.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; } .documenti-voce.on svg { color: var(--accent); }
+.documenti-editor { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 22px; align-items: start; min-width: 0; }
+.documenti-form { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.documenti-testa { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: flex-end; }
+.documenti-testa > .field:first-child { flex: 1 1 280px; min-width: 0; }
+.documenti-testa > .field:nth-child(2) { flex: 0 1 220px; min-width: 160px; }
+.documenti-titolo { font-size: var(--fs-lg); font-weight: 650; }
+.documenti-testa > .field .hint { overflow-wrap: anywhere; }
+.scegli-modello { display: flex; flex-direction: column; gap: 14px; }
+.scegli-modello .nav-section { margin: 0 0 6px; padding: 0; }
+.documenti-intro { padding: 22px; }
+.documenti-intro h2 { font-size: var(--fs-xl); margin-bottom: 6px; } .documenti-intro > p { max-width: 70ch; margin-bottom: 16px; }
+.documenti-tipi { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.documenti-tipo { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: center; text-align: left; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); min-width: 0; }
+.documenti-tipo svg { grid-row: span 2; color: var(--accent); }
+.documenti-tipo span { grid-column: 2; overflow-wrap: anywhere; }
+.documenti-tipo:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+.editor-testo { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.editor-barra { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; position: sticky; top: 0; z-index: 2; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.editor-barra select { width: auto; min-height: 32px; padding: 4px 8px; }
+.editor-campi { margin-left: auto; max-width: 100%; }
+.editor-foglio { min-height: 420px; max-height: 70vh; overflow: auto; padding: 22px 26px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); color: var(--text); line-height: 1.55; font-size: 15px; outline: none; overflow-wrap: anywhere; }
+.editor-foglio:focus-visible { box-shadow: 0 0 0 3px var(--accent-soft); border-color: var(--accent); }
+.editor-foglio p { margin: 0 0 .55em; } .editor-foglio h1 { font-size: 1.5em; margin: .4em 0 .3em; } .editor-foglio h2 { font-size: 1.2em; margin: .8em 0 .3em; } .editor-foglio h3 { font-size: 1.05em; margin: .7em 0 .3em; }
+.editor-foglio ul, .editor-foglio ol { margin: 0 0 .6em; padding-left: 1.6em; }
+.editor-testo > p svg { vertical-align: -2px; }
+.editor-foglio [data-colonne] { column-count: 2; column-gap: 28px; column-rule: 1px dashed var(--border-strong); margin: 0 0 .55em; padding: 6px 8px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--accent) 6%, transparent); outline: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent); }
+.editor-foglio.due-colonne [data-colonne] { column-count: auto; background: none; outline: 0; padding: 0; }
+.editor-colonne.on, .documenti-disposizione .btn.on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.editor-foglio.due-colonne { column-count: 2; column-gap: 28px; column-rule: 1px dashed var(--border); }
+.documenti-disposizione { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.documenti-disposizione > .small:first-child { font-weight: 600; }
+.documenti-disposizione .segmented button svg { display: block; }
+.documenti-disposizione .btn.on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+.crea-documento { display: flex; flex-direction: column; gap: 14px; }
+.crea-documento fieldset { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px 12px; margin: 0; min-width: 0; }
+.crea-documento legend { padding: 0 4px; font-weight: 650; font-size: var(--fs-sm); }
+.crea-formati { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.crea-formati legend { grid-column: 1 / -1; }
+.formato { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; min-width: 0; }
+.formato input { grid-row: span 2; margin: 0; } .formato span { grid-column: 2; overflow-wrap: anywhere; }
+.formato.on { border-color: var(--accent); background: var(--accent-soft); }
+
+@media (max-width: 1300px) { .documenti-editor { grid-template-columns: 1fr; } .documenti-editor .modello-preview { position: static; } }
+@media (max-width: 860px) { .documenti-griglia { grid-template-columns: 1fr; } .documenti-elenco { position: static; flex-direction: row; flex-wrap: wrap; } .documenti-elenco > div { min-width: 180px; } }
+
+/* ---------- Anonimizza ---------- */
+.anonimizza { max-width: 1400px; }
+.anonimizza .segmented button svg { vertical-align: -2px; }
+.anonimizza { --f-persona: #8b5cf6; --f-org: #2563eb; --f-codice: #d97706; --f-recapito: #0d9488; --f-luogo: #16a34a; --f-tempo: #e11d48; }
+:root[data-theme="dark"] .anonimizza { --f-persona: #a78bfa; --f-org: #60a5fa; --f-codice: #fbbf24; --f-recapito: #2dd4bf; --f-luogo: #4ade80; --f-tempo: #fb7185; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .anonimizza { --f-persona: #a78bfa; --f-org: #60a5fa; --f-codice: #fbbf24; --f-recapito: #2dd4bf; --f-luogo: #4ade80; --f-tempo: #fb7185; } }
+.f-persona { --f: var(--f-persona); } .f-org { --f: var(--f-org); } .f-codice { --f: var(--f-codice); } .f-recapito { --f: var(--f-recapito); } .f-luogo { --f: var(--f-luogo); } .f-tempo { --f: var(--f-tempo); }
+
+.anon-inizio { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.anon-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; min-height: 280px; padding: 28px 22px; border: 1.5px dashed var(--border-strong); transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
+.anon-drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.anon-drop h2 { font-size: var(--fs-xl); } .anon-drop p { max-width: 44ch; }
+.anon-drop-icona { width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); margin-bottom: 4px; }
+.anon-drop-azioni { justify-content: center; margin-top: 8px; }
+.anon-incolla { display: flex; flex-direction: column; gap: 10px; }
+.anon-incolla textarea { flex: 1; min-height: 160px; resize: vertical; }
+.anon-punti { grid-column: 1 / -1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.anon-punti li { padding: 12px 14px; border-radius: var(--radius); background: var(--surface-2); line-height: 1.5; font-size: var(--fs-sm); }
+
+.anon-griglia { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+.anon-documento { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.anon-barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.anon-nome { display: flex; flex-direction: column; min-width: 0; }
+.anon-nome b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.anon-testo { position: relative; max-height: 68vh; min-height: 260px; overflow: auto; padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); }
+.anon-testo pre, .anon-esito { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.75; }
+.anon-modifica { min-height: 420px; max-height: 68vh; font: inherit; line-height: 1.6; resize: vertical; }
+.pii { font: inherit; color: inherit; border: 0; padding: 0 2px; margin: 0; border-radius: 3px; cursor: pointer; background: color-mix(in srgb, var(--f) 20%, transparent); box-shadow: inset 0 -2px 0 var(--f); line-height: inherit; }
+.pii:hover, .pii:focus-visible { background: color-mix(in srgb, var(--f) 34%, transparent); outline: none; }
+.pii.manuale { box-shadow: inset 0 -2px 0 var(--f), 0 0 0 1px var(--f); }
+.anon-pop { position: absolute; z-index: 5; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; min-width: 220px; max-width: min(320px, 90%); padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-lg); }
+.anon-pop select { width: auto; flex: 1; min-height: 30px; padding: 3px 6px; }
+.anon-pop code { font-size: .92em; }
+.anon-aiuto { line-height: 1.5; }
+.anon-lato { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 16px; min-width: 0; }
+.anon-lato .check { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0; line-height: 1.4; }
+.anon-azioni { display: flex; flex-direction: column; gap: 8px; }
+.anon-azioni > .btn { justify-content: flex-start; }
+.anon-salva select { flex: 1; min-width: 0; width: auto; }
+.anon-tag { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.anon-tag li .check { margin: 0; padding: 5px 0; align-items: center; }
+.anon-tag em { font-style: normal; font-variant-numeric: tabular-nums; color: var(--muted); font-size: var(--fs-xs); }
+.pallino { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--f); }
+.anon-correzioni { list-style: none; margin: 0; padding: 0; } .anon-correzioni li { display: flex; gap: 8px; align-items: center; padding: 5px 0; border-top: 1px solid var(--border); overflow-wrap: anywhere; } .anon-correzioni li:first-child { border-top: 0; }
+.anon-ripristino { display: grid; gap: 14px; max-width: 900px; }
+.anon-ripristino textarea { width: 100%; min-height: 160px; resize: vertical; }
+.anon-esito { padding: 14px 16px; border-radius: var(--radius); background: var(--surface-2); margin-bottom: 10px !important; max-height: 50vh; overflow: auto; }
+.anon-credito { margin-top: 22px; text-align: center; }
+.anon-credito .link { border: 0; background: none; padding: 0; font: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+
+@media (max-width: 1050px) { .anon-griglia { grid-template-columns: 1fr; } .anon-lato { position: static; } .anon-inizio { grid-template-columns: 1fr; } }
+
+/* etichette lunghe delle opzioni: vanno a capo dentro la colonna, il riquadro di spunta resta allineato alla prima riga */
+.anon-lato .check { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
+.anon-lato .check > input { flex: none; margin-top: 2px; }
+.crea-documento .check { white-space: normal; }
+/* formato scelto: la nota resta leggibile sul fondo colorato (contrasto ≥ 4,5:1 in chiaro e in scuro) */
+.formato.on .muted { color: var(--text); }
+
+/* con il gruppo Strumenti le voci sono nove: su schermi bassi la barra laterale si compatta e resta tutta visibile */
+@media (max-height: 820px) {
+  .sidebar .nav-list { gap: 12px; }
+  .sidebar .nav-group { gap: 1px; }
+  .sidebar .nav-item { min-height: 34px; padding-top: 5px; padding-bottom: 5px; }
+  .sidebar .nav-section { padding-bottom: 3px; }
+  .sidebar .brand { padding-bottom: 10px; }
+}
+/* selettore Anonimizza / Ripristina: icona e testo con il loro spazio */
+.anonimizza .page-head-actions .segmented button { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ---------- fattura elettronica ---------- */
+.fattura-xml { display: flex; flex-direction: column; gap: 14px; }
+.fattura-xml-nota { display: flex; gap: 8px; align-items: flex-start; margin: 0; padding: 10px 12px; border-radius: var(--radius); background: var(--surface-2); line-height: 1.5; font-size: var(--fs-sm); }
+.fattura-xml-nota svg { flex: none; margin-top: 2px; color: var(--accent); }
+.fattura-xml-gruppo { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px 12px; margin: 0; min-width: 0; }
+.fattura-xml-gruppo legend { padding: 0 4px; font-weight: 650; font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.fattura-xml-esito { display: flex; flex-direction: column; gap: 6px; min-height: 24px; }
+.fattura-xml-esito .esito { display: flex; gap: 8px; align-items: flex-start; margin: 0; padding: 8px 10px; border-radius: var(--radius-sm); line-height: 1.45; overflow-wrap: anywhere; }
+.fattura-xml-esito .esito svg { flex: none; margin-top: 2px; }
+.fattura-xml-esito .err { background: var(--danger-soft); color: var(--danger-text, var(--text)); }
+.fattura-xml-esito .avviso { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--text); }
+.fattura-xml-esito .ok { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--text); }
+.fattura-xml-esito code { font-size: .92em; overflow-wrap: anywhere; }
+.documenti-voce.on small { color: var(--text); } /* sul fondo della voce scelta il grigio non raggiunge 4,5:1 */
+
+/* ---------- modelli Word ---------- */
+.campi-word { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.campi-word li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; min-width: 0; }
+.campi-word code { overflow-wrap: anywhere; }
+.campi-disponibili { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 16px; }
+.campi-disponibili > div { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; min-width: 0; }
+.campi-disponibili .nav-section { flex-basis: 100%; margin: 0; padding: 0; }
+.chip-campo { border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); border-radius: var(--radius-pill); padding: 3px 10px; font-size: var(--fs-sm); max-width: 100%; overflow-wrap: anywhere; text-align: left; }
+.chip-campo:hover { border-color: var(--accent); background: var(--accent-soft); }
+.anteprima-word { position: sticky; top: 16px; min-width: 0; }
+.anteprima-word pre { margin: 0; max-height: 70vh; overflow: auto; padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: var(--fs-sm); line-height: 1.6; }
+.crea-word { margin: 0; padding: 10px 12px; border-radius: var(--radius); background: var(--surface-2); }
+@media (max-width: 1300px) { .anteprima-word { position: static; } }
+
+/* ---------- scadenze fiscali ---------- */
+.scadenze-fiscali { display: flex; flex-direction: column; gap: 12px; }
+.scadenze-elenco { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.scadenze-elenco li { border-top: 1px solid var(--border); padding: 8px 0; }
+.scadenze-elenco li:first-child { border-top: 0; }
+.scadenze-elenco .check { display: flex; gap: 10px; align-items: flex-start; white-space: normal; }
+.scadenze-elenco .check > input { flex: none; margin-top: 3px; }
+.scadenze-elenco .check > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+
+/* ---------- Anonimizza in blocco ---------- */
+.anon-pratica { display: grid; gap: 14px; max-width: 980px; }
+.anon-pratica .card > p { margin: 0 0 10px; line-height: 1.5; }
+.anon-pratica-opzioni { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+.anon-pratica-opzioni .check, .anon-pratica-elenco .check { display: flex; gap: 8px; align-items: flex-start; white-space: normal; min-width: 0; overflow-wrap: anywhere; }
+.anon-pratica-elenco { list-style: none; margin: 0 0 12px; padding: 0; }
+.anon-pratica-elenco li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto); gap: 4px 14px; align-items: center; padding: 7px 0; border-top: 1px solid var(--border); }
+.anon-pratica-elenco li:first-child { border-top: 0; }
+.anon-pratica-elenco .esito { display: inline-flex; gap: 6px; align-items: center; font-size: var(--fs-sm); color: var(--muted); overflow-wrap: anywhere; min-width: 0; }
+.anon-pratica-elenco .esito.fatto { color: var(--text); }
+.anon-pratica-elenco .ok { color: var(--ok); } .anon-pratica-elenco .avviso { color: var(--warn); }
+@media (max-width: 760px) { .anon-pratica-elenco li { grid-template-columns: 1fr; } }
+
+/* barra laterale a finestra bassa: con «Da pagare» le voci sono dieci e un'etichetta lunga («Documenti e incassi») può andare
+ * su due righe; il nome dello studio occupa meno spazio così che tutte restino visibili anche a 640 px */
+@media (max-height: 760px) {
+  .sidebar .brand { min-height: 64px; }
+  .sidebar .nav-list { gap: 10px; }
+}

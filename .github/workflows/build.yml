@@ -1,0 +1,99 @@
+# Verifica su Mac e Windows e, con un tag «v1.2.3», pubblica gli installer in una Release di GitHub.
+name: Verifica e installer
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verifica:
+    name: Prove (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90   # i minuti macOS valgono 10 volte tanto: un blocco non deve consumare ore
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - name: Prove automatiche (calcoli, dati, report, controllo dei tipi)
+        run: node scripts/run-tests.js
+        shell: bash
+      - name: Prove nell'app vera
+        run: sh scripts/run-all-smoke.sh "$RUNNER_TEMP/smoke"
+        env: { STRICT: '1' }
+        shell: bash
+      - name: Conserva i registri delle prove
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: registri-${{ matrix.os }}
+          path: ${{ runner.temp }}/smoke
+          if-no-files-found: ignore
+
+  installer:
+    name: Installer (${{ matrix.os }})
+    needs: verifica
+    if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      # l'app chiede le nuove versioni a questo stesso repository (electron/aggiornamenti.js legge il campo `repository`)
+      - run: npm pkg set "repository=github:${GITHUB_REPOSITORY}"
+        shell: bash
+      - run: npm run build
+      - run: npx electron-builder --publish never
+        env: { CSC_IDENTITY_AUTO_DISCOVERY: 'false' }   # nessun certificato: Mac firmato ad-hoc (mac.identity "-"), Windows non firmato
+      - name: Prova gli eseguibili impacchettati
+        run: node scripts/run-packaged-smoke.js
+      - name: Conserva i risultati dei pacchetti
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prove-pacchetti-${{ matrix.os }}
+          path: ${{ runner.temp }}/tio-packaged-smoke
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.os }}
+          path: |
+            release/*.dmg
+            release/*.exe
+          if-no-files-found: error
+
+  pubblica:
+    name: Pubblica la Release
+    needs: installer
+    runs-on: ubuntu-latest
+    permissions: { contents: write }
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { pattern: installer-*, merge-multiple: true, path: installer }
+      - name: Codici di controllo SHA-256 degli installer
+        working-directory: installer
+        run: |
+          sha256sum -- * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: installer/*
+          # un tag con il trattino (v1.4.0-beta.6, v1.5.0-rc.1) diventa una pre-release: GitHub non la indica come
+          # ultima versione e il controllo degli aggiornamenti dell'app la propone solo a chi usa già una beta
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
+          body: |
+            **Come installare**, compresi gli avvisi di macOS (Gatekeeper) e Windows (SmartScreen) per le app non firmate: sezioni «Installare» del README.
+            **Codici di controllo:** `SHA256SUMS.txt` (verifica il file scaricato prima di aprirlo).
+            **Novità:** CHANGELOG.md. Si installa sopra la versione precedente: pratiche e impostazioni restano; prima conviene fare un backup.

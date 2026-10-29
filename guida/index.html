@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Guida di TIO</title>
+<meta name="description" content="Il manuale completo di TIO, Tutto In Ordine: installazione, pratiche, agenda, compiti, anagrafica, parcelle e fatture, Documenti, Anonimizza, backup e impostazioni.">
+<link rel="icon" href="img/icona.png">
+<link rel="stylesheet" href="guida.css">
+<script defer src="guida.js"></script>
+</head>
+<body>
+<a class="salta" href="#contenuto">Vai al contenuto</a>
+<div class="guida">
+
+<aside class="indice" aria-label="Indice della guida">
+  <a class="marchio" href="#inizio"><img src="img/icona.png" alt=""><span>Guida di TIO<small>Versione 1.0</small></span></a>
+  <button class="apri-indice" type="button" data-apri-indice aria-expanded="false">Indice</button>
+  <nav>
+    <div class="cerca">
+      <input type="search" data-cerca placeholder="Cerca nella guida…  /" aria-label="Cerca nella guida">
+      <p data-cerca-esito aria-live="polite"></p>
+    </div>
+    <ol>
+      <li class="gruppo" aria-hidden="true">Per iniziare</li>
+      <li><a href="#come-usare">1. Come usare questa guida</a></li>
+      <li><a href="#installare">2. Installare e avviare</a>
+        <ol>
+          <li><a href="#requisiti">Requisiti</a></li>
+          <li><a href="#installare-mac">Su Mac</a></li>
+          <li><a href="#installare-windows">Su Windows</a></li>
+          <li><a href="#primo-avvio">Primo avvio</a></li>
+          <li><a href="#finestra-chiusa">La finestra e gli avvisi</a></li>
+          <li><a href="#aggiornare">Aggiornare</a></li>
+          <li><a href="#disinstallare">Disinstallare</a></li>
+        </ol>
+      </li>
+      <li><a href="#interfaccia">3. Come è fatto TIO</a>
+        <ol>
+          <li><a href="#barra-laterale">La barra laterale</a></li>
+          <li><a href="#barra-alto">La barra in alto</a></li>
+          <li><a href="#profili">Studio, professionista, ditta</a></li>
+        </ol>
+      </li>
+      <li class="gruppo" aria-hidden="true">Il lavoro</li>
+      <li><a href="#panoramica">4. Panoramica</a></li>
+      <li><a href="#pratiche">5. Pratiche, incarichi e commesse</a>
+        <ol>
+          <li><a href="#nuova-pratica">Creare un lavoro</a></li>
+          <li><a href="#viste-pratiche">Elenco, schede e filtri</a></li>
+          <li><a href="#scheda-pratica">La scheda del lavoro</a></li>
+          <li><a href="#documenti-collegati">Documenti collegati</a></li>
+          <li><a href="#attivita-spese">Attività, ore e spese</a></li>
+          <li><a href="#budget">Budget e consegna</a></li>
+          <li><a href="#eliminare">Eliminare e annullare</a></li>
+        </ol>
+      </li>
+      <li><a href="#agenda">6. Agenda e avvisi</a>
+        <ol>
+          <li><a href="#viste-agenda">Mese, settimana, elenco</a></li>
+          <li><a href="#avvisi">Gli avvisi</a></li>
+          <li><a href="#esito-udienza">Esito dell’udienza</a></li>
+          <li><a href="#calcolo-termini">Calcolo dei termini</a></li>
+          <li><a href="#calendari-collegati">Calendari collegati</a></li>
+          <li><a href="#stampa-agenda">Stampa ed esportazione</a></li>
+        </ol>
+      </li>
+      <li><a href="#compiti">7. Compiti</a></li>
+      <li><a href="#anagrafica">8. Anagrafica</a></li>
+      <li class="gruppo" aria-hidden="true">I conti</li>
+      <li><a href="#parcelle">9. Parcelle, fatture e preventivi</a>
+        <ol>
+          <li><a href="#tipi-documento">I tipi di documento</a></li>
+          <li><a href="#voci">Voci e aliquote</a></li>
+          <li><a href="#spese-extra">Spese extra</a></li>
+          <li><a href="#calcolo-forense">Compensi forensi</a></li>
+          <li><a href="#pdf-documento">Il PDF</a></li>
+          <li><a href="#fattura-elettronica">Fattura elettronica XML</a></li>
+          <li><a href="#nota-credito">Nota di credito</a></li>
+          <li><a href="#incassi">Incassi e solleciti</a></li>
+          <li><a href="#prima-nota">Prima nota e redditività</a></li>
+          <li><a href="#preventivi-lavori">Preventivi e lavori</a></li>
+          <li><a href="#costi">Costi e fornitori</a></li>
+          <li><a href="#ricorrenze">Attività ricorrenti</a></li>
+          <li><a href="#scadenze-fiscali">Scadenze fiscali</a></li>
+        </ol>
+      </li>
+      <li><a href="#da-pagare">10. Da pagare</a></li>
+      <li><a href="#collegamenti">11. Collegamenti</a></li>
+      <li class="gruppo" aria-hidden="true">Strumenti</li>
+      <li><a href="#documenti">12. Documenti</a>
+        <ol>
+          <li><a href="#modelli-predefiniti">Modelli predefiniti</a></li>
+          <li><a href="#editor-modello">Modificare un modello</a></li>
+          <li><a href="#campi">I campi automatici</a></li>
+          <li><a href="#crea-documento">Creare un documento</a></li>
+          <li><a href="#modelli-word">Modelli Word</a></li>
+        </ol>
+      </li>
+      <li><a href="#anonimizza">13. Anonimizza</a>
+        <ol>
+          <li><a href="#anonimizza-documento">Anonimizzare</a></li>
+          <li><a href="#anonimizza-correggere">Correggere il risultato</a></li>
+          <li><a href="#anonimizza-salvare">Copiare e salvare</a></li>
+          <li><a href="#anonimizza-pratica">Un lavoro intero</a></li>
+          <li><a href="#anonimizza-ripristina">Ripristinare i dati</a></li>
+          <li><a href="#anonimizza-limiti">Cosa sapere</a></li>
+        </ol>
+      </li>
+      <li class="gruppo" aria-hidden="true">Sistema</li>
+      <li><a href="#ricerca">14. Ricerca e comandi</a></li>
+      <li><a href="#impostazioni">15. Impostazioni</a></li>
+      <li><a href="#backup">16. Backup, ripristino e sicurezza</a>
+        <ol>
+          <li><a href="#backup-automatico">Backup automatico</a></li>
+          <li><a href="#backup-password">Backup con password</a></li>
+          <li><a href="#ripristino">Ripristinare</a></li>
+          <li><a href="#blocco">Blocco con password</a></li>
+          <li><a href="#cifratura-disco">Cifratura del disco</a></li>
+        </ol>
+      </li>
+      <li><a href="#importare">17. Portare dentro i dati</a></li>
+      <li><a href="#privacy">18. Privacy</a></li>
+      <li><a href="#scorciatoie">19. Scorciatoie da tastiera</a></li>
+      <li><a href="#problemi">20. Se qualcosa non va</a></li>
+      <li><a href="#glossario">21. Glossario</a></li>
+      <li><a href="#crediti">22. Licenza e ringraziamenti</a></li>
+    </ol>
+  </nav>
+</aside>
+
+<main id="contenuto">
+<div class="testo">
+
+<header class="copertina" id="inizio">
+  <p class="sopra">Guida completa · TIO 1.0</p>
+  <h1>Tutto In Ordine, spiegato bene.</h1>
+  <p class="sotto">Il manuale di TIO, sezione per sezione: dall’installazione al primo documento, dall’agenda alla fattura elettronica, fino a Documenti e Anonimizza. Gratuito, sul tuo computer, anche senza internet.</p>
+</header>
+
+<!-- ================================================================ 1 -->
+<section class="capitolo" id="come-usare">
+<h2><span class="num">1.</span>Come usare questa guida</h2>
+<p>Questa guida è inclusa in TIO e si apre nel browser anche senza connessione: da <span class="percorso">Aiuto › Guida di TIO</span>, con il tasto <kbd>F1</kbd>, dai comandi rapidi (<kbd>⌘</kbd><kbd>K</kbd>, poi «Guida») oppure da <span class="percorso">Impostazioni › Backup e sicurezza › Informazioni</span>.</p>
+<ul>
+  <li><strong>Cerca:</strong> scrivi nel campo in alto a sinistra (o premi <kbd>/</kbd>): l’indice mostra solo le sezioni che contengono le parole cercate. <kbd>Invio</kbd> apre la prima.</li>
+  <li><strong>Tasti:</strong> sul Mac <kbd>⌘</kbd> è il tasto Comando; su Windows usa <kbd>Ctrl</kbd> al suo posto. Quando i tasti sono diversi la guida li indica entrambi.</li>
+  <li><strong>Percorsi:</strong> «<span class="percorso">Impostazioni › Avvisi</span>» significa: apri Impostazioni, poi la scheda Avvisi.</li>
+  <li><strong>Le parole cambiano col profilo:</strong> uno studio legale vede «Pratiche» e «Parcelle», un libero professionista «Incarichi» e «Documenti e incassi», una ditta «Commesse» e «Fatture». La guida usa di solito «lavoro» o «pratica»: vale per tutti.</li>
+</ul>
+<div class="nota"><b>Un aiuto, non un consulente.</b>Compensi, termini processuali, date e importi fiscali calcolati da TIO sono un supporto operativo: verificali sempre sul caso concreto e, per le questioni fiscali, con il tuo commercialista.</div>
+</section>
+
+<!-- ================================================================ 2 -->
+<section class="capitolo" id="installare">
+<h2><span class="num">2.</span>Installare e avviare</h2>
+
+<h3 id="requisiti">Requisiti</h3>
+<div class="tabella"><table>
+  <thead><tr><th>Sistema</th><th>File da scaricare</th></tr></thead>
+  <tbody>
+    <tr><td>Mac con chip Apple (M1, M2…)</td><td><code>TIO-1.0.0-arm64.dmg</code> · macOS 13 Ventura o successivo</td></tr>
+    <tr><td>Mac con processore Intel</td><td><code>TIO-1.0.0.dmg</code> · macOS 13 o successivo</td></tr>
+    <tr><td>Windows</td><td><code>TIO-Setup-1.0.0.exe</code> · Windows 10 o 11 a 64 bit</td></tr>
+  </tbody>
+</table></div>
+<p>L’app occupa circa 420 MB su Mac e 510 MB su Windows, più l’archivio e i backup. Non sai che Mac hai? Menu Apple › <span class="percorso">Informazioni su questo Mac</span>: «Chip Apple M…» indica Apple Silicon, «Processore Intel» un Mac Intel.</p>
+<p>Gli installer sono nella pagina <strong>Releases</strong> del progetto su GitHub, insieme al file <code>SHA256SUMS.txt</code>. Per controllare che il file scaricato sia integro e sia proprio quello pubblicato, confronta il suo codice:</p>
+<ul>
+  <li>Mac, nel Terminale: <code>shasum -a 256 TIO-1.0.0-arm64.dmg</code></li>
+  <li>Windows, nel Prompt dei comandi: <code>certutil -hashfile TIO-Setup-1.0.0.exe SHA256</code></li>
+</ul>
+
+<h3 id="installare-mac">Su Mac</h3>
+<ol class="passi">
+  <li>Apri il file <code>.dmg</code> e trascina <strong>TIO</strong> nella cartella <strong>Applicazioni</strong>.</li>
+  <li>Apri TIO da Applicazioni. La prima volta macOS dice che non può verificare l’app: TIO non passa dall’App Store e non ha una firma a pagamento di Apple. Premi <strong>Fine</strong>.</li>
+  <li>Apri <span class="percorso">Impostazioni di Sistema › Privacy e sicurezza</span>, scorri fino a <strong>Sicurezza</strong> e premi <strong>Apri comunque</strong> accanto a «TIO è stato bloccato…». Inserisci la password del Mac e conferma.</li>
+</ol>
+<p>Serve solo la prima volta. Su macOS 14 o precedenti basta anche clic destro sull’icona › <strong>Apri</strong> › <strong>Apri</strong>.</p>
+<div class="consiglio"><b>«TIO è danneggiato e non può essere aperto»?</b>Di solito è un download incompleto: confronta il codice SHA-256. Se coincide, nel Terminale scrivi <code>xattr -dr com.apple.quarantine /Applications/TIO.app</code>: toglie il contrassegno «scaricato da internet» senza modificare l’app.</div>
+
+<h3 id="installare-windows">Su Windows</h3>
+<ol class="passi">
+  <li>Scarica <code>TIO-Setup-1.0.0.exe</code>. Se il browser dice che il file «non viene scaricato comunemente», scegli di conservarlo (in Edge: menu <strong>…</strong> › <strong>Mantieni</strong> › <strong>Mantieni comunque</strong>).</li>
+  <li>Fai doppio clic. Se compare <strong>«Windows ha protetto il PC»</strong> (SmartScreen), premi <strong>Ulteriori informazioni</strong> e poi <strong>Esegui comunque</strong>. L’avviso dipende dalla mancanza di una firma digitale a pagamento.</li>
+  <li>Segui l’installazione in italiano: non servono permessi da amministratore. TIO crea l’icona sul desktop e nel menu Start e alla fine si apre.</li>
+</ol>
+<div class="nota"><b>Accesso alle cartelle controllato.</b>Se in Sicurezza di Windows è attiva la protezione ransomware, i programmi non firmati non possono scrivere in Documenti, Desktop e Immagini. Per questo su Windows TIO tiene backup e documenti nella tua cartella utente (<code>C:\Utenti\&lt;nome&gt;\TIO Backup</code> e <code>…\TIO</code>). Se scegli una cartella protetta, TIO spiega come autorizzarlo.</div>
+
+<h3 id="primo-avvio">Primo avvio</h3>
+<p>Al primo avvio TIO ti chiede:</p>
+<ul>
+  <li><strong>che lavoro fai:</strong> Studio legale, Libero professionista o Ditta individuale. Da questa scelta dipendono le parole usate, le aliquote proposte, i modelli di documento e le scadenze fiscali suggerite (vedi <a href="#profili">Studio, professionista, ditta</a>);</li>
+  <li><strong>il nome dell’attività</strong>, che comparirà nell’intestazione dei documenti, e se vuoi il tuo nome e un colore.</li>
+</ul>
+<p>Dopo il benvenuto TIO chiede una sola volta se vuoi essere avvisato delle nuove versioni. Tutto si cambia poi da <span class="percorso">Impostazioni</span>.</p>
+<p>Il primo passo consigliato è completare <span class="percorso">Impostazioni › Studio</span> (o <span class="percorso">La tua attività</span>): indirizzo, partita IVA, codice fiscale, email, PEC, banca e IBAN finiscono nei PDF, nei modelli di documento e nella fattura elettronica. Logo e colore si scelgono in <span class="percorso">Impostazioni › Generale</span>.</p>
+
+<h3 id="finestra-chiusa">La finestra e gli avvisi</h3>
+<p><strong>La X non chiude TIO.</strong> La finestra si nasconde e TIO resta attivo per mandarti gli avvisi (si cambia in <span class="percorso">Impostazioni › Generale › Resta attiva in background alla chiusura della finestra</span>): sul Mac nella barra dei menu in alto, su Windows nell’area di notifica vicino all’orologio. Per riaprirlo fai clic sull’icona; per uscire davvero scegli <span class="percorso">TIO › Esci</span> (<kbd>⌘</kbd><kbd>Q</kbd>) sul Mac, oppure clic destro sull’icona › <strong>Esci</strong> su Windows.</p>
+<p>Sul Mac, il clic destro sull’icona nel Dock offre le azioni più frequenti (nuovo lavoro, nuova scadenza, nuovo compito) anche a finestra chiusa.</p>
+
+<h3 id="aggiornare">Aggiornare</h3>
+<p>Scarica la nuova versione e installala <strong>sopra</strong> quella che hai, senza disinstallare: archivio, impostazioni e backup restano. Prima conviene fare un backup (<span class="percorso">Impostazioni › Backup e sicurezza</span>).</p>
+<p>Se hai attivato <span class="percorso">Impostazioni › Backup e sicurezza › Aggiornamenti › Controlla gli aggiornamenti ogni giorno</span>, TIO chiede a GitHub soltanto il numero dell’ultima versione. Quando ne esce una nuova compare un piccolo riquadro <strong>«Aggiornamento x.y.z»</strong> accanto a «Cerca nell’archivio…»: porta alla sezione Aggiornamenti, con il pulsante per aprire la pagina di download. TIO non scarica e non installa nulla da solo.</p>
+
+<h3 id="disinstallare">Disinstallare</h3>
+<ul>
+  <li><strong>Mac:</strong> trascina TIO da Applicazioni nel Cestino.</li>
+  <li><strong>Windows:</strong> <span class="percorso">Impostazioni › App › App installate › TIO › Disinstalla</span>.</li>
+</ul>
+<p>La disinstallazione non cancella i tuoi dati. Per eliminarli del tutto, dopo aver salvato ciò che ti serve:</p>
+<div class="tabella"><table>
+  <thead><tr><th></th><th>Archivio</th><th>Backup automatici</th></tr></thead>
+  <tbody>
+    <tr><td>Mac</td><td><code>~/Library/Application Support/TIO</code></td><td><code>Documenti/TIO Backup</code></td></tr>
+    <tr><td>Windows</td><td><code>%APPDATA%\TIO</code></td><td><code>%USERPROFILE%\TIO Backup</code></td></tr>
+  </tbody>
+</table></div>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 3 -->
+<section class="capitolo" id="interfaccia">
+<h2><span class="num">3.</span>Come è fatto TIO</h2>
+<p>TIO è una sola finestra: a sinistra la barra con le sezioni, in alto la ricerca e le notifiche, al centro il lavoro.</p>
+
+<h3 id="barra-laterale">La barra laterale</h3>
+<div class="tabella"><table>
+  <thead><tr><th>Gruppo</th><th>Sezioni</th></tr></thead>
+  <tbody>
+    <tr><td>Lavoro</td><td><a href="#panoramica">Panoramica</a>, <a href="#pratiche">Pratiche</a>, <a href="#agenda">Agenda</a>, <a href="#compiti">Compiti</a>. Accanto ad Agenda un numero rosso conta le scadenze in ritardo, accanto a Compiti quelli da fare.</td></tr>
+    <tr><td>Gestione</td><td><a href="#anagrafica">Anagrafica</a>, <a href="#parcelle">Parcelle</a>, <a href="#da-pagare">Da pagare</a>, <a href="#collegamenti">Collegamenti</a>.</td></tr>
+    <tr><td>Strumenti</td><td><a href="#documenti">Documenti</a> e <a href="#anonimizza">Anonimizza</a>.</td></tr>
+    <tr><td>In fondo</td><td><a href="#impostazioni">Impostazioni</a>.</td></tr>
+  </tbody>
+</table></div>
+<p>La barra si nasconde e ricompare con il pulsante in alto a sinistra, con <kbd>⌃</kbd><kbd>⌘</kbd><kbd>S</kbd> sul Mac o <kbd>Ctrl</kbd><kbd>B</kbd> su Windows. Ogni sezione ha anche un tasto rapido: vedi <a href="#scorciatoie">Scorciatoie</a>.</p>
+
+<h3 id="barra-alto">La barra in alto</h3>
+<ul>
+  <li><strong>Cerca nell’archivio…</strong> apre la ricerca e i comandi rapidi (<kbd>⌘</kbd><kbd>K</kbd>): vedi <a href="#ricerca">Ricerca e comandi</a>.</li>
+  <li><strong>Aggiornamento</strong>: compare solo quando c’è una versione nuova.</li>
+  <li><strong>Lucchetto</strong>: compare se hai attivato il <a href="#blocco">blocco con password</a> e blocca TIO subito.</li>
+  <li><strong>Campanella</strong>: le notifiche (avvisi di scadenze, compiti, aggiornamenti). Un clic su una notifica apre l’elemento; «Segna tutte come lette» e «Svuota» puliscono l’elenco.</li>
+</ul>
+<p>Dentro la scheda di un lavoro, in alto compare il percorso (per esempio «Pratiche › 2026/021»): un clic sul primo nome torna all’elenco.</p>
+
+<h3 id="profili">Studio, professionista, ditta</h3>
+<p>Il profilo si sceglie al primo avvio e si cambia in <span class="percorso">Impostazioni › Generale</span>. Cambiandolo, TIO propone nuove etichette e aliquote: controllale prima di salvare.</p>
+<div class="profili">
+  <div><b>Studio legale</b>Pratiche, parcelle e note pro forma; udienze, calcolo dei termini processuali, esito dell’udienza, conflitto di interessi, compensi con i parametri forensi, Cassa Forense.</div>
+  <div><b>Libero professionista</b>Incarichi e «Documenti e incassi»; preventivi, contributo previdenziale configurabile (cassa o rivalsa INPS), budget e consegne, costi e fornitori.</div>
+  <div><b>Ditta individuale</b>Commesse, forniture, manutenzioni; fatture con IVA e bollo, sopralluoghi e appuntamenti, budget per commessa, INPS artigiani e commercianti.</div>
+</div>
+<p>Le etichette («Pratica», «Cliente», «Controparte», «Autorità», «Parcella»…) si possono anche riscrivere a mano in <span class="percorso">Impostazioni › Pratiche e colori</span>.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 4 -->
+<section class="capitolo" id="panoramica">
+<h2><span class="num">4.</span>Panoramica</h2>
+<figure><img src="img/funzione-panoramica.webp" width="1600" height="1012" loading="lazy" alt="La Panoramica di TIO di una ditta di esempio"><figcaption>La Panoramica di una ditta di esempio (dati inventati).</figcaption></figure>
+<p>È la prima schermata: la giornata in un colpo d’occhio.</p>
+<ul>
+  <li><strong>Saluto e riepilogo</strong>: la data e quante scadenze ci sono nei prossimi 14 giorni.</li>
+  <li><strong>Azioni rapide</strong>: nuovo cliente, nuovo compito, nuova scadenza, nuovo lavoro.</li>
+  <li><strong>Numeri</strong>: lavori attivi, scadenze in ritardo, scadenze entro 7 giorni, compiti da fare, importo da incassare. Un clic porta alla sezione corrispondente.</li>
+  <li><strong>Scadenzario</strong>: udienze, scadenze e appuntamenti dei prossimi 14 giorni, con il colore del lavoro.</li>
+  <li><strong>Da fare</strong>: i compiti in sospeso, spuntabili da qui.</li>
+  <li><strong>Lavori attivi</strong>: i preferiti per primi; un clic apre la scheda.</li>
+</ul>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 5 -->
+<section class="capitolo" id="pratiche">
+<h2><span class="num">5.</span>Pratiche, incarichi e commesse</h2>
+<p>Il lavoro è il centro di TIO: ogni pratica (o incarico, o commessa) raccoglie cliente, scadenze, compiti, note, documenti, ore, spese, documenti contabili e collegamenti.</p>
+
+<h3 id="nuova-pratica">Creare un lavoro</h3>
+<p>Con <strong>Nuova pratica</strong> (o <kbd>⌘</kbd><kbd>N</kbd>) compili:</p>
+<ul>
+  <li><strong>numero e titolo</strong> (per esempio «2026/021 · Impianto elettrico Bar Centrale»);</li>
+  <li><strong>cliente</strong> e, se serve, <strong>controparte</strong> o fornitore, scelti dall’anagrafica o creati al volo;</li>
+  <li><strong>tipologia e stato</strong> (Aperta, In corso, In attesa, Sospesa, Chiusa, Archiviata: si cambiano in Impostazioni), <strong>colore</strong>;</li>
+  <li>per gli avvocati <strong>autorità, numero di ruolo (R.G.) e giudice</strong>; per tutti un <strong>valore</strong> e un riferimento.</li>
+</ul>
+<p>Il colore accompagna il lavoro ovunque: in agenda, nella Panoramica, nei documenti contabili.</p>
+
+<h3 id="viste-pratiche">Elenco, schede e filtri</h3>
+<p>La sezione mostra i lavori a <strong>schede</strong>, in <strong>elenco</strong> o raggruppati <strong>per stato</strong>. Puoi cercare, filtrare per stato e tipologia, segnare i <strong>preferiti</strong> (stella) che salgono in cima, e selezionarne più di uno per eliminarli insieme.</p>
+
+<h3 id="scheda-pratica">La scheda del lavoro</h3>
+<figure><img src="img/funzione-lavoro.webp" width="1600" height="1012" loading="lazy" alt="La scheda di un lavoro con dettagli, scadenze, compiti e cronologia"><figcaption>La scheda di un lavoro: dettagli, prossime scadenze, compiti e cronologia.</figcaption></figure>
+<p>Aprendo un lavoro trovi le schede:</p>
+<div class="tabella"><table>
+  <thead><tr><th>Scheda</th><th>Cosa contiene</th></tr></thead>
+  <tbody>
+    <tr><td>Panoramica</td><td>Dati principali, prossime scadenze, compiti aperti e la <strong>cronologia</strong>: ogni modifica, documento e scadenza con data e ora.</td></tr>
+    <tr><td>Compiti</td><td>Le cose da fare per questo lavoro.</td></tr>
+    <tr><td>Scadenze</td><td>Udienze, scadenze e appuntamenti, con gli avvisi.</td></tr>
+    <tr><td>Documenti</td><td>I file collegati, la ricerca nel loro testo, «Da modello…» e «Anonimizza…».</td></tr>
+    <tr><td>Note</td><td>Appunti liberi, ricercabili.</td></tr>
+    <tr><td>Attività e spese</td><td>Ore lavorate, spese anticipate, budget e consegna.</td></tr>
+    <tr><td>Parcelle</td><td>I documenti contabili del lavoro (fatture, preventivi, note pro forma).</td></tr>
+    <tr><td>Collegamenti</td><td>Siti e portali legati al lavoro.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="documenti-collegati">Documenti collegati, non copiati</h3>
+<p>TIO non copia i tuoi file: ricorda dove sono. Trascina un file nella scheda Documenti oppure sceglilo; resta nella tua cartella. Se lo sposti o lo rinomini, <strong>Sincronizza</strong> lo ritrova (cerca nelle cartelle indicate in <span class="percorso">Impostazioni › Documenti</span>).</p>
+<ul>
+  <li><strong>Ricerca nel testo</strong> di PDF, Word, Excel ed email; le <strong>scansioni</strong> si leggono con l’OCR italiano, sul computer.</li>
+  <li><strong>Anteprima</strong> dei PDF e delle immagini senza aprire altri programmi; «Mostra nella cartella» per trovarli nel Finder o in Esplora file.</li>
+  <li>Per sicurezza TIO non avvia programmi o script contenuti nei documenti collegati.</li>
+</ul>
+
+<h3 id="attivita-spese">Attività, ore e spese</h3>
+<p>In <strong>Attività e spese</strong> registri le ore lavorate (data, durata, descrizione, tariffa oraria) e le spese anticipate (con o senza IVA), anche con un allegato. Quando prepari un documento contabile dal lavoro, ore e spese non ancora fatturate si possono importare come voci; se elimini il documento tornano «da fatturare».</p>
+
+<h3 id="budget">Budget e consegna</h3>
+<p>Con <strong>Modifica budget</strong> imposti ore previste, importo concordato e data di consegna. TIO confronta ore registrate e costi con il preventivato e segnala quando il budget ore è superato. Il residuo è una stima operativa, non l’utile fiscale.</p>
+
+<h3 id="eliminare">Eliminare e annullare</h3>
+<p>Eliminando un lavoro si eliminano anche scadenze, compiti, note, collegamenti e riferimenti ai documenti (i file sul disco restano). Dopo un’eliminazione compare <strong>Annulla</strong> per qualche secondo: usalo se hai sbagliato.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 6 -->
+<section class="capitolo" id="agenda">
+<h2><span class="num">6.</span>Agenda e avvisi</h2>
+<figure><img src="img/funzione-agenda.webp" width="1600" height="1012" loading="lazy" alt="L’agenda della settimana con appuntamenti, scadenze e compiti"><figcaption>L’agenda della settimana, con i colori dei lavori.</figcaption></figure>
+
+<h3 id="viste-agenda">Mese, settimana, elenco</h3>
+<p>Tre viste: <strong>Mese</strong>, <strong>Settimana</strong> ed <strong>Elenco</strong>. Gli eventi hanno il colore del loro lavoro; quelli dei calendari collegati compaiono accanto. Le scadenze superate e non completate sono evidenziate e contate nella barra laterale.</p>
+<p>Ogni evento ha un tipo: per gli studi legali <strong>Udienza</strong>, <strong>Scadenza / termine</strong>, <strong>Appuntamento</strong> e <strong>Altro</strong>; per professionisti e ditte <strong>Scadenza</strong>, <strong>Appuntamento / sopralluogo</strong> e <strong>Altro</strong>. Puoi indicare luogo, note e il lavoro a cui appartiene. Lo spunti come completato quando è fatto.</p>
+
+<h3 id="avvisi">Gli avvisi</h3>
+<p>Ogni evento può avere <strong>più avvisi</strong>: al momento dell’evento, 15 o 30 minuti prima, un’ora prima e così via fino a due settimane prima. I promemoria predefiniti si scelgono in <span class="percorso">Impostazioni › Avvisi</span>.</p>
+<ul>
+  <li>Gli avvisi arrivano come notifiche del sistema <strong>anche a finestra chiusa</strong>, finché TIO è attivo nella barra dei menu o vicino all’orologio.</li>
+  <li>C’è un <strong>riepilogo giornaliero</strong> degli impegni.</li>
+  <li>Con le <strong>notifiche riservate</strong> gli avvisi non mostrano i dettagli dell’evento.</li>
+</ul>
+
+<h3 id="esito-udienza">Esito dell’udienza <small>(studi legali)</small></h3>
+<p>Quando chiudi un’udienza TIO chiede l’<strong>esito</strong>: lo annoti, fissi la data del rinvio (che diventa una nuova udienza) e, se serve, crei un compito per gli adempimenti.</p>
+
+<h3 id="calcolo-termini">Calcolo dei termini <small>(studi legali)</small></h3>
+<p>Con <strong>Calcola termine</strong> (in Agenda o dai comandi rapidi) imposti la data di partenza, la durata in giorni, mesi o anni e il verso:</p>
+<ul>
+  <li><strong>in avanti</strong>: se l’ultimo giorno è festivo si va al primo giorno non festivo;</li>
+  <li><strong>a ritroso</strong>: un festivo o un sabato anticipano al giorno utile precedente;</li>
+  <li><strong>sospensione feriale</strong> dal 1° al 31 agosto, salvo i termini che non la prevedono;</li>
+  <li>festività nazionali, compreso il 4 ottobre dal 2026. Il santo patrono non è considerato.</li>
+</ul>
+<p>TIO mostra tutti i passaggi del conteggio e crea direttamente la scadenza. Il calcolo è <strong>sperimentale</strong>: verificalo sempre.</p>
+
+<h3 id="calendari-collegati">Calendari collegati</h3>
+<p>In <span class="percorso">Impostazioni › Integrazioni</span>, «Collega un calendario»: incolli il link iCal (Google Calendar: <span class="percorso">Impostazioni › il tuo calendario › Integra il calendario › Indirizzo segreto in formato iCal</span>; Outlook, iCloud, Cliens Più: <span class="percorso">Agenda › Esporta</span>) oppure scegli un file <code>.ics</code>. Gli impegni compaiono in agenda e negli avvisi, in sola lettura: TIO non scrive mai negli altri calendari e non chiede password.</p>
+<p>Per gli avvocati, <strong>Pratiche…</strong> accanto a un calendario riconosce negli eventi le parti, il numero di ruolo, l’ufficio e il giudice e importa, dopo un’anteprima, le pratiche che scegli (vedi <a href="#importare">Portare dentro i dati</a>).</p>
+
+<h3 id="stampa-agenda">Stampa ed esportazione</h3>
+<p>L’agenda si stampa in PDF e si esporta in un file <code>.ics</code> da aprire nel calendario del telefono. L’esportazione è una copia: non si aggiorna da sola.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 7 -->
+<section class="capitolo" id="compiti">
+<h2><span class="num">7.</span>Compiti</h2>
+<p>I compiti sono le cose da fare, con o senza lavoro collegato. Ognuno ha un titolo, una scadenza facoltativa e una <strong>priorità</strong>. Si riordinano trascinandoli e si spuntano quando sono fatti. Le viste <strong>Da fare</strong>, <strong>Oggi e in ritardo</strong> e <strong>Completate</strong> aiutano a vedere cosa preme.</p>
+<ul>
+  <li>Il numero accanto a «Compiti» nella barra laterale conta quelli da fare.</li>
+  <li>I compiti che si ripetono (un controllo mensile, un rinnovo annuale, le scadenze fiscali) si impostano una volta sola come <a href="#ricorrenze">attività ricorrenti</a>: TIO crea il compito a ogni scadenza.</li>
+</ul>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 8 -->
+<section class="capitolo" id="anagrafica">
+<h2><span class="num">8.</span>Anagrafica</h2>
+<p>Clienti, controparti, fornitori e altri contatti, persone o società, con dati fiscali (codice fiscale, partita IVA), indirizzo, email, PEC, telefono e note.</p>
+<ul>
+  <li>Per la <a href="#fattura-elettronica">fattura elettronica</a> TIO ricorda il <strong>codice destinatario</strong> e la PEC di ogni cliente.</li>
+  <li>Dalla scheda di un contatto vedi i suoi lavori e i suoi documenti contabili.</li>
+  <li><strong>Conflitto di interessi</strong> <small>(studi legali)</small>: se una persona compare come cliente in una pratica e come controparte in un’altra, TIO lo segnala.</li>
+</ul>
+<p>Clienti e controparti dell’anagrafica servono anche ad <a href="#anonimizza">Anonimizza</a>, che li riconosce nei documenti anche dal solo cognome.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 9 -->
+<section class="capitolo" id="parcelle">
+<h2><span class="num">9.</span>Parcelle, fatture e preventivi</h2>
+<figure><img src="img/funzione-fatture.webp" width="1600" height="1012" loading="lazy" alt="L’elenco di fatture e preventivi con emesso, incassato e da incassare"><figcaption>L’elenco dei documenti dell’anno con emesso, incassato e da incassare.</figcaption></figure>
+<p>La sezione (Parcelle, Fatture o Documenti e incassi secondo il profilo) raccoglie i documenti contabili dell’anno scelto, con i totali in alto: emesso, incassato netto, da incassare e preventivi. Le schede in alto portano a <strong>Documenti</strong>, <strong>Da incassare</strong>, <strong>Redditività</strong> e, secondo il profilo, a <strong>Preventivi e lavori</strong>, <strong>Pagamenti</strong>, <strong>Costi e fornitori</strong> e <strong>Attività ricorrenti</strong>.</p>
+
+<h3 id="tipi-documento">I tipi di documento</h3>
+<div class="tabella"><table>
+  <thead><tr><th>Tipo</th><th>A cosa serve</th></tr></thead>
+  <tbody>
+    <tr><td>Parcella / Fattura</td><td>Il documento di vendita, numerato per anno (1/2026, 2/2026…).</td></tr>
+    <tr><td>Preventivo</td><td>Numerato a parte («PR»), con validità ed esito (da inviare, inviato, accettato, rifiutato).</td></tr>
+    <tr><td>Nota pro forma</td><td>Da mandare prima della fattura, numerata a parte.</td></tr>
+    <tr><td>Nota di credito</td><td>Lo storno totale di una fattura emessa, numerata «NC» (vedi <a href="#nota-credito">Nota di credito</a>).</td></tr>
+  </tbody>
+</table></div>
+<p>Ogni documento ha uno <strong>stato</strong>: bozza, emessa, pagata, annullata (e «stornata» per una fattura con nota di credito). Gli stati di incasso seguono i <a href="#incassi">pagamenti registrati</a>.</p>
+
+<h3 id="voci">Voci e aliquote</h3>
+<p>Un documento è fatto di <strong>voci</strong>, ognuna con tipo, descrizione, quantità e importo:</p>
+<ul>
+  <li><strong>Compenso</strong>: il tuo lavoro;</li>
+  <li><strong>Spesa imponibile</strong>: un rimborso di spese sostenute per il lavoro, soggetto a IVA come il compenso;</li>
+  <li><strong>Spesa esente</strong>: una spesa anticipata in nome e per conto del cliente, fuori dall’IVA (art. 15 DPR 633/1972).</li>
+</ul>
+<p>Sulle voci TIO calcola, con le aliquote di <span class="percorso">Impostazioni › Fiscale</span> (modificabili nel singolo documento):</p>
+<ul>
+  <li><strong>spese generali</strong> (per gli avvocati, in percentuale sui compensi);</li>
+  <li><strong>contributo previdenziale</strong>: CPA per gli avvocati, la cassa o la rivalsa INPS per i professionisti, con nome e percentuale configurabili;</li>
+  <li><strong>IVA</strong> sull’imponibile (a zero per il regime forfettario);</li>
+  <li><strong>ritenuta d’acconto</strong>, se il cliente è sostituto d’imposta;</li>
+  <li><strong>bollo</strong> da 2 € quando non c’è IVA e l’importo supera 77,47 €.</li>
+</ul>
+<p>Il prospetto finale mostra totale e netto da pagare.</p>
+
+<h3 id="spese-extra">Spese extra</h3>
+<p>Sotto le voci, il menu <strong>+ Spesa extra…</strong> aggiunge una spesa già impostata con il trattamento IVA corretto. Basta poi scrivere l’importo.</p>
+<div class="tabella"><table>
+  <thead><tr><th>Gruppo</th><th>Voci pronte</th></tr></thead>
+  <tbody>
+    <tr><td>Anticipate per conto del cliente · senza IVA</td><td>Marca da bollo (16 €), contributo unificato e anticipazioni forfettarie da 27 € (avvocati), diritti di copia, notifiche, spese postali, visure e certificati, registrazione atti, diritti e tasse per conto del cliente.</td></tr>
+    <tr><td>Rimborsi di spese sostenute · con IVA</td><td>Carburante, trasferta (rimborso chilometrico), pedaggi e parcheggi, treno e trasporti, vitto e alloggio, domiciliazione (avvocati); materiali, noleggio attrezzature, spedizione, smaltimento (ditte).</td></tr>
+  </tbody>
+</table></div>
+<div class="nota"><b>Quando una spesa è senza IVA?</b>Solo se l’hai pagata in nome e per conto del cliente, con il documento intestato a lui, e la riaddebiti per lo stesso importo. Negli altri casi è un rimborso con IVA. Nel dubbio chiedi al commercialista.</div>
+
+<h3 id="calcolo-forense">Compensi forensi <small>(studi legali)</small></h3>
+<p>Nel documento, «Calcola il compenso con i parametri forensi» apre il calcolo con le tabelle del <strong>DM 55/2014</strong> aggiornate dal <strong>DM 147/2022</strong>: 48 competenze, scaglioni per valore (anche indeterminabile), fasi con minimo, medio e massimo, aumenti e riduzioni, compenso tabellare o in percentuale. Il risultato entra nel prospetto insieme alle altre voci (ore, spese, importi liberi). È un’ipotesi da verificare sul caso concreto.</p>
+
+<h3 id="pdf-documento">Il PDF</h3>
+<p><strong>Salva PDF…</strong> crea il documento con la tua intestazione, il logo e il piè di pagina. L’aspetto si imposta una volta in <span class="percorso">Impostazioni › Modello PDF</span>, con anteprima: posizione e dimensione del logo, testi, caratteri. «Ripristina» ricostruisce il modello dai dati dello studio o dell’attività.</p>
+<p>Con <strong>Importa PDF / Word</strong> puoi anche caricare il riepilogo di una parcella preparato altrove: TIO legge le voci e ricalcola i totali, segnalando le differenze.</p>
+
+<h3 id="fattura-elettronica">Fattura elettronica XML</h3>
+<p>Dall’editor di una fattura, <strong>Fattura elettronica</strong> prepara il file <code>IT&lt;codice&gt;_&lt;progressivo&gt;.xml</code> nel formato FatturaPA tra privati (FPR12, schema 1.2.3). Contiene compensi, spese generali, contributo previdenziale (CPA o rivalsa INPS), IVA o natura (N2.2 per il forfettario), spese escluse art. 15 (N1), ritenuta, bollo virtuale e pagamento con IBAN.</p>
+<ul>
+  <li>Prima di salvare TIO controlla partite IVA, codici fiscali, indirizzi, codice destinatario o PEC e la coerenza dei totali, e indica cosa correggere.</li>
+  <li>Il tipo documento è TD01 per la fattura, TD04 per la nota di credito.</li>
+  <li><strong>TIO non invia nulla al Sistema di Interscambio (SdI).</strong> Il file si carica su Fatture e Corrispettivi, sul servizio del tuo intermediario o si consegna al commercialista, che gestisce ricevute e conservazione.</li>
+</ul>
+<p>Regime fiscale, tipo di cassa e natura si scelgono nella finestra <strong>Fattura elettronica</strong>; TIO li ricorda per le fatture successive.</p>
+<div class="attenzione"><b>Regime e natura.</b>Regime fiscale, cassa previdenziale e codici natura vanno scelti con il commercialista: TIO non può dedurli dal profilo.</div>
+
+<h3 id="nota-credito">Nota di credito</h3>
+<p>Da una fattura emessa, <strong>Nota di credito</strong> crea lo storno totale: stesse voci e importi, numerazione «NC», oggetto «Storno totale della fattura n. … del …». La fattura diventa «stornata» e non è più da incassare; prima nota e totali la compensano (la nota compare in negativo). Della nota puoi preparare il PDF e l’XML (TD04, con il riferimento alla fattura). Oggi è possibile solo lo storno totale: per uno sconto parziale serve una nota preparata con il commercialista.</p>
+
+<h3 id="incassi">Incassi e solleciti</h3>
+<ul>
+  <li><strong>Pagamenti</strong>: registra ogni incasso con data, importo e metodo (bonifico, carta, contanti…). Il residuo si aggiorna e il documento diventa «pagato» quando è saldato.</li>
+  <li><strong>Da incassare</strong>: i documenti emessi non ancora saldati. Per ognuno TIO prepara il <strong>testo del sollecito</strong>, da copiare o aprire nella tua email.</li>
+</ul>
+
+<h3 id="prima-nota">Prima nota e redditività</h3>
+<ul>
+  <li><strong>Prima nota (CSV)</strong>: tutti i documenti dell’anno in un file che si apre con Excel, da passare al commercialista.</li>
+  <li><strong>Redditività</strong> per lavoro: compensi, ore, spese e costi a confronto.</li>
+  <li>Per professionisti e ditte, un CSV dedicato con destinatari e voci si adatta al proprio servizio di fatturazione.</li>
+</ul>
+
+<h3 id="preventivi-lavori">Preventivi e lavori</h3>
+<p>Imposta validità ed esito nel preventivo. Da un preventivo <strong>accettato</strong>: «Avvia lavoro» crea il lavoro collegato, «Prepara documento» una bozza del documento di vendita; il preventivo resta conservato. Ripetendo l’azione TIO apre lo stesso lavoro o documento, senza duplicati.</p>
+
+<h3 id="costi">Costi e fornitori</h3>
+<p>Costi generali o del singolo lavoro, con fornitore, categoria, scadenza del pagamento e stato. «Recuperabile» ricorda un rimborso da chiedere al cliente, senza aggiungerlo da solo ai documenti. Gli stessi costi compaiono in <a href="#da-pagare">Da pagare</a>. Non registrare qui una spesa già inserita tra quelle anticipate del lavoro.</p>
+
+<h3 id="ricorrenze">Attività ricorrenti</h3>
+<p>Compiti che si ripetono ogni settimana, mese o anno, generali o di un lavoro. A ogni scadenza TIO crea il compito con il promemoria. Il giorno originario resta quando possibile (31 gennaio, 28 febbraio, 31 marzo). Dopo una lunga pausa TIO crea un solo compito arretrato e riparte dalla prima data futura.</p>
+<p>Con <strong>Sabati e festivi › Sposta al primo giorno lavorativo</strong> una scadenza che cade nel fine settimana o in un festivo nazionale slitta al primo giorno lavorativo.</p>
+
+<h3 id="scadenze-fiscali">Scadenze fiscali</h3>
+<p>In Attività ricorrenti, <strong>Scadenze fiscali…</strong> propone le scadenze del tuo profilo e regime (IVA mensile, trimestrale o forfettario), da spuntare:</p>
+<ul>
+  <li><strong>per tutti</strong>: IVA e saldo IVA, LIPE, dichiarazione IVA, imposte sui redditi (saldo, primo e secondo acconto, dichiarazione), ritenute e Certificazione Unica, bollo sulle fatture elettroniche;</li>
+  <li><strong>studi legali</strong>: Cassa Forense (contributi minimi, Modello 5, autoliquidazione);</li>
+  <li><strong>professionisti</strong>: INPS gestione separata o la propria cassa;</li>
+  <li><strong>ditte</strong>: INPS artigiani e commercianti (contributi fissi ed eccedenti), diritto annuale della Camera di Commercio.</li>
+</ul>
+<p>Diventano attività ricorrenti con titolo «Fisco: …» e la rata o il trimestre; sabati e festivi slittano da soli al primo giorno lavorativo. Proroghe straordinarie e santo patrono non sono considerati: <strong>verifica le date con il commercialista</strong>.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 10 -->
+<section class="capitolo" id="da-pagare">
+<h2><span class="num">10.</span>Da pagare</h2>
+<p>Sotto Parcelle, <strong>Da pagare</strong> è l’elenco di ciò che devi pagare tu: prestazioni e consulenze, domiciliazioni e sostituzioni, consulenti tecnici, spese extra, fornitori, imposte e contributi.</p>
+<ul>
+  <li>In alto i totali: <strong>da pagare</strong>, <strong>scadute</strong>, <strong>entro 30 giorni</strong>, <strong>pagate nell’anno</strong>.</li>
+  <li>Le voci scadute sono in cima, in rosso; poi in ordine di scadenza.</li>
+  <li><strong>Pagata</strong> sposta la voce tra le pagate; <strong>Riapri</strong> la rimette da pagare. I filtri mostrano da pagare, pagate o tutte.</li>
+  <li>Ogni voce può avere fornitore, lavoro collegato, categoria e «da riaddebitare al cliente».</li>
+  <li><strong>Esporta CSV</strong> per Excel o il commercialista.</li>
+</ul>
+<p>Le voci sono gli stessi costi di Parcelle › Costi e fornitori e contano nella redditività dei lavori.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 11 -->
+<section class="capitolo" id="collegamenti">
+<h2><span class="num">11.</span>Collegamenti</h2>
+<p>I siti che usi più spesso, in riquadri: portali dei tribunali, PEC, banca, Agenzia delle Entrate, fornitori. Possono essere <strong>globali</strong> (sezione Collegamenti) o <strong>di un lavoro</strong> (scheda Collegamenti della pratica). Un clic li apre nel browser.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 12 -->
+<section class="capitolo" id="documenti">
+<h2><span class="num">12.</span>Documenti</h2>
+<p>Lo strumento <strong>Documenti</strong> (<kbd>⌘</kbd><kbd>8</kbd>) prepara lettere, preventivi e qualsiasi altro documento con la tua intestazione, già compilati con i dati dell’archivio.</p>
+
+<h3 id="modelli-predefiniti">Modelli predefiniti</h3>
+<figure><img src="img/strumento-modelli.webp" width="1600" height="1012" loading="lazy" alt="L’elenco dei modelli predefiniti e il modello Preventivo con l’anteprima A4"><figcaption>I modelli del profilo e l’anteprima A4.</figcaption></figure>
+<p>Alla prima apertura trovi i modelli del tuo profilo: per esempio lettera, preventivo, diffida e messa in mora, procura alle liti, incarico professionale, verbale, relazione, conferma d’ordine, sollecito di pagamento e l’<strong>informativa privacy</strong> (art. 13 GDPR). L’incarico professionale contiene già la clausola sul trattamento dei dati, il recesso e l’assicurazione; i dati della tua attività sono inseriti.</p>
+<p>Puoi <strong>rinominarli</strong> come vuoi, modificarli, <strong>duplicarli</strong>, eliminarli o crearne di nuovi con <strong>Nuovo modello</strong>.</p>
+
+<h3 id="editor-modello">Modificare un modello</h3>
+<p>Il modello ha quattro schede:</p>
+<ul>
+  <li><strong>Contenuto</strong>: il testo, con titoli, grassetto, corsivo, sottolineato, elenchi;</li>
+  <li><strong>Intestazione</strong> e <strong>Piè di pagina</strong>: righe, logo, dimensione e allineamento;</li>
+  <li><strong>Impaginazione</strong>: disposizione del testo, carattere del documento, città per la data.</li>
+</ul>
+<p><strong>Disposizione del testo</strong>: a sinistra, al centro, a destra o giustificato, per tutto il documento o per il singolo paragrafo. <strong>Tutto su due colonne</strong> mette l’intero testo su due colonne; selezionando alcuni paragrafi, <strong>Due colonne</strong> lo fa solo per quella parte.</p>
+<p>L’anteprima A4 a destra mostra il risultato; le modifiche si salvano da sole.</p>
+
+<h3 id="campi">I campi automatici</h3>
+<p>I campi si scrivono tra doppie graffe e si inseriscono anche con <strong>Inserisci campo…</strong>. Quando crei il documento, TIO li riempie con i dati dell’archivio:</p>
+<div class="tabella"><table>
+  <thead><tr><th>Campo</th><th>Diventa</th></tr></thead>
+  <tbody>
+    <tr><td><code>{{destinatario.nome}}</code></td><td>il nome del destinatario (il cliente del lavoro, oppure chi scegli)</td></tr>
+    <tr><td><code>{{destinatario.indirizzo}}</code>, <code>{{destinatario.cap_citta}}</code></td><td>il suo indirizzo</td></tr>
+    <tr><td><code>{{pratica.titolo}}</code>, <code>{{pratica.numero}}</code>, <code>{{pratica.rg}}</code></td><td>i dati del lavoro</td></tr>
+    <tr><td><code>{{studio.nome}}</code>, <code>{{studio.indirizzo}}</code>, <code>{{studio.piva}}</code>, <code>{{studio.email}}</code></td><td>i dati della tua attività</td></tr>
+    <tr><td><code>{{oggi}}</code></td><td>la data di oggi</td></tr>
+  </tbody>
+</table></div>
+<p>Puoi anche inventare i tuoi campi, come <code>{{importo}}</code> o <code>{{consegna}}</code>: quando crei il documento TIO te li chiede.</p>
+
+<h3 id="crea-documento">Creare un documento</h3>
+<figure><img src="img/strumento-crea.webp" width="1600" height="1012" loading="lazy" alt="La finestra Crea documento con il lavoro scelto e i formati disponibili"><figcaption>«Crea documento»: lavoro, destinatario, formato e nome del file.</figcaption></figure>
+<ol class="passi">
+  <li>Scegli il modello e premi <strong>Crea documento…</strong>.</li>
+  <li>Scegli il lavoro: il destinatario diventa il suo cliente (lo puoi cambiare). Compila i campi che mancano.</li>
+  <li>Scegli il formato: <strong>Word</strong>, <strong>PDF</strong>, <strong>OpenDocument</strong>, <strong>RTF</strong>, <strong>pagina web</strong>, <strong>Markdown</strong> o <strong>testo semplice</strong>.</li>
+  <li>Con «Salva nella cartella della pratica» il file finisce nella cartella del lavoro ed è collegato ai suoi documenti.</li>
+</ol>
+<p>Dalla scheda <strong>Documenti</strong> di un lavoro, <strong>Da modello…</strong> fa lo stesso senza passare dallo strumento, con il lavoro già scelto.</p>
+
+<h3 id="modelli-word">Modelli Word</h3>
+<figure><img src="img/strumento-word.webp" width="1600" height="1012" loading="lazy" alt="Un modello Word importato con l’elenco dei campi trovati"><figcaption>Un modello Word importato: TIO mostra i campi trovati e il testo.</figcaption></figure>
+<p>Hai già la tua carta intestata in Word? <strong>Importa da Word…</strong> la trasforma in modello:</p>
+<ol class="passi">
+  <li>In Word scrivi i campi tra doppie graffe dove servono, per esempio <code>Spett.le {{destinatario.nome}}</code> o <code>Importo: {{importo}}</code>, e salva il <code>.docx</code>.</li>
+  <li>In TIO scegli <strong>Importa da Word…</strong>: il modello prende il nome del file e mostra i campi trovati, con il dato che userà per ognuno.</li>
+  <li>Crea il documento come gli altri: TIO fa una copia del tuo file con i campi compilati. Stili, immagini, logo, intestazione e piè di pagina restano identici.</li>
+</ol>
+<ul>
+  <li>TIO riconosce i campi anche quando Word li spezza in più parti.</li>
+  <li>Per cambiare il modello usa <strong>Sostituisci il file Word…</strong>: nome e documenti già creati restano. <strong>Salva una copia del modello…</strong> lo riporta su disco.</li>
+  <li>Dai modelli Word si crea un file Word con la stessa impaginazione; se ti serve il PDF, salvalo da Word.</li>
+</ul>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 13 -->
+<section class="capitolo" id="anonimizza">
+<h2><span class="num">13.</span>Anonimizza</h2>
+<p><strong>Anonimizza</strong> (<kbd>⌘</kbd><kbd>9</kbd>) toglie i dati personali dai documenti prima di condividerli o di usarli con un’intelligenza artificiale. Tutto avviene sul tuo computer: nessun dato viene inviato.</p>
+
+<h3 id="anonimizza-documento">Anonimizzare</h3>
+<figure><img src="img/strumento-anonimizza.webp" width="1600" height="1012" loading="lazy" alt="Anonimizza con un messaggio in cui nomi, società, telefono, partita IVA, indirizzo, IBAN ed email sono evidenziati"><figcaption>I dati personali evidenziati, ognuno con il suo colore, e le categorie a destra.</figcaption></figure>
+<p>Nella scheda <strong>Un documento</strong> incolli un testo, oppure apri o trascini un file: PDF (anche scansionato, con l’OCR), Word, OpenDocument, RTF, email o testo. TIO riconosce <strong>22 tipi di dati</strong>, tra cui:</p>
+<ul>
+  <li>nomi di persona, società e studi;</li>
+  <li>codici fiscali, partite IVA, IBAN e carte (con i controlli dei codici: una sequenza qualunque non viene scambiata per un codice fiscale);</li>
+  <li>indirizzi, CAP, città, telefoni, email e PEC, siti;</li>
+  <li>date, importi, targhe, documenti d’identità, numeri degli atti (R.G., fatture), dati catastali.</li>
+</ul>
+<p>Ogni dato diventa un <strong>segnaposto</strong> come <code>[FULLNAME_1]</code> o <code>[IBAN_1]</code>. La stessa persona ha sempre lo stesso segnaposto, anche quando compare col solo cognome. Con l’archivio, TIO riconosce i tuoi clienti, controparti e lavori; a scelta anonimizza anche i dati della tua attività.</p>
+
+<h3 id="anonimizza-correggere">Correggere il risultato</h3>
+<ul>
+  <li><strong>Un clic su un dato evidenziato</strong> → «Lascia in chiaro»: il dato resta visibile in tutto il testo.</li>
+  <li><strong>Seleziona una parola</strong> → scegli la categoria e «Anonimizza»: viene coperta ovunque compaia. Le tue correzioni restano elencate.</li>
+  <li>A destra, <strong>Cosa anonimizzare</strong> accende o spegne intere categorie (per esempio lascia le date).</li>
+  <li>Le icone dell’occhio mostrano il testo originale o quello anonimizzato.</li>
+</ul>
+
+<h3 id="anonimizza-salvare">Copiare e salvare</h3>
+<ul>
+  <li><strong>Copia il testo anonimizzato</strong>; <strong>Copia per un’IA</strong> aggiunge le istruzioni per mantenere i segnaposto nella risposta.</li>
+  <li><strong>Salva…</strong> crea una copia: per i Word e i PDF con la <strong>stessa impaginazione</strong>. Nel PDF ogni pagina diventa un’immagine dell’originale con i dati coperti e il segnaposto scritto sopra, senza testo, metadati, moduli o allegati dell’originale. Gli altri file si salvano in Word, testo o altri formati.</li>
+  <li><strong>Salva la chiave di ripristino…</strong> salva in un file l’abbinamento tra segnaposto e dati veri. Conservala con cura: contiene i dati originali.</li>
+</ul>
+<p>Il file originale non viene mai modificato.</p>
+
+<h3 id="anonimizza-pratica">Un lavoro intero</h3>
+<figure><img src="img/strumento-anonimizza-pratica.webp" width="1600" height="1012" loading="lazy" alt="Anonimizza, scheda Una pratica, con tre documenti anonimizzati"><figcaption>Tutti i documenti di un lavoro, con l’esito di ognuno.</figcaption></figure>
+<p>Nella scheda <strong>Una pratica</strong> (o con <strong>Anonimizza…</strong> nella scheda Documenti del lavoro) scegli il lavoro: TIO elenca i documenti leggibili collegati, tu togli quelli che non servono e scegli la cartella di destinazione.</p>
+<ul>
+  <li>Ogni documento viene letto, anonimizzato e salvato come copia «… anonimizzato»: PDF e Word con la loro impaginazione, gli altri come testo.</li>
+  <li>La stessa persona ha lo <strong>stesso segnaposto in tutti i file</strong> e una <strong>sola chiave</strong> vale per tutto il lavoro.</li>
+  <li>Per le scansioni attiva «Leggi anche i PDF scansionati con l’OCR» (più lento). Togliendo «Salva una chiave di ripristino comune» l’anonimizzazione è definitiva.</li>
+  <li>Accanto a ogni file compare l’esito: quanti dati, il nome della copia, oppure perché non è stato possibile.</li>
+</ul>
+
+<h3 id="anonimizza-ripristina">Ripristinare i dati</h3>
+<figure><img src="img/strumento-ripristino.webp" width="1600" height="1012" loading="lazy" alt="Anonimizza, scheda Ripristina, con una risposta con i segnaposto e il testo con i dati originali"><figcaption>La risposta dell’IA con i segnaposto e, sotto, lo stesso testo con i dati veri.</figcaption></figure>
+<ol class="passi">
+  <li>Manda all’intelligenza artificiale il testo anonimizzato e copia la sua risposta.</li>
+  <li>Apri la scheda <strong>Ripristina</strong>: usa la chiave del documento aperto oppure <strong>Apri una chiave salvata…</strong>.</li>
+  <li>Incolla la risposta: sotto compare il testo con nomi, numeri e indirizzi veri, pronto da copiare. Funziona anche se l’IA ha scritto i segnaposto senza parentesi.</li>
+</ol>
+
+<h3 id="anonimizza-limiti">Cosa sapere</h3>
+<div class="attenzione"><b>Controlla sempre il risultato.</b>Il riconoscimento è automatico e può sbagliare: un nome scritto in modo insolito può sfuggire, una parola comune può essere coperta. Rileggi prima di condividere.</div>
+<p>La rete di controlli sui codici deriva da <strong>Rizzo PII</strong> di Simone Rizzo (licenza MIT): vedi <a href="#crediti">Licenza e ringraziamenti</a>.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 14 -->
+<section class="capitolo" id="ricerca">
+<h2><span class="num">14.</span>Ricerca e comandi</h2>
+<figure><img src="img/funzione-ricerca.webp" width="1600" height="1012" loading="lazy" alt="La ricerca di TIO aperta con risultati tra lavori, clienti e scadenze"><figcaption>Una sola ricerca per lavori, clienti, scadenze, compiti, note e documenti.</figcaption></figure>
+<p>Premi <kbd>⌘</kbd><kbd>K</kbd> (<kbd>Ctrl</kbd><kbd>K</kbd> su Windows) o fai clic su «Cerca nell’archivio…» e scrivi:</p>
+<ul>
+  <li><strong>Ricerca</strong>: lavori, clienti, scadenze, compiti, note e documenti. Dentro il testo di PDF e scansioni si cerca dalla scheda Documenti del lavoro.</li>
+  <li><strong>Comandi</strong>: «nuovo», «scadenza», «agenda», «guida»… per creare un elemento o andare a una sezione senza mouse. Ogni comando mostra la sua scorciatoia.</li>
+</ul>
+<p>Muoviti con le frecce, <kbd>Invio</kbd> apre, <kbd>Esc</kbd> chiude.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 15 -->
+<section class="capitolo" id="impostazioni">
+<h2><span class="num">15.</span>Impostazioni</h2>
+<p>Si aprono dalla barra laterale o con <kbd>⌘</kbd><kbd>,</kbd>. Le schede:</p>
+<div class="tabella"><table>
+  <thead><tr><th>Scheda</th><th>Cosa si imposta</th></tr></thead>
+  <tbody>
+    <tr><td>Generale</td><td>Profilo (studio legale, libero professionista, ditta individuale), colore principale e logo, tema chiaro, scuro o automatico, vista compatta, restare attivo alla chiusura della finestra, avvio all’accesso al computer.</td></tr>
+    <tr><td>Studio / La tua attività</td><td>Nome, titolare, intestazione, indirizzo e domicilio fiscale, partita IVA e codice fiscale, email, PEC, telefono, banca e IBAN: compaiono nei documenti.</td></tr>
+    <tr><td>Integrazioni</td><td>Calendari collegati, importazione di dati e cartelle di documenti.</td></tr>
+    <tr><td>Documenti</td><td>Dove TIO salva i documenti che crea, dove cerca i file spostati, sincronizzazione dei collegamenti.</td></tr>
+    <tr><td>Modello PDF</td><td>Aspetto dei PDF di parcelle, fatture e preventivi, con anteprima.</td></tr>
+    <tr><td>Avvisi</td><td>Promemoria predefiniti, notifiche del sistema, riepilogo giornaliero, notifiche riservate (senza dettagli).</td></tr>
+    <tr><td>Pratiche e colori</td><td>Etichette (Pratica, Cliente, Controparte…), stati, tipologie e colori.</td></tr>
+    <tr><td>Fiscale</td><td>Aliquote predefinite: spese generali, contributo previdenziale (nome, percentuale, se entra nella base della ritenuta), IVA, ritenuta, bollo, tariffa oraria predefinita.</td></tr>
+    <tr><td>Backup e sicurezza</td><td>Backup automatico e con password, verifica e ripristino, blocco con password, aggiornamenti, cartella dati, segnalazione di problemi, guida, licenze.</td></tr>
+  </tbody>
+</table></div>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 16 -->
+<section class="capitolo" id="backup">
+<h2><span class="num">16.</span>Backup, ripristino e sicurezza</h2>
+<figure><img src="img/funzione-backup.webp" width="1600" height="1012" loading="lazy" alt="Impostazioni › Backup e sicurezza: copia di sicurezza con o senza password e backup automatico"><figcaption>Impostazioni › Backup e sicurezza.</figcaption></figure>
+
+<h3 id="backup-automatico">Backup automatico</h3>
+<p>Ogni giorno TIO salva una copia dell’archivio e tiene le ultime (sette, se non cambi il numero): sul Mac in <span class="percorso">Documenti › TIO Backup</span>, su Windows in <code>C:\Utenti\&lt;nome&gt;\TIO Backup</code>. Puoi scegliere un’altra cartella, per esempio un <strong>disco esterno</strong>, e includere i documenti collegati. In <strong>Copia di sicurezza</strong> puoi farne una subito, dove vuoi: <strong>Backup cifrato…</strong> (con password) o <strong>Backup non cifrato…</strong>.</p>
+
+<h3 id="backup-password">Backup con password</h3>
+<p>Le copie si possono <strong>cifrare con una password</strong>: senza password non si leggono. Conservala in un posto sicuro: <strong>senza password il backup non si recupera</strong>, nemmeno da chi ha scritto TIO.</p>
+
+<h3 id="ripristino">Ripristinare</h3>
+<ul>
+  <li><strong>Verifica una copia</strong> controlla che un backup sia integro, senza toccare l’archivio.</li>
+  <li><strong>Ripristina i dati</strong> (o «Ripristina da backup…» al primo avvio su un computer nuovo) sostituisce l’archivio con una copia. Prima TIO salva l’archivio attuale, così puoi tornare indietro.</li>
+</ul>
+
+<h3 id="blocco">Blocco con password</h3>
+<p>In <span class="percorso">Backup e sicurezza › Accesso a TIO</span> puoi chiedere una password <strong>all’avvio</strong>, <strong>dopo un periodo di inattività</strong> e <strong>quando blocchi lo schermo</strong>. Il lucchetto in alto blocca subito.</p>
+
+<h3 id="cifratura-disco">Cifratura del disco</h3>
+<div class="attenzione"><b>L’archivio non è cifrato.</b>Il blocco con password impedisce di usare TIO, non di leggere il file dell’archivio. Proteggi il computer con FileVault (Mac) o BitLocker / Crittografia dispositivo (Windows) e un account con password, e tieni i backup con password.</div>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 17 -->
+<section class="capitolo" id="importare">
+<h2><span class="num">17.</span>Portare dentro i dati</h2>
+<ul>
+  <li><strong>Da Excel o CSV</strong> (anche «Esporta lista» di Cliens Più): anagrafiche, pratiche, udienze e scadenze, parcelle. TIO mostra un’anteprima e salta i doppioni. Per un’agenda cartacea ci sono modelli da compilare.</li>
+  <li><strong>Da un calendario</strong>: con il link iCal o un file <code>.ics</code> (vedi <a href="#calendari-collegati">Calendari collegati</a>). Gli studi legali, con <strong>Pratiche…</strong>, importano le pratiche riconosciute negli eventi (parti, numero di ruolo, ufficio, giudice) dopo un’anteprima; se vuoi, quelle nuove arrivano da sole a ogni aggiornamento. Non è un collegamento all’archivio completo di altri gestionali e non ne importa i documenti.</li>
+  <li><strong>Da una cartella di documenti</strong>: ogni sottocartella si abbina a un lavoro (o ne crea uno) e i file vengono collegati, mai spostati.</li>
+</ul>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 18 -->
+<section class="capitolo" id="privacy">
+<h2><span class="num">18.</span>Privacy</h2>
+<p>L’archivio è un database sul tuo computer. TIO non ha server, account, pubblicità né statistiche d’uso. Escono dati solo quando lo chiedi tu:</p>
+<ul>
+  <li>per leggere un <strong>calendario collegato</strong> (la richiesta va al servizio del calendario);</li>
+  <li>per il <strong>controllo facoltativo degli aggiornamenti</strong> (GitHub riceve solo la richiesta del numero di versione e vede l’indirizzo IP);</li>
+  <li>quando apri un <strong>link</strong> o un collegamento nel browser.</li>
+</ul>
+<p>L’anonimizzazione, l’OCR, la ricerca nei documenti, i PDF e la fattura elettronica funzionano interamente sul computer. Il testo completo è nel file <code>PRIVACY.md</code> del progetto.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 19 -->
+<section class="capitolo" id="scorciatoie">
+<h2><span class="num">19.</span>Scorciatoie da tastiera</h2>
+<div class="tabella"><table>
+  <thead><tr><th>Mac</th><th>Windows</th><th>Azione</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>⌘</kbd><kbd>K</kbd></td><td><kbd>Ctrl</kbd><kbd>K</kbd></td><td>Ricerca e comandi</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>N</kbd></td><td><kbd>Ctrl</kbd><kbd>N</kbd></td><td>Nuovo lavoro</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>,</kbd></td><td><kbd>Ctrl</kbd><kbd>,</kbd></td><td>Impostazioni</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>1</kbd></td><td><kbd>Ctrl</kbd><kbd>1</kbd></td><td>Panoramica</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>2</kbd></td><td><kbd>Ctrl</kbd><kbd>2</kbd></td><td>Pratiche</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>3</kbd></td><td><kbd>Ctrl</kbd><kbd>3</kbd></td><td>Agenda</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>4</kbd></td><td><kbd>Ctrl</kbd><kbd>4</kbd></td><td>Compiti</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>5</kbd></td><td><kbd>Ctrl</kbd><kbd>5</kbd></td><td>Anagrafica</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>6</kbd></td><td><kbd>Ctrl</kbd><kbd>6</kbd></td><td>Parcelle</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>7</kbd></td><td><kbd>Ctrl</kbd><kbd>7</kbd></td><td>Collegamenti</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>8</kbd></td><td><kbd>Ctrl</kbd><kbd>8</kbd></td><td>Documenti</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>9</kbd></td><td><kbd>Ctrl</kbd><kbd>9</kbd></td><td>Anonimizza</td></tr>
+    <tr><td><kbd>⌃</kbd><kbd>⌘</kbd><kbd>S</kbd></td><td><kbd>Ctrl</kbd><kbd>B</kbd></td><td>Mostra o nascondi la barra laterale</td></tr>
+    <tr><td><kbd>F1</kbd></td><td><kbd>F1</kbd></td><td>Questa guida</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>Q</kbd></td><td>clic destro sull’icona › Esci</td><td>Esci da TIO</td></tr>
+  </tbody>
+</table></div>
+<p>Da pagare non ha un tasto proprio: si apre dalla barra laterale, dal menu <strong>Vai</strong> o dai comandi rapidi.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 20 -->
+<section class="capitolo" id="problemi">
+<h2><span class="num">20.</span>Se qualcosa non va</h2>
+<h4>Non arrivano gli avvisi</h4>
+<p>Controlla che TIO sia aperto (icona nella barra dei menu o vicino all’orologio) e che le notifiche di TIO siano consentite nelle impostazioni del sistema (Mac: <span class="percorso">Impostazioni di Sistema › Notifiche › TIO</span>; Windows: <span class="percorso">Impostazioni › Sistema › Notifiche</span>). Se hai chiuso TIO con Esci, gli avvisi si fermano fino al prossimo avvio.</p>
+<h4>Un documento collegato non si apre</h4>
+<p>Probabilmente il file è stato spostato o rinominato: usa <strong>Sincronizza</strong> nella scheda Documenti del lavoro, oppure aggiungi la nuova cartella in <span class="percorso">Impostazioni › Documenti</span>.</p>
+<h4>Una scansione non si trova con la ricerca</h4>
+<p>La lettura con l’OCR richiede qualche momento dopo il collegamento. Le scansioni molto sbiadite o storte si leggono peggio.</p>
+<h4>Il PDF o il documento non si salva su Windows</h4>
+<p>Se è attivo «Accesso alle cartelle controllato», scegli un’altra cartella o autorizza TIO in <span class="percorso">Sicurezza di Windows › Protezione da virus e minacce › Protezione ransomware</span>.</p>
+<h4>La fattura elettronica segnala errori</h4>
+<p>TIO indica il campo da correggere: di solito partita IVA o codice fiscale del cliente, indirizzo incompleto, codice destinatario mancante (o PEC), dati della tua attività in Impostazioni.</p>
+<h4>Ho cancellato qualcosa per errore</h4>
+<p>Subito dopo, premi <strong>Annulla</strong>. Altrimenti ripristina da un backup (vedi <a href="#ripristino">Ripristinare</a>): prima TIO salva l’archivio attuale.</p>
+<h4>Segnalare un problema</h4>
+<p><span class="percorso">Aiuto › Segnala un problema…</span> prepara versione, sistema e il registro degli errori (<code>registro.log</code>). TIO rimuove percorsi e indirizzi, ma un errore può citare dati inseriti: controllalo prima di condividerlo. Poi apri una segnalazione nella sezione <strong>Issues</strong> del progetto su GitHub, senza dati di clienti reali. TIO non invia nulla da solo.</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 21 -->
+<section class="capitolo" id="glossario">
+<h2><span class="num">21.</span>Glossario</h2>
+<div class="tabella"><table>
+  <tbody>
+    <tr><td>Art. 15</td><td>Articolo del DPR 633/1972: le spese anticipate in nome e per conto del cliente sono escluse dalla base IVA.</td></tr>
+    <tr><td>Bollo virtuale</td><td>L’imposta di bollo da 2 € sulle fatture senza IVA oltre 77,47 €, indicata nella fattura elettronica e versata con F24.</td></tr>
+    <tr><td>Chiave di ripristino</td><td>In Anonimizza, il file che abbina i segnaposto ai dati veri. Serve per rimettere i dati nella risposta di un’IA.</td></tr>
+    <tr><td>Codice destinatario</td><td>Il codice di sette caratteri con cui lo SdI recapita la fattura elettronica al cliente (in alternativa la PEC).</td></tr>
+    <tr><td>CPA</td><td>Contributo previdenziale avvocati (Cassa Forense), di norma il 4%.</td></tr>
+    <tr><td>F24</td><td>Il modello per versare imposte e contributi.</td></tr>
+    <tr><td>FatturaPA</td><td>Il formato XML della fattura elettronica italiana.</td></tr>
+    <tr><td>LIPE</td><td>Comunicazione trimestrale delle liquidazioni periodiche IVA.</td></tr>
+    <tr><td>Natura</td><td>Nella fattura elettronica, il codice che spiega perché una riga non ha IVA (per esempio N1 per l’art. 15, N2.2 per il forfettario).</td></tr>
+    <tr><td>Nota pro forma</td><td>Documento non fiscale da inviare prima della fattura, per chiedere il pagamento.</td></tr>
+    <tr><td>OCR</td><td>Riconoscimento del testo nelle immagini e nelle scansioni.</td></tr>
+    <tr><td>Ritenuta d’acconto</td><td>La parte del compenso che il cliente sostituto d’imposta trattiene e versa al posto tuo.</td></tr>
+    <tr><td>SdI</td><td>Sistema di Interscambio dell’Agenzia delle Entrate, che recapita le fatture elettroniche. TIO non vi invia nulla.</td></tr>
+    <tr><td>Segnaposto</td><td>In Anonimizza, il testo che sostituisce un dato personale, come <code>[FULLNAME_1]</code>.</td></tr>
+    <tr><td>SHA-256</td><td>Il codice di controllo che permette di verificare che un file scaricato sia integro.</td></tr>
+    <tr><td>TD01, TD04</td><td>Tipi di documento della fattura elettronica: fattura e nota di credito.</td></tr>
+  </tbody>
+</table></div>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+<!-- ================================================================ 22 -->
+<section class="capitolo" id="crediti">
+<h2><span class="num">22.</span>Licenza e ringraziamenti</h2>
+<p>TIO è un progetto gratuito e open source di <strong>Matteo Lugli</strong>, per la community, distribuito con <strong>licenza MIT</strong>: chiunque può usarlo, leggerne il codice e verificarlo. Copyright © 2026 Matteo Lugli and TIO contributors.</p>
+<p>Le librerie e i dati di terzi mantengono le proprie licenze: si consultano da <span class="percorso">Impostazioni › Backup e sicurezza › Licenze e componenti</span>.</p>
+<p>Si ringrazia <strong>Simone Rizzo</strong> per l’ispirazione: la rete di controlli su codici fiscali, IBAN, partite IVA e carte dello strumento Anonimizza deriva da Rizzo PII (licenza MIT).</p>
+<a class="torna" href="#inizio">↑ Torna all’inizio</a>
+</section>
+
+</div>
+</main>
+</div>
+</body>
+</html>

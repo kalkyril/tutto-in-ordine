@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TIO — il gestionale gratuito per studi legali, professionisti e ditte</title>
+<meta name="description" content="TIO, Tutto In Ordine: il gestionale gratuito e open source per studi legali, liberi professionisti e ditte individuali. Clienti, lavori, scadenze, preventivi, fatture e parcelle sul tuo computer, senza account. Per Mac e Windows.">
+<meta name="theme-color" content="#3d0012">
+<meta property="og:title" content="TIO — Tutto In Ordine">
+<meta property="og:description" content="Il gestionale gratuito e open source per studi legali, liberi professionisti e ditte individuali, sul tuo computer.">
+<meta property="og:image" content="img/panoramica-chiaro.webp">
+<link rel="icon" href="img/favicon.png" type="image/png">
+<link rel="preload" href="font/literata-latin-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="stile.css">
+<script>
+document.documentElement.classList.add('js')
+setTimeout(() => { if (!window.TIO_PRONTO) document.documentElement.classList.remove('js') }, 6000)
+// «Tutto In Ordine» si scrive da sé all'apertura; senza movimento, o se lo script non parte entro 4 s, compare intera
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  document.documentElement.classList.add('scrive')
+  setTimeout(() => document.documentElement.classList.remove('scrive'), 4000)
+}
+// ricaricando si riparte dall'inizio: niente ritorno al punto di prima né alla sezione nell'indirizzo
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search)
+  addEventListener('load', () => scrollTo(0, 0))
+}
+</script>
+<script src="config.js"></script>
+<script defer src="pagina.js"></script>
+</head>
+<body>
+<header class="barra" data-barra>
+  <a class="salta" href="#contenuto">Vai al contenuto</a>
+  <div class="barra-pillola">
+    <a class="barra-marchio" href="#contenuto" aria-label="TIO, inizio pagina"><img src="img/icona.png" width="30" height="30" alt="">TIO</a>
+    <nav class="barra-voci" aria-label="Sezioni">
+      <a href="#funzioni">Funzioni</a>
+      <a href="#dati">I tuoi dati</a>
+      <a href="#strumenti">Strumenti</a>
+      <a href="#installare">Installare</a>
+      <a href="#domande">Domande</a>
+    </nav>
+    <a class="barra-github" href="#installare" data-github=""><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+  </div>
+</header>
+
+<main id="contenuto">
+
+  <!-- primo schermo: il nome, la frase, un pulsante; sotto, TIO vero in una finestra che si inclina verso il puntatore -->
+  <section class="eroe" aria-labelledby="titolo-eroe" data-eroe>
+    <div class="eroe-testo">
+      <div class="sciame" aria-hidden="true" data-ui>
+        <div class="frammento adesivo" style="--x:0.5%;--y:16%;--r:-4deg;--z:0.7;--w:13rem">
+          <p class="ad-testa"><span class="ad-simbolo campana"></span>Avvisi <span>tra 60 min</span></p>
+          <b>Udienza di prima comparizione</b>
+          <p class="ad-piano">Oggi alle 13:30 · Tribunale di Modena, aula 4</p>
+        </div>
+        <div class="frammento adesivo a-destra" style="--x:0.5%;--y:15%;--r:4deg;--z:0.8;--w:13rem">
+          <p class="ad-testa"><span class="ad-simbolo calendario"></span>Calcolo del termine</p>
+          <p class="ad-etichetta">Ultimo giorno utile</p>
+          <p class="ad-grande">lunedì 14 settembre 2026</p>
+          <p class="ad-piano">Appello, 30 giorni dal 14 luglio con la sospensione feriale</p>
+        </div>
+        <div class="frammento adesivo" style="--x:0.5%;--y:47%;--r:3deg;--z:0.6;--w:13rem">
+          <p class="ad-testa"><span class="ad-simbolo documento"></span>Preventivo 8/2026 <span class="ad-ok">PDF</span></p>
+          <b>Bar Centrale</b>
+          <p class="ad-riga"><span>Impianto elettrico</span><span>1.950,00 €</span></p>
+          <p class="ad-riga"><span>IVA 22%</span><span>429,00 €</span></p>
+          <p class="ad-riga ad-totale"><span>Totale</span><span>2.379,00 €</span></p>
+        </div>
+        <div class="frammento adesivo a-destra" style="--x:0.5%;--y:46%;--r:-3deg;--z:0.9;--w:12.5rem">
+          <p class="ad-testa"><span class="ad-simbolo euro"></span>Da incassare</p>
+          <p class="ad-grande ad-nero">4.466,00 €</p>
+          <p class="ad-piano"><span class="ad-pallino"></span>2 fatture scadute, sollecito già scritto</p>
+        </div>
+        <div class="frammento adesivo ad-scuro" style="--x:0.5%;--y:73%;--r:-2deg;--z:0.5;--w:13.5rem">
+          <p class="ad-testa"><span class="ad-simbolo orologio"></span>Ore e spese <span>Casa Bianchi</span></p>
+          <p class="ad-riga"><span>Sopralluogo e preventivo</span><span>2 h 30</span></p>
+          <p class="ad-riga"><span>Posa dell'impianto</span><span>6 h</span></p>
+          <p class="ad-riga ad-totale"><span>8 h 30 × 45,00 €/h</span><span>382,50 €</span></p>
+        </div>
+        <div class="frammento adesivo a-destra" style="--x:0.5%;--y:74%;--r:3deg;--z:1;--w:13rem">
+          <p class="ad-testa ad-verde"><span class="ad-simbolo spunta"></span>Backup fatto</p>
+          <b>Oggi alle 08:02</b>
+          <p class="ad-piano">7 copie conservate, anche sul disco esterno</p>
+        </div>
+      </div>
+      <h1 class="nome" id="titolo-eroe" aria-label="Tutto In Ordine" data-scrivi><span class="iniziale">T</span>utto <span class="iniziale">I</span>n <span class="iniziale">O</span>rdine</h1>
+      <p class="eroe-motto" data-rise style="--i:1">Il tuo lavoro, <em>sul tuo computer.</em></p>
+      <p class="eroe-frase" data-rise style="--i:2">Il gestionale gratuito e open source per studi legali, liberi professionisti e ditte individuali: clienti, lavori, scadenze, preventivi e fatture. Senza account e senza abbonamento.</p>
+      <div class="eroe-azioni due-sistemi" data-rise style="--i:3">
+        <a class="pulsante pulsante-grande" href="#installare" data-scarica-os="mac" data-scarica-file="macArm" aria-label="Scarica per Mac Apple Silicon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>Mac Apple Silicon</a>
+      <a class="pulsante pulsante-grande" href="#installare" data-scarica-os="mac" data-scarica-file="macIntel" aria-label="Scarica per Mac Intel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>Mac Intel</a>
+        <a class="pulsante pulsante-grande" href="#installare" data-scarica-os="windows" data-scarica-file="windows" aria-label="Scarica per Windows"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.6 10.3 4.6v6.9H3zM11.3 4.45 21 3v8.5h-9.7zM3 12.5h7.3v6.9L3 18.4zM11.3 12.5H21V21l-9.7-1.45z"/></svg>Windows</a>
+      </div>
+      <p class="download-nota" data-nota-download data-rise style="--i:3">Per macOS 13 o successivo e Windows 10/11 a 64 bit.</p>
+      <p class="eroe-meta" data-rise style="--i:4">
+        <a href="#installare" data-github=""><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Open source su GitHub</a>
+        <span aria-hidden="true">·</span>
+        <span>Nessun abbonamento</span>
+        <span aria-hidden="true">·</span>
+        <span>Di <a href="https://kalkyril.github.io">Matteo Lugli</a></span>
+      </p>
+    </div>
+  </section>
+
+  <!-- prima e dopo: trascinando, dieci finestre aperte diventano una -->
+  <section class="confronto-sezione" aria-labelledby="titolo-confronto">
+    <h2 id="titolo-confronto" data-reveal>Una finestra sola.</h2>
+    <p class="confronto-sotto" data-reveal>Trascina per confrontare. Lo stesso studio: prima sparso tra cartelle, fogli, posta e promemoria, poi tutto in TIO.</p>
+    <div class="confronto" data-confronto data-ui role="slider" tabindex="0" aria-label="Confronto: a sinistra la scrivania senza TIO, a destra con TIO" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" data-reveal>
+      <div class="scrivania scrivania-dopo" data-ui aria-hidden="true">
+        <div class="finestra-sola"><span class="semafori"><i></i><i></i><i></i></span><img draggable="false" src="img/panoramica-chiaro.webp" width="1700" height="1075" alt="" loading="lazy"></div>
+        <div class="dock"><img draggable="false" src="img/icona.png" width="64" height="64" alt=""></div>
+      </div>
+      <div class="scrivania scrivania-prima" data-ui aria-hidden="true">
+        <div class="fin fin-cartelle"><div class="fin-barra"><span class="semafori"><i></i><i></i><i></i></span>Pratiche 2026</div><div class="cartelle-griglia"><span class="cartella-f">Preventivi 2026</span><span class="cartella-f">Verdi c Neri</span><span class="cartella-f">Fornitori</span><span class="cartella-f">Successione Ricci</span><span class="cartella-f">Moretti Trasporti</span><span class="cartella-f">Clienti</span><span class="cartella-f">Fatture 2026</span><span class="cartella-f">Scansioni</span><span class="cartella-f">Da archiviare</span><span class="cartella-f">Nuova cartella 3</span><span class="cartella-f">Parcelle vecchie</span><span class="cartella-f">Varie</span></div></div>
+        <div class="fin fin-foglio"><div class="fin-barra"><span class="semafori"><i></i><i></i><i></i></span>Scadenze_2026_def_v3.xlsx</div><table><tr><th>Data</th><th>Pratica</th><th>Cosa</th></tr><tr class="rosso"><td>13/09</td><td>Rossi</td><td>Consegna??</td></tr><tr class=""><td>24/10</td><td>Verdi</td><td>Memoria 171-ter</td></tr><tr class=""><td>25/10</td><td>Gallo</td><td>Sopralluogo</td></tr><tr class="giallo"><td>27/10</td><td>Moretti</td><td>Comparsa</td></tr><tr class=""><td>29/10</td><td>Ricci</td><td>Certificati</td></tr><tr class=""><td>02/11</td><td>Esposito</td><td>Rinnovo contratto</td></tr><tr class="rosso"><td>04/11</td><td>Rossi</td><td>Costituzione</td></tr><tr class="giallo"><td>??</td><td>Verdi</td><td>Parcella da fare</td></tr></table></div>
+        <div class="fin fin-posta"><div class="fin-barra"><span class="semafori"><i></i><i></i><i></i></span>Posta · 37 da leggere</div><ul><li><b>Bar Centrale</b>Quando passate per il sopralluogo?</li><li><b>Rossi Mario</b>R: documenti udienza</li><li><b>PEC</b>Ordine materiale n. 214</li><li><b>Verdi Anna</b>Quando ci sentiamo?</li><li><b>Banca Padana</b>Estratto conto</li><li><b>Commercialista</b>Mi mandi la prima nota?</li></ul></div>
+        <div class="fin fin-documento"><div class="fin-barra"><span class="semafori"><i></i><i></i><i></i></span>Parcella Rossi (copia 2).docx</div><div class="foglio-bianco"><b>Notula</b><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+        <div class="fin fin-calendario"><div class="fin-barra"><span class="semafori"><i></i><i></i><i></i></span>Calendario</div><div class="settimana"><span></span><span><em>Udienza?</em></span><span></span><span><em>Rossi</em><em>chiamare</em></span><span></span></div></div>
+        <span class="post-it" style="--px:72%;--py:12%;--pr:4deg">Scadenza F24: il 16 o il 18??</span>
+        <span class="post-it" style="--px:3%;--py:62%;--pr:-5deg">Chiamare Rossi per il preventivo!</span>
+        <span class="post-it" style="--px:83%;--py:60%;--pr:6deg">Fattura Verdi: fatta?</span>
+        <div class="dock"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <span class="confronto-etichetta sinistra" aria-hidden="true">Senza TIO (illustrazione)</span>
+      <span class="confronto-etichetta destra" aria-hidden="true">Con TIO</span>
+      <span class="confronto-maniglia" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 6 3 12l6 6zM15 6l6 6-6 6z"/></svg></span>
+    </div>
+  </section>
+
+  <!-- funzioni: righe alternate, testo da un lato e la finestra di TIO dall'altro (come Free My TV) -->
+  <section class="funz" style="--n: 6" id="funzioni" aria-labelledby="titolo-funz">
+    <div class="funz-palco">
+      <h2 id="titolo-funz" data-reveal>Funzioni.</h2>
+      <p class="sezione-sotto" data-reveal>Quello che fai ogni giorno, in una sola app.</p>
+      <!-- sul computer il palco resta fermo: titolo e testo non si muovono, scorrendo cambiano immagine e testo; senza script, o sul telefono, ogni immagine ha il suo testo -->
+      <div class="funz-scorri" data-funz-scorri>
+        <div class="funz-fisso" aria-hidden="true">
+          <h3 data-funz-titolo>Tutto il lavoro in una schermata.</h3>
+          <p data-funz-testo>Appena apri TIO vedi gli impegni di oggi, le cose da fare, i lavori in corso e quanto resta da incassare. Un clic su una riga e sei dentro il lavoro giusto.</p>
+          <div class="funz-punti"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="funz-voci">
+        <article class="funz-voce" data-funz="0">
+          <div class="funz-testo"><h3>Tutto il lavoro in una schermata.</h3><p>Appena apri TIO vedi gli impegni di oggi, le cose da fare, i lavori in corso e quanto resta da incassare. Un clic su una riga e sei dentro il lavoro giusto.</p></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-panoramica.webp" width="1600" height="1012" loading="lazy" alt="La Panoramica di TIO di una ditta di esempio: impegni di oggi, cose da fare, lavori attivi e somme da incassare"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="1">
+          <div class="funz-testo"><h3>Ogni lavoro ha la sua scheda.</h3><p>Cliente, scadenze, compiti, note, documenti, ore e fatture dello stesso lavoro stanno insieme. La cronologia ricorda cosa è successo e quando.</p></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-lavoro.webp" width="1600" height="1012" loading="lazy" alt="La scheda di un lavoro: dettagli, prossime scadenze, compiti da fare e cronologia"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="2">
+          <div class="funz-testo"><h3>L'agenda che ti avvisa.</h3><p>Appuntamenti e scadenze per mese, settimana o elenco, con uno o più avvisi prima, anche a finestra chiusa. Google Calendar, Outlook e iCloud compaiono accanto.</p></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-agenda.webp" width="1600" height="1012" loading="lazy" alt="L'agenda della settimana con appuntamenti, scadenze e compiti colorati per lavoro"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="3">
+          <div class="funz-testo"><h3>Preventivi e fatture in PDF.</h3><p>Con la tua intestazione, IVA e bollo già calcolati. TIO tiene il conto di cosa è incassato e di cosa manca, e a fine anno prepara la prima nota per il commercialista.</p></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-fatture.webp" width="1600" height="1012" loading="lazy" alt="L'elenco di fatture e preventivi con emesso, incassato e da incassare"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="4">
+          <div class="funz-testo"><h3>Trovi tutto in un attimo.</h3><p>Premi ⌘K sul Mac o Ctrl+K su Windows e scrivi: clienti, lavori, scadenze, compiti, note e documenti. Dentro PDF e scansioni cerchi dalla scheda del lavoro.</p></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-ricerca.webp" width="1600" height="1012" loading="lazy" alt="La ricerca di TIO aperta sulla parola «bar»: un lavoro, un cliente, una scadenza e tre documenti"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="5">
+          <div class="funz-testo"><h3>Una copia al sicuro, ogni giorno.</h3><p>TIO salva da solo una copia dei tuoi dati e tiene le ultime sette, anche su un disco esterno e protette da una password.</p></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-backup.webp" width="1600" height="1012" loading="lazy" alt="Impostazioni › Backup e sicurezza: copia di sicurezza con o senza password e backup automatico"></div>
+          </figure>
+        </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- tutto incluso: per chi lavora in modi diversi; la stessa impaginazione di Strumenti, un palco per profilo -->
+  <section class="palco funzioni" id="incluso" aria-labelledby="titolo-funzioni">
+    <h2 id="titolo-funzioni" data-reveal>Tutto incluso.</h2>
+    <p class="sezione-sotto" data-reveal>Per studi legali, liberi professionisti e ditte individuali: al primo avvio scegli la tua attività e TIO usa le tue parole.</p>
+    <div class="segmentato" role="group" aria-label="La tua attività" data-pubblico data-reveal>
+      <button type="button" data-profilo="professionista" aria-pressed="true">Liberi professionisti</button>
+      <button type="button" data-profilo="ditta" aria-pressed="false">Ditte individuali</button>
+      <button type="button" data-profilo="avvocato" aria-pressed="false">Studi legali</button>
+    </div>
+    <article class="palco-griglia profilo-voce" data-profilo="professionista">
+      <div class="palco-testo"><span class="funz-tag">Liberi professionisti</span><h3>Incarichi e conti, in un posto solo.</h3><p>Ogni incarico con i suoi documenti, le scadenze e le ore; preventivi, documenti PDF e incassi con le aliquote e il contributo della tua cassa.</p><ul class="funz-elenco"><li>Clienti e incarichi con documenti, note, scadenze e compiti.</li><li>Budget, ore e consegne, con il confronto tra previsto e lavorato.</li><li>Preventivi con validità ed esito, e avvio dell’incarico.</li><li>Note pro forma, pagamenti, solleciti e prima nota per il commercialista.</li><li>Calendari collegati e attività ricorrenti che diventano compiti.</li></ul></div>
+      <figure class="palco-figura" data-ui><div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-lavoro.webp" width="1600" height="1012" loading="lazy" alt="La scheda di un lavoro con dettagli, prossime scadenze, compiti e cronologia"></div></figure>
+    </article>
+    <article class="palco-griglia profilo-voce" data-profilo="ditta" hidden>
+      <div class="palco-testo"><span class="funz-tag">Ditte individuali</span><h3>Commesse, fatture e fornitori.</h3><p>Commesse, forniture, manutenzioni e consulenze, ognuna con i suoi documenti; fatture in PDF e XML FatturaPA con IVA e bollo.</p><ul class="funz-elenco"><li>Sopralluoghi e scadenze con avvisi, anche a finestra chiusa.</li><li>Budget per commessa, con ore e costi a consuntivo.</li><li>Preventivi accettati che diventano commesse e fatture.</li><li>Fatture in PDF e file XML FatturaPA per il tuo canale verso lo SdI.</li><li>Costi, fornitori e voci da pagare con le loro scadenze.</li></ul></div>
+      <figure class="palco-figura" data-ui><div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-fatture.webp" width="1600" height="1012" loading="lazy" alt="L’elenco di fatture e preventivi di una ditta di esempio, con emesso, incassato e da incassare"></div></figure>
+    </article>
+    <article class="palco-griglia profilo-voce" data-profilo="avvocato" hidden>
+      <div class="palco-testo"><span class="funz-tag">Studi legali</span><h3>Pratiche, udienze e parcelle.</h3><p>Numero di ruolo, autorità e giudice in ogni pratica; udienze con avvisi e parcelle con i parametri forensi.</p><ul class="funz-elenco"><li>Udienze e scadenze con avvisi; esito e rinvio quando chiudi l’udienza.</li><li>Calcolo dei termini in avanti e a ritroso, con sospensione feriale e festivi.</li><li>Compensi con i parametri del DM 55/2014 e del DM 147/2022.</li><li>Parcelle e note pro forma con spese generali, CPA, IVA, ritenuta e bollo.</li><li>Avviso di conflitto di interessi e pratiche riconosciute dal calendario.</li></ul></div>
+      <figure class="palco-figura" data-ui><div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/panoramica-chiaro.webp" width="1700" height="1075" loading="lazy" alt="La Panoramica di uno studio legale di esempio: udienze di oggi, compiti, pratiche attive e importi da incassare"></div></figure>
+    </article>
+  </section>
+
+  <!-- i tuoi dati: dove stanno e come sono protetti -->
+  <section class="palco dati" id="dati" aria-labelledby="titolo-dati">
+    <h2 id="titolo-dati" data-reveal>I tuoi dati.</h2>
+    <p class="sezione-sotto" data-reveal>Restano sul tuo computer: nessun server, nessun account, nessuna statistica d’uso.</p>
+    <div class="palco-griglia">
+      <div class="palco-testo"><span class="funz-tag">Privacy e sicurezza</span><h3>Al sicuro, anche senza internet.</h3><p>L’archivio è un database sul tuo computer. TIO lo copia da solo ogni giorno e non lo invia a nessuno.</p><ul class="funz-elenco"><li>Backup automatico: ogni giorno le ultime sette copie, anche su un disco esterno e con password.</li><li>Blocco con password all’avvio, dopo un’inattività e quando blocchi il computer.</li><li>Funziona senza internet: serve solo per i calendari collegati e, se vuoi, per gli aggiornamenti.</li><li>Nessun account da creare e nessuna statistica d’uso.</li></ul><p class="palco-nota">L’archivio non è cifrato: proteggi il computer con FileVault o BitLocker e tieni il backup con password.</p></div>
+      <figure class="palco-figura" data-ui><div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-backup.webp" width="1600" height="1012" loading="lazy" alt="Impostazioni › Backup e sicurezza: copia di sicurezza con o senza password e backup automatico"></div></figure>
+    </div>
+  </section>
+
+  <!-- strumenti: Documenti e Anonimizza, nel gruppo «Strumenti» della barra laterale dell'app. Stesso palco di Funzioni:
+       sul computer il testo resta fermo a sinistra e scorrendo cambiano immagine, etichetta, titolo e dettagli -->
+  <section class="funz funz-strumenti" style="--n: 6" id="strumenti" aria-labelledby="titolo-strumenti">
+    <div class="funz-palco">
+      <h2 id="titolo-strumenti" data-reveal>Strumenti.</h2>
+      <p class="sezione-sotto" data-reveal>Documenti e Anonimizza: scrivere e condividere senza uscire da TIO, sempre sul tuo computer.</p>
+      <div class="funz-scorri" data-funz-scorri>
+        <div class="funz-fisso">
+          <span class="funz-tag" data-funz-tag aria-hidden="true">Documenti</span>
+          <h3 data-funz-titolo aria-hidden="true">Modelli pronti per il tuo lavoro.</h3>
+          <p data-funz-testo aria-hidden="true">Alla prima apertura trovi già lettere, preventivi, conferme d’ordine, solleciti, verbali, relazioni e l’informativa privacy, scritti per il tuo profilo e con la tua intestazione.</p>
+          <ul class="funz-elenco" data-funz-elenco aria-hidden="true"><li>Li rinomini, li modifichi o ne crei di nuovi in un editor con anteprima A4.</li><li>Intestazione, logo e piè di pagina si impostano una volta per tutti.</li><li>Testo a sinistra, al centro, a destra o giustificato; anche solo una parte su due colonne.</li></ul>
+          <p class="funz-grazie" data-funz-grazie hidden>Si ringrazia <a class="collegamento" href="https://rizzo-ai-academy.github.io/rizzo-pii/" rel="noopener">Simone Rizzo</a> per l’ispirazione.</p>
+          <div class="funz-punti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="funz-voci">
+        <article class="funz-voce" data-funz="0">
+          <div class="funz-testo"><span class="funz-tag">Documenti</span><h3>Modelli pronti per il tuo lavoro.</h3><p>Alla prima apertura trovi già lettere, preventivi, conferme d’ordine, solleciti, verbali, relazioni e l’informativa privacy, scritti per il tuo profilo e con la tua intestazione.</p><ul class="funz-elenco"><li>Li rinomini, li modifichi o ne crei di nuovi in un editor con anteprima A4.</li><li>Intestazione, logo e piè di pagina si impostano una volta per tutti.</li><li>Testo a sinistra, al centro, a destra o giustificato; anche solo una parte su due colonne.</li></ul></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-modelli.webp" width="1600" height="1012" loading="lazy" alt="Strumenti › Documenti: l’elenco dei modelli predefiniti di una ditta di esempio e il modello «Preventivo» aperto con l’anteprima A4"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="1">
+          <div class="funz-testo"><span class="funz-tag">Documenti</span><h3>Dal lavoro al documento, già compilato.</h3><p>Scegli il lavoro e il modello: cliente, indirizzo, numero e oggetto si inseriscono da soli. TIO chiede solo i campi che mancano, come l’importo.</p><ul class="funz-elenco"><li>Word, PDF, OpenDocument, RTF, pagina web, Markdown o testo semplice.</li><li>Il file finisce nella cartella del lavoro ed è già collegato ai suoi documenti.</li><li>Dalla scheda del lavoro: «Da modello…» fa lo stesso senza passare da qui.</li></ul></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-crea.webp" width="1600" height="1012" loading="lazy" alt="La finestra «Crea documento» con il lavoro del Bar Centrale scelto, il destinatario già compilato e i sette formati disponibili"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="2">
+          <div class="funz-testo"><span class="funz-tag">Documenti</span><h3>La tua carta intestata, così com’è.</h3><p>Hai già un modello in Word? Importalo: scrivi i campi tra doppie graffe, come {{destinatario.nome}}, e TIO li riempie lasciando identici stili, immagini, intestazione e piè di pagina.</p><ul class="funz-elenco"><li>Riconosce i campi anche quando Word li spezza in più parti.</li><li>Mostra quali campi ha trovato e quali dati userà per ognuno.</li><li>Per cambiarlo sostituisci il file: il nome e i documenti già creati restano.</li></ul></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-word.webp" width="1600" height="1012" loading="lazy" alt="Un modello Word importato, «Carta intestata Galli», con l’elenco dei campi trovati e il testo del modello"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="3">
+          <div class="funz-testo"><span class="funz-tag">Anonimizza</span><h3>Anonimizza prima di condividere.</h3><p>Incolla un testo o apri un PDF, un Word o una scansione: TIO trova nomi, società, codici fiscali, partite IVA, IBAN, indirizzi, telefoni ed email e li sostituisce con segnaposto come [FULLNAME_1].</p><ul class="funz-elenco"><li>22 tipi di dati, con i controlli dei codici fiscali, delle partite IVA e degli IBAN.</li><li>Riconosce i clienti e i fornitori del tuo archivio, anche dal solo cognome.</li><li>Un clic lascia in chiaro un dato; una parola selezionata si anonimizza ovunque.</li></ul></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-anonimizza.webp" width="1600" height="1012" loading="lazy" alt="Anonimizza con il messaggio di una cliente: nomi, società, telefono, partita IVA, indirizzo, IBAN ed email evidenziati e pronti da sostituire"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="4">
+          <div class="funz-testo"><span class="funz-tag">Anonimizza</span><h3>Un lavoro intero, in una volta.</h3><p>Dalla scheda del lavoro, «Anonimizza…» prepara una copia anonima di tutti i suoi documenti in una cartella a parte. Gli originali non cambiano.</p><ul class="funz-elenco"><li>PDF e Word mantengono la loro impaginazione; gli altri file diventano testo.</li><li>La stessa persona ha lo stesso segnaposto in tutti i file.</li><li>Una sola chiave di ripristino vale per tutto il lavoro.</li></ul></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-anonimizza-pratica.webp" width="1600" height="1012" loading="lazy" alt="Anonimizza sulla scheda «Una pratica»: tre documenti del Bar Centrale anonimizzati, con il numero di dati trovati in ognuno"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="5">
+          <div class="funz-testo"><span class="funz-tag">Anonimizza</span><h3>I dati veri tornano al loro posto.</h3><p>Usi un’intelligenza artificiale per una bozza o un riassunto? Le mandi il testo anonimizzato, poi incolli qui la risposta: TIO rimette nomi, numeri e indirizzi veri.</p><ul class="funz-elenco"><li>Funziona anche se l’IA scrive i segnaposto senza parentesi.</li><li>La chiave si salva in un file e si riapre quando serve.</li><li>Tutto avviene sul tuo computer: nessun dato viene inviato.</li></ul><p class="funz-grazie">Si ringrazia <a class="collegamento" href="https://rizzo-ai-academy.github.io/rizzo-pii/" rel="noopener">Simone Rizzo</a> per l’ispirazione.</p></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-ripristino.webp" width="1600" height="1012" loading="lazy" alt="Anonimizza, scheda «Ripristina»: una risposta con i segnaposto e, sotto, lo stesso testo con i nomi, il telefono e l’IBAN originali"></div>
+          </figure>
+        </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- giorno e sera: scorrendo, la pagina tramonta e TIO passa al tema scuro con lei -->
+  <section class="tramonto" aria-labelledby="titolo-tramonto" data-tramonto>
+    <div class="tramonto-fermo">
+      <div class="cielo" aria-hidden="true"><span class="sole"></span><span class="luna"></span><span class="stelle"><i style="--sx:8%;--sy:14%;--ss:2px"></i><i style="--sx:17%;--sy:34%;--ss:1.5px"></i><i style="--sx:26%;--sy:9%;--ss:2.5px"></i><i style="--sx:35%;--sy:26%;--ss:1.5px"></i><i style="--sx:44%;--sy:12%;--ss:2px"></i><i style="--sx:57%;--sy:6%;--ss:1.5px"></i><i style="--sx:64%;--sy:30%;--ss:2px"></i><i style="--sx:73%;--sy:15%;--ss:2.5px"></i><i style="--sx:82%;--sy:36%;--ss:1.5px"></i><i style="--sx:90%;--sy:10%;--ss:2px"></i><i style="--sx:5%;--sy:46%;--ss:1.5px"></i><i style="--sx:49%;--sy:40%;--ss:1.5px"></i><i style="--sx:70%;--sy:48%;--ss:2px"></i><i style="--sx:95%;--sy:28%;--ss:1.5px"></i></span></div>
+      <div class="tramonto-testa">
+        <h2 id="titolo-tramonto"><span class="di-giorno">Chiaro di giorno.</span> <span class="di-sera">Scuro di sera.</span></h2>
+        <p>Con il tema «Automatico» TIO segue il computer: quando il PC passa al tema scuro al tramonto, TIO lo fa con lui. Puoi anche sceglierlo tu, in Impostazioni › Aspetto e comportamento.</p>
+      </div>
+      <figure class="tramonto-finestra" data-ui>
+        <div class="finestra-app">
+          <span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span>
+          <img src="img/panoramica-chiaro.webp" width="1700" height="1075" alt="La Panoramica di TIO con il tema chiaro">
+          <img class="di-notte" src="img/panoramica-scuro.webp" width="1700" height="1075" alt="La stessa Panoramica con il tema scuro">
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- installare: a sinistra i tre file da scaricare, a destra i passi del sistema del visitatore (o di quello indicato) -->
+  <section class="palco installa" id="installare" aria-labelledby="titolo-installa">
+    <h2 id="titolo-installa" data-reveal>Si installa così.</h2>
+    <p class="sezione-sotto" data-reveal>Tre passi, una volta sola: poi TIO ti avvisa da solo.</p>
+    <div class="palco-griglia">
+      <div class="palco-testo">
+        <span class="funz-tag">Scarica TIO</span>
+        <h3>Il file giusto per il tuo computer.</h3>
+        <p>Gratis, in italiano, senza permessi da amministratore.</p>
+    <div class="installa-scarica" data-reveal>
+      <a class="pulsante pulsante-grande" href="#installare" data-scarica-os="mac" data-scarica-file="macArm" data-os="mac"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>Mac Apple Silicon</a>
+      <a class="pulsante pulsante-grande" href="#installare" data-scarica-os="mac" data-scarica-file="macIntel" data-os="mac"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>Mac Intel</a>
+      <a class="pulsante pulsante-grande" href="#installare" data-scarica-os="windows" data-scarica-file="windows" data-os="windows"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.6 10.3 4.6v6.9H3zM11.3 4.45 21 3v8.5h-9.7zM3 12.5h7.3v6.9L3 18.4zM11.3 12.5H21V21l-9.7-1.45z"/></svg>Windows</a>
+    </div>
+    <p class="download-nota">Sul Mac, menu Apple › Informazioni su questo Mac: «Chip Apple M…» indica Apple Silicon; «Processore Intel» indica Intel.</p>
+    <noscript><p class="download-nota">Le prime tre istruzioni sono per Mac, le successive per Windows.</p></noscript>
+    <p class="installa-file" data-elenco-file>I file per Mac con chip Apple o Intel e Windows 10 e 11 a 64 bit sono su GitHub, con i codici SHA-256 per verificarli. L'app installata occupa circa 420 MB su Mac o 510 MB su Windows, oltre ai tuoi dati.</p>
+      </div>
+    <ol class="passi"><li class="passo" data-os="mac"><div class="passo-figura" data-ui aria-hidden="true"><div class="finestra"><div class="finestra-barra"><s></s><s></s><s></s><b>TIO 1.0</b></div><div class="dmg"><figure><img src="img/icona.png" width="88" height="88" alt="">TIO</figure><span class="freccia">→</span><figure><span class="cartella"></span>Applicazioni</figure></div></div></div><h3><span class="passo-n">1.</span>Trascina TIO in Applicazioni</h3><p>Apri il file .dmg scaricato. Serve macOS 13 Ventura o successivo.</p></li><li class="passo" data-os="mac"><div class="passo-figura" data-ui aria-hidden="true"><div class="finestra"><div class="finestra-barra"><s></s><s></s><s></s><b>Privacy e sicurezza</b></div><div class="privacy"><div class="privacy-lato"><span>Generali</span><span>Aspetto</span><span class="sel">Privacy e sicurezza</span></div><div class="privacy-corpo"><b>Sicurezza</b><p>«TIO» è stato bloccato perché non proviene da uno sviluppatore identificato.</p><span class="mac-pulsante">Apri comunque</span></div></div></div></div><h3><span class="passo-n">2.</span>Scegli «Apri comunque»</h3><p>TIO non passa dall'App Store: la prima volta lo consenti da Impostazioni di Sistema › Privacy e sicurezza.</p></li><li class="passo" data-os="mac"><div class="passo-figura" data-ui aria-hidden="true"><div class="notifica"><img src="img/icona.png" width="42" height="42" alt=""><div><b>TIO <span>ora</span></b><p><strong>Udienza di prima comparizione tra 60 minuti</strong><br>Rossi c/ Bianchi Costruzioni · Tribunale di Modena</p></div></div></div><h3><span class="passo-n">3.</span>Ti avvisa da solo</h3><p>Scegli la tua attività, scrivi il nome e inizia. A finestra chiusa TIO resta nella barra dei menu.</p></li><li class="passo" data-os="windows"><div class="passo-figura" data-ui aria-hidden="true"><div class="smartscreen"><b>Windows ha protetto il PC</b><p>Microsoft Defender SmartScreen ha impedito l'avvio di un'app non riconosciuta.</p><u>Ulteriori informazioni</u><div class="smartscreen-tasti"><span class="sel">Non eseguire</span></div></div></div><h3><span class="passo-n">1.</span>Avvia l'installer</h3><p>Se il browser chiede, scegli di conservare il file. Windows 10 e 11 a 64 bit.</p></li><li class="passo" data-os="windows"><div class="passo-figura" data-ui aria-hidden="true"><div class="smartscreen"><b>Windows ha protetto il PC</b><dl><dt>App:</dt><dd>TIO-Setup-1.0.0.exe</dd><dt>Autore:</dt><dd>Autore sconosciuto</dd></dl><div class="smartscreen-tasti"><span class="sel">Esegui comunque</span><span>Non eseguire</span></div></div></div><h3><span class="passo-n">2.</span>«Esegui comunque»</h3><p>SmartScreen avvisa perché manca una firma a pagamento. L'installazione è in italiano e senza permessi da amministratore.</p></li><li class="passo" data-os="windows"><div class="passo-figura" data-ui aria-hidden="true"><div class="toast"><div class="toast-testa"><img src="img/icona.png" width="16" height="16" alt="">TIO</div><b>Udienza di prima comparizione tra 60 minuti</b><p>Rossi c/ Bianchi Costruzioni · Tribunale di Modena</p></div></div><h3><span class="passo-n">3.</span>Ti avvisa da solo</h3><p>Scegli la tua attività, scrivi il nome e inizia. A finestra chiusa TIO resta vicino all'orologio.</p></li></ol>
+    </div>
+  </section>
+
+  <!-- domande: a sinistra il testo resta fermo, a destra le risposte -->
+  <section class="palco domande" id="domande" aria-labelledby="titolo-domande">
+    <h2 id="titolo-domande" data-reveal>Domande.</h2>
+    <p class="sezione-sotto" data-reveal>Le risposte brevi a quello che chiede chi prova TIO per la prima volta.</p>
+    <div class="palco-griglia">
+      <div class="palco-testo palco-fermo">
+        <span class="funz-tag">Domande frequenti</span>
+        <h3>Prima di installare.</h3>
+        <p>Costi, internet, fattura elettronica, dati e aggiornamenti. Per tutto il resto c’è la guida completa, la stessa che trovi nell’app.</p>
+        <ul class="funz-elenco"><li>Gratis e open source, con licenza MIT.</li><li>I dati restano sul tuo computer.</li><li>Funziona anche senza internet.</li></ul>
+        <p class="palco-link"><a class="collegamento" href="guida/">Apri la guida</a></p>
+      </div>
+    <div class="domande-elenco" data-ui>
+      <details><summary>È davvero gratis?</summary><p>Sì. Nessun abbonamento, nessuna versione a pagamento, nessuna pubblicità. Il codice è pubblico con licenza MIT: chiunque può leggerlo e verificarlo.</p></details>
+      <details><summary>Va bene per un libero professionista o una ditta individuale?</summary><p>Sì. Al primo avvio scegli «Ditta individuale / libero professionista»: le parcelle diventano fatture e preventivi con IVA e bollo, i lavori diventano commesse, forniture, consulenze e manutenzioni, le controparti diventano fornitori. Puoi cambiare tutto da Impostazioni.</p></details>
+      <details><summary>Mi serve internet?</summary><p>No. TIO funziona anche senza connessione: internet serve solo per scaricarlo, per leggere un calendario collegato e per il controllo facoltativo degli aggiornamenti.</p></details>
+      <details><summary>Fa anche la fattura elettronica?</summary><p>Prepara il file. Da ogni fattura TIO crea l'XML FatturaPA, controllato con le regole dello schema ufficiale, da caricare su Fatture e Corrispettivi o sul servizio del tuo intermediario. L'invio al Sistema di Interscambio, le ricevute e la conservazione restano a quel canale o al commercialista.</p></details>
+      <details><summary>Va bene per il regime forfettario?</summary><p>Sì. Imposti l'IVA a zero in Impostazioni: TIO non la calcola e aggiunge il bollo da 2 € quando l'importo supera 77,47 €. Lì si cambiano anche cassa previdenziale e ritenuta.</p></details>
+      <details><summary>Cosa passo al commercialista?</summary><p>La prima nota dell'anno, un file CSV che si apre con Excel con tutti i documenti emessi, e i PDF di fatture e preventivi.</p></details>
+      <details><summary>Gli avvisi arrivano anche a finestra chiusa?</summary><p>Sì. Chiudendo la finestra TIO resta acceso nella barra dei menu del Mac o vicino all'orologio di Windows e avvisa da 15 minuti a due settimane prima. Per chiuderlo davvero scegli Esci.</p></details>
+      <details><summary>Posso usarlo sul telefono o su più computer?</summary><p>No. TIO è pensato per una persona su un computer e non sincronizza i dati tra dispositivi. Puoi però esportare l'agenda in un file .ics e aprirla nel calendario del telefono: è una copia, non si aggiorna da sola.</p></details>
+      <details><summary>Sono avvocato: calcola compensi e termini?</summary><p>Sì: i compensi con i parametri del DM 55/2014 aggiornati dal DM 147/2022, i termini processuali in avanti e a ritroso con sospensione feriale e festivi. Sono un aiuto: verificali sempre sul caso concreto.</p></details>
+      <details><summary>Sono avvocato: funziona con Cliens Cube?</summary><p>Se la tua versione di Cube offre un link iCal o un file .ics, TIO può leggerne gli eventi e riconoscere le pratiche presenti nelle udienze e nelle scadenze, con un'anteprima da controllare. Verifica prima l'esportazione disponibile nel tuo account: TIO non accede direttamente all'archivio completo o ai documenti di Cube e non chiede la password di Cliens.</p></details>
+      <details><summary>Chi vede i miei dati?</summary><p>Solo tu. L'archivio sta sul tuo computer; TIO non ha server e non raccoglie statistiche. Escono dati solo se colleghi un calendario o attivi il controllo facoltativo degli aggiornamenti.</p></details>
+      <details><summary>I miei dati sono protetti?</summary><p>Puoi bloccare TIO con una password, all'avvio e dopo un po' di inattività, e cifrare i backup. L'archivio sul disco invece non è cifrato: per questo conviene attivare FileVault sul Mac o BitLocker su Windows.</p></details>
+      <details><summary>E se il computer si rompe?</summary><p>Ogni giorno TIO fa una copia dell'archivio e tiene le ultime sette. Puoi salvarle su un disco esterno e proteggerle con una password; su un computer nuovo le riapri con «Ripristina da backup…».</p></details>
+      <details><summary>Posso portare i dati da Excel o da un altro programma?</summary><p>Sì. Clienti, lavori, scadenze e fatture si importano da file CSV o Excel, con un'anteprima e senza doppioni. Gli appuntamenti arrivano anche da Google Calendar, Outlook o iCloud con il link del calendario.</p></details>
+      <details><summary>Perché il Mac e Windows avvisano all'apertura?</summary><p>Perché TIO non ha una firma a pagamento di Apple o Microsoft. Sulla pagina delle versioni trovi i codici SHA-256: confrontandoli sai che il file è proprio quello pubblicato.</p></details>
+      <details><summary>Come aggiorno?</summary><p>Scarichi la nuova versione e la installi sopra quella che hai: dati e impostazioni restano. Se vuoi, TIO ti avvisa quando ne esce una.</p></details>
+      <details><summary>Se qualcosa non funziona, a chi lo dico?</summary><p>Da TIO scegli Aiuto › Segnala un problema: prepara versione, sistema e il registro degli errori. I percorsi vengono rimossi, ma controllalo e togli eventuali dati riservati prima di condividerlo. Poi apri una segnalazione su GitHub. TIO non invia nulla da solo.</p></details>
+      <details><summary>Hai bisogno di funzioni aggiuntive?</summary><p>Il codice è aperto e la licenza MIT ti permette di modificarlo. Scaricalo da GitHub e chiedi a un assistente di programmazione, come Claude Code, Codex o un altro, di aggiungere quello che ti serve. Oppure proponi l'idea con una segnalazione su GitHub.</p></details>
+    </div>
+    </div>
+  </section>
+
+  <section class="chiusura" aria-labelledby="titolo-chiusura">
+    <h2 id="titolo-chiusura" data-reveal><span class="iniziale">T</span>utto <span class="iniziale">I</span>n <span class="iniziale">O</span>rdine, gratis.</h2>
+    <div class="due-sistemi" data-reveal>
+      <a class="pulsante pulsante-grande" href="#installare" data-scarica-os="mac" data-scarica-file="macArm" aria-label="Scarica per Mac Apple Silicon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>Mac Apple Silicon</a>
+      <a class="pulsante pulsante-grande" href="#installare" data-scarica-os="mac" data-scarica-file="macIntel" aria-label="Scarica per Mac Intel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>Mac Intel</a>
+      <a class="pulsante pulsante-grande" href="#installare" data-scarica-os="windows" data-scarica-file="windows" aria-label="Scarica per Windows"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.6 10.3 4.6v6.9H3zM11.3 4.45 21 3v8.5h-9.7zM3 12.5h7.3v6.9L3 18.4zM11.3 12.5H21V21l-9.7-1.45z"/></svg>Windows</a>
+    </div>
+  </section>
+</main>
+
+<footer class="piede">
+  <span>TIO — Tutto In Ordine, gratuito e open source</span>
+  <nav aria-label="Collegamenti del progetto">
+    <a class="collegamento" href="guida/">Guida</a>
+    <a class="collegamento" href="#installare" data-github="">Codice su GitHub</a>
+    <a class="collegamento" href="#dati" data-github="blob/main/PRIVACY.md">Privacy</a>
+    <a class="collegamento" href="#domande" data-github="blob/main/LICENSE">Licenza MIT</a>
+    <a class="collegamento" href="#installare" data-github="blob/main/CHANGELOG.md">Novità</a>
+  </nav>
+  <span class="piede-destra">2026 · titoli in Literata, licenza OFL</span>
+  <p class="piede-note">Questa pagina non usa cookie né statistiche. È ospitata su GitHub Pages e chiede a GitHub soltanto l'ultima versione disponibile: come ogni sito, GitHub riceve l'indirizzo IP del visitatore. Apple, Mac e macOS sono marchi di Apple Inc.; Windows è un marchio di Microsoft Corporation. TIO è un progetto indipendente, non affiliato né approvato da queste aziende.</p>
+</footer>
+</body>
+</html>

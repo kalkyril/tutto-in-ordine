@@ -1,0 +1,60 @@
+# Credenziali e configurazione privata
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p8
+*.p12
+*.pfx
+.netrc
+
+# Archivi del gestionale, blocco e documenti locali
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+blocco.json
+/documenti/
+/dati-locali/
+/_copie-di-sicurezza/
+MNGMNT-backup-*/
+MNGMNT-auto-*/
+TIO-backup-*/
+TIO-auto-*/
+
+# Log e dump: possono contenere dati dell'app
+*.log
+*.dmp
+*.heapsnapshot
+
+# File generati e del sistema operativo
+.DS_Store
+/dist/
+node_modules
+release-*/
+release/
+
+# Esportazioni, importazioni e aree temporanee riservate
+/importazioni-private/
+/esportazioni-private/
+.backup-privato-*/
+.restore-*/
+*.incomplete/
+
+# Chiave locale dei backup e registro di recupero
+backup-key.json*
+.restore-state.json*
+
+# lavoro della skill di design (schermate di controllo, appunti)
+.taste-skill/
+
+# impostazioni locali di Claude Code (anteprima della pagina)
+.claude/
+# schermate e registri delle verifiche nel browser
+.playwright-mcp/

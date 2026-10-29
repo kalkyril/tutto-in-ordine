@@ -1,0 +1,48 @@
+# Pubblica la pagina di download (cartella sito/) su GitHub Pages.
+# Da attivare una volta in Settings › Pages › Source: «GitHub Actions».
+name: Pagina di download
+
+on:
+  push:
+    branches: [main]
+    paths: ['sito/**', 'guida/**', 'scripts/prepare-site.js', 'scripts/test-sito.js', 'package.json', 'package-lock.json', '.github/workflows/sito.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  pubblica:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      # Ubuntu sui runner di GitHub: Electron vuole la sua sandbox (chrome-sandbox) di proprietà di root con il bit setuid,
+      # altrimenti si ferma prima di aprire la pagina («The SUID sandbox helper binary was found, but is not configured correctly»)
+      - name: Sandbox di Electron sul runner Linux
+        run: sudo chown root:root node_modules/electron/dist/chrome-sandbox && sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
+      - name: Download, layout e accessibilità del sito
+        run: xvfb-run -a npm run test:sito
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Link statici e metadati del sito
+        run: npm run prepare:sito
+        env:
+          TIO_SITE_URL: ${{ steps.pages.outputs.base_url }}
+      # la guida dell'app, la stessa inclusa nell'installer, anche online: <sito>/guida/
+      - run: cp -R guida sito/guida
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: sito }
+      - id: deploy
+        uses: actions/deploy-pages@v4

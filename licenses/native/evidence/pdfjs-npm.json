@@ -1,0 +1,98 @@
+{
+  "bugs": {
+    "url": "https://github.com/mozilla/pdf.js/issues"
+  },
+  "dist": {
+    "shasum": "4a46f5146ac6505564c1a5d472900be4df8bf628",
+    "tarball": "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-6.4.299.tgz",
+    "fileCount": 554,
+    "integrity": "sha512-AVl138zALtfaAPvADulE0PZThbYzCBS79nL4pOSL/6Sm/4AH5A21BD9VHt97OlCuzJuCpmeZtAtkinisF4Vb1g==",
+    "signatures": [
+      {
+        "sig": "MEUCIANFOtvvvNGmxlVa6Y9QCzq37pTxqJ158DtYT7YLMpwDAiEAoiTHdJrCono0hv72HNRa7TL6/cK0rLKKsStkjlNtWSQ=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "sig": "MEYCIQDh61X2sPdS5BlBMRK+soD+Xde+4PMDdwVWIB0xMy1W5QIhAMBAYDXPhYnoShHZTMrVgSn8t8R/YYIdNFnTyk6eYJ6Y",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/pdfjs-dist@6.4.299",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 34913648
+  },
+  "main": "build/pdf.mjs",
+  "name": "pdfjs-dist",
+  "types": "types/src/pdf.d.ts",
+  "browser": {
+    "fs": false,
+    "url": false,
+    "http": false,
+    "https": false,
+    "canvas": false
+  },
+  "engines": {
+    "node": ">=22.13.0 || >=24"
+  },
+  "gitHead": "d0991a0d53f3bb3a7307e3b83f279c1d117aafb3",
+  "license": "Apache-2.0",
+  "scripts": {},
+  "_npmUser": {
+    "name": "GitHub Actions",
+    "email": "npm-oidc-no-reply@github.com",
+    "trustedPublisher": {
+      "id": "github",
+      "oidcConfigId": "b5df5ae4-2c8e-4992-813f-d7467a3d5271"
+    }
+  },
+  "homepage": "https://mozilla.github.io/pdf.js/",
+  "keywords": [
+    "Mozilla",
+    "pdf",
+    "pdf.js"
+  ],
+  "repository": {
+    "url": "git+https://github.com/mozilla/pdf.js.git",
+    "type": "git"
+  },
+  "_npmVersion": "11.19.0",
+  "description": "Generic build of Mozilla's PDF.js library.",
+  "directories": {},
+  "maintainers": [
+    {
+      "name": "yurydelendik",
+      "email": "ydelendik@mozilla.com"
+    },
+    {
+      "name": "pdfjsbot",
+      "email": "dev-pdf-js@lists.mozilla.org"
+    },
+    {
+      "name": "brendandahl",
+      "email": "brendan.dahl@gmail.com"
+    },
+    {
+      "name": "calixteman",
+      "email": "cdenizet@mozilla.com"
+    },
+    {
+      "name": "pdfjs-release-automation",
+      "email": "pdfjs-release-automation@mozilla.com"
+    }
+  ],
+  "_nodeVersion": "24.21.0",
+  "_hasShrinkwrap": false,
+  "optionalDependencies": {
+    "@napi-rs/canvas": "^1.0.10"
+  },
+  "_npmOperationalInternal": {
+    "tmp": "tmp/pdfjs-dist_6.4.299_1791046060117_0.7184018186611782",
+    "host": "s3://npm-registry-packages-npm-production"
+  },
+  "_id": "pdfjs-dist@6.4.299",
+  "version": "6.4.299"
+}

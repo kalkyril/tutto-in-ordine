@@ -1,0 +1,223 @@
+/*
+ * Stile «data-terminal» (taste-skill v2, regole per le schermate di lavoro).
+ * Colore sui dati e sulla selezione, mai sulla cornice: il colore principale scelto dall'utente
+ * resta solo come linea sottile sotto ciò che è selezionato, nei segnali e nel testo dei collegamenti.
+ * Superfici opache (niente sfocature né sfumature), bordo oppure ombra mai entrambi, cifre tabellari.
+ * Caricato dopo styles.css e hig.css: togliendo l'import in main.tsx si torna allo stile precedente.
+ */
+
+/* ---------- colori per ruolo ---------- */
+:root {
+  --bg: #f9fafb; --surface: #ffffff; --surface-2: #f4f5f6; --active: #ebecee;
+  --text: #111111; --muted: #5f6368; --border: #e8e8e8; --border-strong: #d1d5db;
+  --danger: #c4242a; --danger-soft: #ffedea; --warn: #92400e; --warn-soft: #fffbeb; --ok: #247b50; --ok-soft: #dcfae5;
+  --primary: #1d1f20; --primary-hover: #000000; --primary-text: #ffffff;
+  --sidebar: var(--bg); --sidebar-solid: var(--bg); --chrome: var(--bg); --chrome-solid: var(--bg);
+  --sidebar-text: var(--text); --sidebar-hover: var(--surface-2); --sidebar-on: var(--active);
+  --shadow: none;
+}
+:root[data-theme="dark"] {
+  /* le schede sono più scure del fondo; la luminosità, non il bordo, separa i livelli */
+  --bg: #171719; --surface: #131217; --surface-2: #212023; --active: #26252a;
+  --text: #f4f4f5; --muted: #8f9197; --border: #26252a; --border-strong: #3a3a3e;
+  --danger: #e5566f; --danger-soft: #2c1a20; --warn: #d9a441; --warn-soft: #2a2416; --ok: #5fc39c; --ok-soft: #1b2828;
+  --primary: #f4f4f5; --primary-hover: #ffffff; --primary-text: #111111;
+  --toast-bg: #26252a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171719; --surface: #131217; --surface-2: #212023; --active: #26252a;
+    --text: #f4f4f5; --muted: #8f9197; --border: #26252a; --border-strong: #3a3a3e;
+    --danger: #e5566f; --danger-soft: #2c1a20; --warn: #d9a441; --warn-soft: #2a2416; --ok: #5fc39c; --ok-soft: #1b2828;
+    --primary: #f4f4f5; --primary-hover: #ffffff; --primary-text: #111111;
+    --toast-bg: #26252a;
+  }
+}
+body { font-variant-numeric: tabular-nums; }
+
+/* ---------- cornice: barra laterale e barra in alto sul fondo della pagina, opache ---------- */
+.app { background: var(--bg); }
+.sidebar, .topbar { background: var(--bg); backdrop-filter: none; }
+.sidebar { border-right: 1px solid var(--border); color: var(--text); }
+.topbar { border-bottom: 1px solid var(--border); }
+.nav-item { color: var(--text); font-weight: 400; border: 0; }
+.nav-item > svg { color: var(--muted); }
+.nav-item:hover { background: var(--sidebar-hover); color: var(--text); }
+.nav-item.on { background: var(--active); color: var(--text); font-weight: 500; box-shadow: none; }
+.nav-item.on > svg { color: var(--text); }
+.badge { background: var(--active); color: var(--muted); }
+.badge.danger { background: var(--danger-soft); color: var(--danger); } /* coppia tenue: 4,6:1 nel tema scuro, 5,1:1 nel chiaro */
+
+/* ---------- la selezione è una linea di 1px nel colore principale, larga quanto l'etichetta ---------- */
+.tabs { gap: 22px; padding: 0; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+.tabs button { padding: 10px 0; margin: 0 0 -1px; border: 0; border-radius: 0; background: transparent; color: var(--muted); font-weight: 500; box-shadow: none; }
+.tabs button:hover { background: transparent; color: var(--text); }
+.tabs button.on { background: transparent; color: var(--text); box-shadow: inset 0 -1px 0 var(--accent); }
+.segmented { background: transparent; border: 0; padding: 0; gap: 16px; border-radius: 0; }
+.segmented button { padding: 6px 0; border-radius: 0; color: var(--muted); }
+.segmented button:hover { color: var(--text); }
+.segmented button.on { background: transparent; color: var(--text); box-shadow: inset 0 -1px 0 var(--accent); }
+.chip.on { background: var(--surface-2); border-color: var(--accent); }
+.contact.on { background: var(--active); }
+
+/* ---------- pulsanti: un solo principale pieno, in inchiostro; gli altri neutri ---------- */
+.btn-primary { background: var(--primary); color: var(--primary-text); box-shadow: none; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+.btn-ghost:hover:not(:disabled), .icon-btn:hover:not(:disabled), .link-main:hover { background: var(--surface-2); }
+
+/* ---------- superfici: bordo sottile, nessuna ombra a riposo ---------- */
+.card, .kpi, .pcard, .row-item, .segmented, .search-trigger, .tile { box-shadow: none; }
+.pcard:hover, .tile:hover { transform: none; box-shadow: none; }
+
+/* ---------- niente icone in quadrati colorati ---------- */
+.kpi svg:not(.kpi-link), .empty-icon, .backup-summary-icon { background: transparent; color: var(--muted); }
+.empty-icon { padding: 0; }
+
+/* ---------- segnali: tinta tenue e testo scuro dello stesso colore; rosso solo dove serve agire ---------- */
+.rel-today { background: var(--warn-soft); color: var(--warn); }
+.rel-soon { background: var(--surface-2); color: var(--muted); }
+.row-item .row-sub .late-text { color: inherit; } /* il ritardo lo dicono già il bordo e l'etichetta */
+.notif-item.unread { background: var(--surface-2); }
+.n-ico { color: var(--muted); }
+
+/* il velo dietro le finestre è una tinta piatta, senza sfocatura */
+.overlay, .drop-overlay { backdrop-filter: none; }
+
+/* «aumenta contrasto» del sistema: bordi pieni anche con i colori di questo stile (vale per tutti i temi) */
+@media (prefers-contrast: more) {
+  :root[data-theme="light"], :root[data-theme="dark"], :root:not([data-theme]) { --border: var(--muted); --border-strong: var(--text); }
+}
+
+/* ---------- Impostazioni in due colonne: titolo e spiegazione a sinistra, controlli a destra ----------
+ * (taste-skill §8.2, linee guida Apple «Settings»). Fatto con i float per non cambiare il markup delle 9 schede;
+ * il modello PDF («largo») resta a tutta larghezza perché affianca l'anteprima del foglio. */
+@media (min-width: 1000px) {
+  .impostazioni .card.pad-lg:not(.largo) { display: flow-root; padding: 22px 24px; }
+  .impostazioni .card.pad-lg:not(.largo) > :is(h2, .card-head),
+  .impostazioni .card.pad-lg:not(.largo) > :is(h2, .card-head) + p.muted { float: left; clear: left; width: 260px; margin: 0; }
+  .impostazioni .card.pad-lg:not(.largo) > :is(h2, .card-head) + p.muted { margin-top: 6px; line-height: 1.5; }
+  .impostazioni .card.pad-lg:not(.largo) > .card-head { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-height: 0; }
+  .impostazioni .card.pad-lg:not(.largo) > :not(h2, .card-head, :is(h2, .card-head) + p.muted) { margin-left: 292px; }
+  /* pulsanti e selettori messi direttamente nella scheda: blocchi larghi quanto il contenuto, o scorrerebbero accanto alla colonna sinistra */
+  .impostazioni .card.pad-lg:not(.largo) > :is(.btn, .segmented, a, span, button) { display: flex; width: fit-content; }
+  .impostazioni .card.pad-lg:not(.largo) > :is(h2, .card-head) + p.muted + *,
+  .impostazioni .card.pad-lg:not(.largo) > :is(h2, .card-head) + :not(p.muted) { margin-top: 0; }
+}
+
+/* ---------- finestre (modali) su schermi bassi: più spazio al contenuto ---------- */
+@media (max-height: 900px) {
+  .overlay { padding-top: 16px; padding-bottom: 16px; }
+  .modal { max-height: calc(100vh - 32px); }
+  .modal-head { padding: 16px 24px 8px; }
+  .modal-foot { padding: 10px 24px; }
+  .modal-body { padding-bottom: 14px; }
+  /* sul Mac i pulsanti della finestra (rosso, giallo, verde) stanno sopra il contenuto: le finestre interne partono sotto di loro */
+  [data-platform="darwin"] .overlay { padding-top: 44px; }
+  [data-platform="darwin"] .modal { max-height: calc(100vh - 60px); }
+}
+
+/* ---------- Nuovo documento con il calcolo forense: tre colonne a finestra larga ----------
+ * dati del documento e note | calcolo del compenso | prospetto finale e altre voci.
+ * Così entra senza scorrere anche con la finestra a circa 1220×770; sotto i 1150 px resta in colonna. */
+@media (min-width: 1150px) {
+  .parc-layout.con-calcolo { display: grid; grid-template-columns: 280px minmax(0, 1fr) 290px; grid-template-rows: auto auto 1fr; column-gap: 20px; align-items: start; }
+  .parc-layout.con-calcolo > .parc-doc { grid-column: 1; grid-row: 1 / span 3; }
+  .parc-layout.con-calcolo > .parc-calcola { grid-column: 2; grid-row: 1; margin: 0 0 6px !important; white-space: normal; }
+  .parc-layout.con-calcolo > .card-section.calc, .parc-layout.con-calcolo .calc-grid { display: contents; }
+  .parc-layout.con-calcolo .calc-form { grid-column: 2; grid-row: 2 / span 2; }
+  .parc-layout.con-calcolo .calc-result { grid-column: 3; grid-row: 1 / span 2; position: static; padding: 12px; }
+  .parc-layout.con-calcolo .calc-result .prospetto-nota, .parc-layout.con-calcolo .calc-result > p.muted { display: none; }
+  .parc-layout.con-calcolo > .card-section.altre { grid-column: 3; grid-row: 3; margin-top: 12px; }
+  .parc-layout.con-calcolo .site-form .srow { grid-template-columns: 112px minmax(0, 1fr); gap: 8px; padding: 4px 2px; }
+  .parc-layout.con-calcolo .site-form .srow .ctrl select { min-width: 0; width: 100%; }
+  .parc-layout.con-calcolo .fase-head, .parc-layout.con-calcolo .fase-row { grid-template-columns: minmax(104px, 1.4fr) repeat(3, minmax(64px, 1fr)) minmax(72px, .9fr); gap: 4px; padding: 4px 8px; }
+  .parc-layout.con-calcolo .fase-row > .check { white-space: normal; min-width: 0; } /* «Istruttoria / trattazione» va a capo invece di coprire gli importi */
+  .parc-layout.con-calcolo .vsel { padding: 3px 4px; gap: 4px; }
+  .parc-layout.con-calcolo .site-form .tabs { margin-top: 8px; margin-bottom: 8px; }
+  .parc-layout.con-calcolo .calc-acc { margin-top: 8px; padding-top: 8px; }
+  .parc-layout.con-calcolo .prospetto td { padding: 4px; }
+}
+/* finestre basse (circa 1220×772): sul Mac le finestre interne partono sotto i pulsanti della finestra, lo spazio si recupera tra le righe del calcolo */
+@media (min-width: 1150px) and (max-height: 820px) {
+  .parc-layout.con-calcolo .site-form .srow { padding-block: 1px; }
+  .parc-layout.con-calcolo .calc-src { margin: 2px 0 4px; }
+  .parc-layout.con-calcolo .site-form .tabs { margin-top: 4px; margin-bottom: 4px; }
+}
+
+/* ---------- Calcola un termine: modulo a sinistra, risultato con i passaggi a destra ---------- */
+.termini { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.termini-esito { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; background: var(--surface-2); }
+.termini-etichetta { font-size: var(--fs-sm); color: var(--muted); }
+.termini-data { font-size: 22px; font-weight: 600; letter-spacing: -.01em; margin: 2px 0 4px; }
+.termini-passi { margin: 14px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: var(--fs-sm); line-height: 1.45; }
+.termini-esito .doc-avviso { margin-top: 10px; }
+.termini-nota { margin-top: 14px; }
+@media (max-width: 900px) { .termini { grid-template-columns: 1fr; } }
+
+/* ---------- Colore (linee guida Apple: color.md, sidebars.md, branding.md) ----------
+ * Il colore principale scelto dall'utente va su icone della barra laterale, selezione e azioni principali;
+ * gli stati hanno un colore fisso, sempre con lo stesso significato. Sono le varianti ad alto contrasto dei
+ * colori di sistema Apple: almeno 5:1 sulle superfici dei due temi. */
+:root {
+  --rosso: #c0001a; --arancio: #a85400; --verde: #1f7a3d; --blu: #0050d0; /* l'arancio resta ben distinto dal rosso */
+  --danger: var(--rosso); --warn: var(--arancio); --ok: var(--verde);
+}
+:root[data-theme="dark"] { --rosso: #ff6961; --arancio: #ffa94d; --verde: #4cd964; --blu: #5aa9ff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --rosso: #ff6961; --arancio: #ffa94d; --verde: #4cd964; --blu: #5aa9ff; } }
+/* sfondi tenui all'8% nel chiaro e al 16% nello scuro: il testo colorato sopra resta oltre 4,5:1 */
+:root { --tinta: 8%; }
+:root[data-theme="dark"] { --tinta: 16%; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --tinta: 16%; } }
+:root { --danger-soft: color-mix(in srgb, var(--rosso) var(--tinta), transparent); --warn-soft: color-mix(in srgb, var(--arancio) var(--tinta), transparent); --ok-soft: color-mix(in srgb, var(--verde) var(--tinta), transparent); --blu-soft: color-mix(in srgb, var(--blu) var(--tinta), transparent); }
+
+/* barra laterale: icone nel colore principale, la voce selezionata in una capsula dello stesso colore */
+.nav-item > svg { color: var(--accent); }
+.nav-item.on { background: var(--accent-soft); }
+.nav-item.on > svg { color: var(--accent); }
+.badge { background: var(--accent-soft); color: var(--accent); }
+.badge.danger { background: var(--danger-soft); color: var(--danger); }
+.nav-item.on .badge { background: var(--surface); } /* sulla voce selezionata il contatore ha un fondo pieno: due tinte sovrapposte abbasserebbero il contrasto */
+
+/* azioni principali e selezione nel colore principale */
+.btn-primary { background: var(--accent); color: var(--accent-text); }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.tabs button.on, .segmented button.on { color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
+.chip.on { background: var(--accent-soft); border-color: var(--accent); }
+.empty-icon { color: var(--accent); }
+a, .link { color: var(--accent); }
+
+/* segnali: un colore per significato */
+.col-accento { --c: var(--accent); --c-soft: var(--accent-soft); }
+.col-rosso { --c: var(--rosso); --c-soft: var(--danger-soft); }
+.col-arancio { --c: var(--arancio); --c-soft: var(--warn-soft); }
+.col-blu { --c: var(--blu); --c-soft: var(--blu-soft); }
+.col-verde { --c: var(--verde); --c-soft: var(--ok-soft); }
+.col-spento { --c: var(--muted); --c-soft: var(--surface-2); }
+.fascia-numeri .kpi span { display: inline-flex; align-items: center; gap: 6px; }
+.fascia-numeri .kpi span svg { color: var(--c, var(--muted)); flex: none; }
+.card-head[class*="col-"] h2 > svg { color: var(--c); }
+.card-head[class*="col-"] h2 .pill { background: var(--c-soft); color: var(--c); border-color: transparent; }
+.rel-late { background: var(--danger-soft); color: var(--danger); }
+.rel-today { background: var(--warn-soft); color: var(--warn); }
+
+/* avviso nel benvenuto delle versioni di prova */
+.avviso-prova { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 14px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--warn-soft); color: var(--text); font-size: var(--fs-sm); line-height: 1.45; }
+.avviso-prova svg { color: var(--warn); flex: none; margin-top: 2px; }
+
+/* Segnala un problema */
+.segnala-passi { margin: 10px 0 12px; padding-left: 20px; display: grid; gap: 4px; }
+.segnala-info { margin: 0 0 10px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border); font-size: var(--fs-sm); white-space: pre-wrap; user-select: text; }
+
+/* Impostazioni: Salva e Annulla sempre presenti; senza modifiche restano attenuati, con una transizione breve */
+.azioni-salvataggio { display: flex; gap: 8px; align-items: center; }
+.azioni-salvataggio .btn { transition: opacity var(--dur) var(--ease-out), background-color var(--dur-fast) var(--ease-out); }
+.azioni-salvataggio.inattive .btn:disabled { opacity: .35; }
+
+/* ---------- Pratiche dal calendario (Impostazioni › Integrazioni › Pratiche…) ---------- */
+.pratiche-auto { margin-right: auto; white-space: normal; max-width: 420px; }
+.pratiche-sintesi { margin: 0 0 10px; }
+.pratiche-elenco { max-height: min(52vh, 460px); overflow: auto; }
+.pratiche-elenco thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.pratiche-elenco tr.spenta td { color: var(--muted); }
+.pratiche-elenco td.num, .pratiche-elenco th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.pratiche-vuoto ul { margin: 8px 0 0; padding-left: 18px; }

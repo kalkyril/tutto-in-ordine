@@ -1,0 +1,299 @@
+{
+  "version": "1.0.0",
+  "packages": [
+    {
+      "name": "@napi-rs/canvas",
+      "version": "1.0.11",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Brooooooklyn/canvas.git"
+      },
+      "files": [
+        "packages/@napi-rs_canvas@1.0.11/LICENSE"
+      ]
+    },
+    {
+      "name": "@tesseract.js-data/ita",
+      "version": "1.0.0",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/naptha/tessdata.git"
+      },
+      "files": [],
+      "upstreamNotices": [
+        "native/notices/tessdata/LICENSE"
+      ]
+    },
+    {
+      "name": "pdfjs-dist",
+      "version": "6.4.299",
+      "license": "Apache-2.0",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mozilla/pdf.js.git"
+      },
+      "files": [
+        "packages/pdfjs-dist@6.4.299/LICENSE",
+        "packages/pdfjs-dist@6.4.299/cmaps/LICENSE",
+        "packages/pdfjs-dist@6.4.299/iccs/LICENSE",
+        "packages/pdfjs-dist@6.4.299/standard_fonts/LICENSE_FOXIT",
+        "packages/pdfjs-dist@6.4.299/standard_fonts/LICENSE_LIBERATION",
+        "packages/pdfjs-dist@6.4.299/wasm/LICENSE_JBIG2",
+        "packages/pdfjs-dist@6.4.299/wasm/LICENSE_OPENJPEG",
+        "packages/pdfjs-dist@6.4.299/wasm/LICENSE_PDFJS_JBIG2",
+        "packages/pdfjs-dist@6.4.299/wasm/LICENSE_PDFJS_OPENJPEG",
+        "packages/pdfjs-dist@6.4.299/wasm/LICENSE_PDFJS_QCMS",
+        "packages/pdfjs-dist@6.4.299/wasm/LICENSE_QCMS"
+      ]
+    },
+    {
+      "name": "tesseract.js",
+      "version": "7.0.0",
+      "license": "Apache-2.0",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/naptha/tesseract.js.git"
+      },
+      "files": [
+        "packages/tesseract.js@7.0.0/LICENSE.md"
+      ]
+    },
+    {
+      "name": "bmp-js",
+      "version": "0.1.0",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/shaozilee/bmp-js"
+      },
+      "files": [
+        "packages/bmp-js@0.1.0/LICENSE"
+      ]
+    },
+    {
+      "name": "idb-keyval",
+      "version": "6.3.0",
+      "license": "Apache-2.0",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jakearchibald/idb-keyval.git"
+      },
+      "files": [
+        "packages/idb-keyval@6.3.0/LICENCE"
+      ]
+    },
+    {
+      "name": "is-url",
+      "version": "1.2.4",
+      "license": "MIT",
+      "repository": "https://github.com/segmentio/is-url",
+      "files": [
+        "packages/is-url@1.2.4/LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "node-fetch",
+      "version": "2.7.0",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/bitinn/node-fetch.git"
+      },
+      "files": [
+        "packages/node-fetch@2.7.0/LICENSE.md"
+      ]
+    },
+    {
+      "name": "whatwg-url",
+      "version": "5.0.0",
+      "license": "MIT",
+      "repository": "jsdom/whatwg-url",
+      "files": [
+        "packages/whatwg-url@5.0.0/LICENSE.txt"
+      ]
+    },
+    {
+      "name": "tr46",
+      "version": "0.0.3",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Sebmaster/tr46.js.git"
+      },
+      "files": [],
+      "upstreamNotices": [
+        "upstream/tr46-MIT.txt"
+      ]
+    },
+    {
+      "name": "webidl-conversions",
+      "version": "3.0.1",
+      "license": "BSD-2-Clause",
+      "repository": "jsdom/webidl-conversions",
+      "files": [
+        "packages/webidl-conversions@3.0.1/LICENSE.md"
+      ]
+    },
+    {
+      "name": "opencollective-postinstall",
+      "version": "2.0.3",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/opencollective/opencollective-postinstall.git"
+      },
+      "files": [
+        "packages/opencollective-postinstall@2.0.3/LICENSE"
+      ]
+    },
+    {
+      "name": "regenerator-runtime",
+      "version": "0.13.11",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/facebook/regenerator/tree/main/packages/runtime"
+      },
+      "files": [
+        "packages/regenerator-runtime@0.13.11/LICENSE"
+      ]
+    },
+    {
+      "name": "tesseract.js-core",
+      "version": "7.0.0",
+      "license": "Apache-2.0",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/naptha/tesseract.js-core.git"
+      },
+      "files": [
+        "packages/tesseract.js-core@7.0.0/LICENSE"
+      ]
+    },
+    {
+      "name": "wasm-feature-detect",
+      "version": "1.9.0",
+      "license": "Apache-2.0",
+      "repository": "GoogleChromeLabs/wasm-feature-detect",
+      "files": [
+        "packages/wasm-feature-detect@1.9.0/LICENSE"
+      ]
+    },
+    {
+      "name": "zlibjs",
+      "version": "0.3.1",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "git://github.com/imaya/zlib.js.git"
+      },
+      "files": [
+        "packages/zlibjs@0.3.1/LICENSE"
+      ]
+    },
+    {
+      "name": "react",
+      "version": "19.3.0",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/react/react.git",
+        "directory": "packages/react"
+      },
+      "files": [
+        "packages/react@19.3.0/LICENSE"
+      ]
+    },
+    {
+      "name": "react-dom",
+      "version": "19.3.0",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/react/react.git",
+        "directory": "packages/react-dom"
+      },
+      "files": [
+        "packages/react-dom@19.3.0/LICENSE"
+      ]
+    },
+    {
+      "name": "scheduler",
+      "version": "0.28.0",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/react/react.git",
+        "directory": "packages/scheduler"
+      },
+      "files": [
+        "packages/scheduler@0.28.0/LICENSE"
+      ]
+    },
+    {
+      "name": "lucide-react",
+      "version": "1.55.0",
+      "license": "ISC",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/lucide-icons/lucide.git",
+        "directory": "packages/lucide-react"
+      },
+      "files": [
+        "packages/lucide-react@1.55.0/LICENSE",
+        "packages/lucide-react@1.55.0/dist/esm/icons/copyright.mjs",
+        "packages/lucide-react@1.55.0/dist/esm/icons/copyright.mjs.map"
+      ]
+    },
+    {
+      "name": "@napi-rs/canvas-darwin-arm64",
+      "version": "1.0.11",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Brooooooklyn/canvas.git"
+      },
+      "files": [],
+      "upstreamNotices": [
+        "packages/@napi-rs_canvas@1.0.11/LICENSE",
+        "native/notices/skia/LICENSE"
+      ]
+    },
+    {
+      "name": "@napi-rs/canvas-darwin-x64",
+      "version": "1.0.11",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Brooooooklyn/canvas.git"
+      },
+      "files": [],
+      "upstreamNotices": [
+        "packages/@napi-rs_canvas@1.0.11/LICENSE",
+        "native/notices/skia/LICENSE"
+      ]
+    },
+    {
+      "name": "@napi-rs/canvas-win32-x64-msvc",
+      "version": "1.0.11",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Brooooooklyn/canvas.git"
+      },
+      "files": [],
+      "upstreamNotices": [
+        "packages/@napi-rs_canvas@1.0.11/LICENSE",
+        "native/notices/skia/LICENSE"
+      ]
+    }
+  ],
+  "packagesWithoutLicenseFile": [],
+  "native": {
+    "components": 146,
+    "files": 321,
+    "artifacts": 209
+  }
+}

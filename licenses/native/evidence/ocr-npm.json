@@ -1,0 +1,99 @@
+{
+  "bugs": {
+    "url": "https://github.com/naptha/tesseract.js-core/issues"
+  },
+  "dist": {
+    "shasum": "596aa1ab5c130adab12f21059e6aa1a1cecc0bab",
+    "tarball": "https://registry.npmjs.org/tesseract.js-core/-/tesseract.js-core-7.0.0.tgz",
+    "fileCount": 22,
+    "integrity": "sha512-WnNH518NzmbSq9zgTPeoF8c+xmilS8rFIl1YKbk/ptuuc7p6cLNELNuPAzcmsYw450ca6bLa8j3t0VAtq435Vw==",
+    "signatures": [
+      {
+        "sig": "MEUCIA6qJEwYfDBh9jFNrosZVJPBq85KmG+d+rRhU70NCf5uAiEAy0LciDMdViHHCc5zHWrz1RKpMkvYp/eZBHur0EkJCgg=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "unpackedSize": 45262431
+  },
+  "main": "index.js",
+  "name": "tesseract.js-core",
+  "author": {
+    "name": "antimatter15"
+  },
+  "gitHead": "acffef2b66eb44a31df297e11d905f4b39001068",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "mocha ./tests/unit/*.test.js",
+    "example": "http-server -p 3000"
+  },
+  "_npmUser": {
+    "name": "balearica",
+    "email": "admin@scribeocr.com"
+  },
+  "homepage": "https://github.com/naptha/tesseract.js-core",
+  "keywords": [
+    "ocr",
+    "tesseract",
+    "javascript",
+    "emscripten",
+    "port",
+    "c++",
+    "api",
+    "recognize",
+    "text",
+    "computer",
+    "vision",
+    "vision",
+    "language",
+    "multilingual",
+    "english"
+  ],
+  "repository": {
+    "url": "git+https://github.com/naptha/tesseract.js-core.git",
+    "type": "git"
+  },
+  "_npmVersion": "6.14.18",
+  "description": "Tesseract C++ API in Pure Javascript",
+  "directories": {},
+  "maintainers": [
+    {
+      "name": "antimatter15",
+      "email": "antimatter15@gmail.com"
+    },
+    {
+      "name": "jeromewu",
+      "email": "jeromewus@gmail.com"
+    },
+    {
+      "name": "bijection",
+      "email": "guillermo@cdbzb.com"
+    },
+    {
+      "name": "balearica",
+      "email": "admin@scribeocr.com"
+    }
+  ],
+  "_nodeVersion": "14.21.3",
+  "contributors": [
+    {
+      "name": "jeromewu"
+    }
+  ],
+  "_hasShrinkwrap": false,
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "eslint": "^7.32.0",
+    "expect.js": "^0.3.1",
+    "http-server": "^14.1.1",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "eslint-config-airbnb-base": "^14.2.1"
+  },
+  "_npmOperationalInternal": {
+    "tmp": "tmp/tesseract.js-core_7.0.0_1765766218497_0.47271851794832",
+    "host": "s3://npm-registry-packages-npm-production"
+  },
+  "_id": "tesseract.js-core@7.0.0",
+  "version": "7.0.0"
+}

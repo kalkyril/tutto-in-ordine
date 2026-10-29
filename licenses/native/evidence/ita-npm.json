@@ -1,0 +1,63 @@
+{
+  "bugs": {
+    "url": "https://github.com/naptha/tessdata/issues"
+  },
+  "dist": {
+    "shasum": "24acb2ee9b725e9129789961c642d2496f9ab553",
+    "tarball": "https://registry.npmjs.org/@tesseract.js-data/ita/-/ita-1.0.0.tgz",
+    "fileCount": 5,
+    "integrity": "sha512-Sx19NVYve5VAxEBDL6CWTX+evlvzV+iAS5ejJywcHVsmir/C9Tzw2fExoh97QFc06t48tYZA8VrMobsBzMAEhA==",
+    "signatures": [
+      {
+        "sig": "MEQCIHC5gr5TzypQjDtL0MzNzkK+RhnYPctBjhRrFb3dXzVtAiBavRdCjsE442CGIzkWScn/j7R4hdXqMAEbcm1mpz44Cw==",
+        "keyid": "SHA256:jl3bwswu80PjjokCgh0o2w5c2U4LhQAE57gj9cz1kzA"
+      }
+    ],
+    "unpackedSize": 8595862
+  },
+  "main": "index.js",
+  "name": "@tesseract.js-data/ita",
+  "author": {
+    "name": "Balearica",
+    "email": "admin@scribeocr.com"
+  },
+  "gitHead": "b86746569320a6103cea84cc2b8d9ee74f0f45d3",
+  "license": "MIT",
+  "_npmUser": {
+    "name": "balearica",
+    "email": "admin@scribeocr.com"
+  },
+  "homepage": "https://github.com/naptha/tessdata",
+  "repository": {
+    "url": "git+https://github.com/naptha/tessdata.git",
+    "type": "git"
+  },
+  "_npmVersion": "9.8.1",
+  "description": "traineddata for tesseract.js",
+  "directories": {},
+  "maintainers": [
+    {
+      "name": "balearica",
+      "email": "admin@scribeocr.com"
+    }
+  ],
+  "_nodeVersion": "16.20.0",
+  "contributors": [
+    {
+      "name": "Balearica"
+    },
+    {
+      "name": "jeromewu"
+    }
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "_hasShrinkwrap": false,
+  "_npmOperationalInternal": {
+    "tmp": "tmp/ita_1.0.0_1693863853364_0.9538168464777483",
+    "host": "s3://npm-registry-packages"
+  },
+  "_id": "@tesseract.js-data/ita@1.0.0",
+  "version": "1.0.0"
+}

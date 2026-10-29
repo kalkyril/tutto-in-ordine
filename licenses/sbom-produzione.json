@@ -1,0 +1,767 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:***",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-10-14T14:34:51.842Z",
+    "lifecycles": [
+      {
+        "phase": "build"
+      }
+    ],
+    "tools": [
+      {
+        "vendor": "npm",
+        "name": "cli",
+        "version": "11.6.2"
+      }
+    ],
+    "component": {
+      "bom-ref": "mngmnt@1.3.3",
+      "type": "library",
+      "name": "App",
+      "version": "1.3.3",
+      "scope": "required",
+      "author": "TIO",
+      "description": "Gestionale locale per avvocati e ditte individuali: pratiche, scadenze, compiti, anagrafica, attività svolte, parcelle.",
+      "purl": "pkg:npm/mngmnt@1.3.3",
+      "properties": [
+        {
+          "name": "cdx:npm:package:private",
+          "value": "true"
+        }
+      ],
+      "externalReferences": [],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "@napi-rs/canvas@1.0.11",
+      "type": "library",
+      "name": "@napi-rs/canvas",
+      "version": "1.0.11",
+      "scope": "required",
+      "description": "Canvas for Node.js with skia backend",
+      "purl": "pkg:npm/%40napi-rs/canvas@1.0.11",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas/-/canvas-1.0.11.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git+https://github.com/Brooooooklyn/canvas.git"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "bede6da20d5cafe40a69d21d7467bedcbadc5f41268c47748b317bd7b5307fdda60668187ead974662f6af86d9538d2ca41ebd7b1c61ac19fd23dd47604affef"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@napi-rs/canvas-darwin-arm64@1.0.11",
+      "type": "library",
+      "name": "@napi-rs/canvas-darwin-arm64",
+      "version": "1.0.11",
+      "scope": "optional",
+      "description": "Canvas for Node.js with skia backend",
+      "purl": "pkg:npm/%40napi-rs/canvas-darwin-arm64@1.0.11",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-darwin-arm64/-/canvas-darwin-arm64-1.0.11.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git+https://github.com/Brooooooklyn/canvas.git"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "27f272956a094c6f0e42a65a8aa972e08383c80c4da1f525668d30b52049b4793a01dca66dd2243f29c033526f41a6693da1b987e9ac93d42e2bccb88b5a28ab"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@tesseract.js-data/ita@1.0.0",
+      "type": "library",
+      "name": "@tesseract.js-data/ita",
+      "version": "1.0.0",
+      "scope": "required",
+      "author": "Balearica <admin@scribeocr.com>",
+      "description": "traineddata for tesseract.js",
+      "purl": "pkg:npm/%40tesseract.js-data/ita@1.0.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@tesseract.js-data/ita/-/ita-1.0.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/naptha/tessdata.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/naptha/tessdata"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/naptha/tessdata/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "4b1d7d35562f7b9540c440432fa0964d7f9ebe5bf357e8804b97a3272c1c1d5b268abfc2f53cf0d9f131a21f7b405734eade3cb58640f15acca1bb01ccc00484"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "bmp-js@0.1.0",
+      "type": "library",
+      "name": "bmp-js",
+      "version": "0.1.0",
+      "scope": "required",
+      "author": "shaozilee",
+      "description": "A pure javascript BMP encoder and decoder",
+      "purl": "pkg:npm/bmp-js@0.1.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/bmp-js/-/bmp-js-0.1.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/shaozilee/bmp-js"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "bc7752d7d0a763787088d7646aa93ddc3be354b7db11c23c9b2b38523b96ae55f585a0e6ae8a3ca38c42ce1e300fa0c657a1f1442c9abb084746a3137c446d8f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "idb-keyval@6.3.0",
+      "type": "library",
+      "name": "idb-keyval",
+      "version": "6.3.0",
+      "scope": "required",
+      "author": "Jake Archibald",
+      "description": "A super-simple-small keyval store built on top of IndexedDB",
+      "purl": "pkg:npm/idb-keyval@6.3.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/idb-keyval/-/idb-keyval-6.3.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git+https://github.com/jakearchibald/idb-keyval.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/jakearchibald/idb-keyval#readme"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/jakearchibald/idb-keyval/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "ba6fb6760016998b2eeb5e445e9595c1299aa4984e3741b8deddca6bf1156a88733d05d232a284a9e0cafe8216dcec3e057685d8fbd273ea014c5a7bf770393b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "is-url@1.2.4",
+      "type": "library",
+      "name": "is-url",
+      "version": "1.2.4",
+      "scope": "required",
+      "description": "Check whether a string is a URL.",
+      "purl": "pkg:npm/is-url@1.2.4",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/is-url/-/is-url-1.2.4.tgz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "213bc68a6f058518987b8210e6e1d2923ee955a3c3ac24e435ddf2ab7715ee26407097474d430f3041dca923b2f7167da857a7402be2fb6c231fd6b59d7a87c3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "node-fetch@2.7.0",
+      "type": "library",
+      "name": "node-fetch",
+      "version": "2.7.0",
+      "scope": "required",
+      "author": "David Frank",
+      "description": "A light-weight module that brings window.fetch to node.js",
+      "purl": "pkg:npm/node-fetch@2.7.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/node-fetch/-/node-fetch-2.7.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/bitinn/node-fetch.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/bitinn/node-fetch"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/bitinn/node-fetch/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7381517d49bf75b71667b53ed56ab40300b214bfb79edd9b130d39c1fc52cfe0d6a56b22b609928189b2d9d41d5b2282d7af7810b3ea32cfd8cd448da332edf0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "opencollective-postinstall@2.0.3",
+      "type": "library",
+      "name": "opencollective-postinstall",
+      "version": "2.0.3",
+      "scope": "required",
+      "author": "Xavier Damman (@xdamman)",
+      "description": "Lightweight npm postinstall message to invite people to donate to your collective",
+      "purl": "pkg:npm/opencollective-postinstall@2.0.3",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/opencollective-postinstall/-/opencollective-postinstall-2.0.3.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git+https://github.com/opencollective/opencollective-postinstall.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/opencollective/opencollective-postinstall#readme"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/opencollective/opencollective-postinstall/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "f0057fb02b6ecd4793a3c8102b9a83673011aee941dde82d2f3160b5ea81dad713e0cc3b07c2adec97031e696d8f3e853801ecbd37af93bd206446e1338652f5"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "pdfjs-dist@6.4.299",
+      "type": "library",
+      "name": "pdfjs-dist",
+      "version": "6.4.299",
+      "scope": "required",
+      "description": "Generic build of Mozilla's PDF.js library.",
+      "purl": "pkg:npm/pdfjs-dist@6.4.299",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-6.4.299.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git+https://github.com/mozilla/pdf.js.git"
+        },
+        {
+          "type": "website",
+          "url": "https://mozilla.github.io/pdf.js/"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "015975dfccc02ed7da00fbc00ee944d0f65385b6330814bbf672f8a4e48bffa4a6ff8007e40db5043f551edf7b3a50aecc9b82a66799b40b648a78ac17855bd6"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "regenerator-runtime@0.13.11",
+      "type": "library",
+      "name": "regenerator-runtime",
+      "version": "0.13.11",
+      "scope": "required",
+      "author": "Ben Newman <bn@cs.stanford.edu>",
+      "description": "Runtime for Regenerator-compiled generator and async functions.",
+      "purl": "pkg:npm/regenerator-runtime@0.13.11",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.13.11.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/facebook/regenerator/tree/main/packages/runtime"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "918d40655af645afadfa9895689e20c5a15a45e6551f8d0028da3b5025fa5be744c01a3fda8649cea7ee375a8bab5a0be39a39e9c3da4d710bc2b4e1f05a6082"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "tesseract.js@7.0.0",
+      "type": "library",
+      "name": "tesseract.js",
+      "version": "7.0.0",
+      "scope": "required",
+      "description": "Pure Javascript Multilingual OCR",
+      "purl": "pkg:npm/tesseract.js@7.0.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/tesseract.js/-/tesseract.js-7.0.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/naptha/tesseract.js.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/naptha/tesseract.js"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/naptha/tesseract.js/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7b13c191dfb3fb033506e324c7f063bf8dce78b07184be64296b33ffd258f835dc5dd8818e201c874578f50477a0026a09a2f9a94444d2fc7d128f86e5813b98"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "tesseract.js-core@7.0.0",
+      "type": "library",
+      "name": "tesseract.js-core",
+      "version": "7.0.0",
+      "scope": "required",
+      "author": "antimatter15",
+      "description": "Tesseract C++ API in Pure Javascript",
+      "purl": "pkg:npm/tesseract.js-core@7.0.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/tesseract.js-core/-/tesseract.js-core-7.0.0.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/naptha/tesseract.js-core.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/naptha/tesseract.js-core"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/naptha/tesseract.js-core/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5a7347e75f0dce66d2abdce04cf7a817c73ec668a54bcac5225d5829b93fa6dbae73ba7a70b3442cdb8f033726b18c38e7471ae9b2daf23dedd1502dab8df957"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "tr46@0.0.3",
+      "type": "library",
+      "name": "tr46",
+      "version": "0.0.3",
+      "scope": "required",
+      "author": "Sebastian Mayr <npm@smayr.name>",
+      "description": "An implementation of the Unicode TR46 spec",
+      "purl": "pkg:npm/tr46@0.0.3",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/tr46/-/tr46-0.0.3.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git+https://github.com/Sebmaster/tr46.js.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/Sebmaster/tr46.js#readme"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/Sebmaster/tr46.js/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "37758cb2ea95eba953df40ab5cd6c48f1e06130968c37bfaaebe2609cbfaa6b9dfc214b4d6b920c857633cd05877d6ebecba57575f849a1d357c79ead86760af"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "wasm-feature-detect@1.9.0",
+      "type": "library",
+      "name": "wasm-feature-detect",
+      "version": "1.9.0",
+      "scope": "required",
+      "author": "Surma <surma@surma.link>",
+      "description": "A small library to detect which features of WebAssembly are supported in your current browser.",
+      "purl": "pkg:npm/wasm-feature-detect@1.9.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/wasm-feature-detect/-/wasm-feature-detect-1.9.0.tgz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "ce89c4fb1948218b713f2fbe2f6e28c348400fc08809be3e1603f244e7776eec9722ab09bd410390181f082a1739dd47bb70d4af418e7e73c875c195f98a4d68"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "webidl-conversions@3.0.1",
+      "type": "library",
+      "name": "webidl-conversions",
+      "version": "3.0.1",
+      "scope": "required",
+      "author": "Domenic Denicola <d@domenic.me> (https://domenic.me/)",
+      "description": "Implements the WebIDL algorithms for converting to and from JavaScript values",
+      "purl": "pkg:npm/webidl-conversions@3.0.1",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-3.0.1.tgz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "d89027df3f0047aae32bc4a6f28ad10b487f6dc97f0ea2fbb513dd199e08d428dd17e11a30b998c411f25ee28bf38f5eb9c3c586f068c4cb1f95f39bf24c5a79"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "whatwg-url@5.0.0",
+      "type": "library",
+      "name": "whatwg-url",
+      "version": "5.0.0",
+      "scope": "required",
+      "author": "Sebastian Mayr <github@smayr.name>",
+      "description": "An implementation of the WHATWG URL Standard's URL API and parsing machinery",
+      "purl": "pkg:npm/whatwg-url@5.0.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/whatwg-url/-/whatwg-url-5.0.0.tgz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "b1a139ee7ba9c64eafdc7637e7e8f307061ad2b292cb45d1f094b164fc202ebef2b34201ce11af880d7f4d41892e6495aacf296fd027bc809712e3872e9ad84f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "zlibjs@0.3.1",
+      "type": "library",
+      "name": "zlibjs",
+      "version": "0.3.1",
+      "scope": "required",
+      "author": "Yuta Imaya",
+      "description": "zlib, gzip and zip implementation in JavaScript",
+      "purl": "pkg:npm/zlibjs@0.3.1",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/zlibjs/-/zlibjs-0.3.1.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "git://github.com/imaya/zlib.js.git"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/imaya/zlib.js"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "f89f51ae04ca3a69711520c7a34a48d7133a04b554bfea34653f4036d0b11a48c8542094771f5a95417c1a6f9d18b29b9249227562071436470cca5f213b78fb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "mngmnt@1.3.3",
+      "dependsOn": [
+        "@napi-rs/canvas@1.0.11",
+        "@tesseract.js-data/ita@1.0.0",
+        "pdfjs-dist@6.4.299",
+        "tesseract.js@7.0.0"
+      ]
+    },
+    {
+      "ref": "@napi-rs/canvas@1.0.11",
+      "dependsOn": [
+        "@napi-rs/canvas-darwin-arm64@1.0.11"
+      ]
+    },
+    {
+      "ref": "@napi-rs/canvas-darwin-arm64@1.0.11",
+      "dependsOn": []
+    },
+    {
+      "ref": "@tesseract.js-data/ita@1.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "bmp-js@0.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "idb-keyval@6.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "is-url@1.2.4",
+      "dependsOn": []
+    },
+    {
+      "ref": "node-fetch@2.7.0",
+      "dependsOn": [
+        "whatwg-url@5.0.0"
+      ]
+    },
+    {
+      "ref": "opencollective-postinstall@2.0.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "pdfjs-dist@6.4.299",
+      "dependsOn": [
+        "@napi-rs/canvas@1.0.11"
+      ]
+    },
+    {
+      "ref": "regenerator-runtime@0.13.11",
+      "dependsOn": []
+    },
+    {
+      "ref": "tesseract.js@7.0.0",
+      "dependsOn": [
+        "bmp-js@0.1.0",
+        "idb-keyval@6.3.0",
+        "is-url@1.2.4",
+        "node-fetch@2.7.0",
+        "opencollective-postinstall@2.0.3",
+        "regenerator-runtime@0.13.11",
+        "tesseract.js-core@7.0.0",
+        "wasm-feature-detect@1.9.0",
+        "zlibjs@0.3.1"
+      ]
+    },
+    {
+      "ref": "tesseract.js-core@7.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "tr46@0.0.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "wasm-feature-detect@1.9.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "webidl-conversions@3.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "whatwg-url@5.0.0",
+      "dependsOn": [
+        "tr46@0.0.3",
+        "webidl-conversions@3.0.1"
+      ]
+    },
+    {
+      "ref": "zlibjs@0.3.1",
+      "dependsOn": []
+    }
+  ]
+}

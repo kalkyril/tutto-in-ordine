@@ -1,0 +1,115 @@
+/* Guida di TIO: pagina locale, senza risorse esterne. Chiara o scura come il sistema, leggibile anche stampata. */
+:root {
+  --bg: #fbfaf9; --surface: #ffffff; --surface-2: #f3f1ef; --ink: #1d1b1a; --muted: #5f5a56; --line: #e6e1dc;
+  --accent: #8a1538; --accent-soft: #f6e8ed; --nota: #fff8e6; --nota-ink: #6b4300; --attenzione: #fdecec; --attenzione-ink: #8a1c1c;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --larghezza-testo: 46rem; --indice: 17.5rem;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171516; --surface: #201d1f; --surface-2: #2a2629; --ink: #f1ecee; --muted: #b3a9ae; --line: #3a3438;
+    --accent: #ff8fb8; --accent-soft: #3a1f2a; --nota: #2f2716; --nota-ink: #f3d69a; --attenzione: #3a1d1d; --attenzione-ink: #f5b3b3;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 1.0625rem/1.65 var(--font); -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-underline-offset: 0.18em; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.salta { position: absolute; left: -999px; top: 0; }
+.salta:focus { left: 1rem; top: 1rem; z-index: 10; background: var(--surface); padding: 0.5rem 0.9rem; border-radius: 8px; }
+
+/* ---------- impaginazione: indice a sinistra, testo a destra ---------- */
+.guida { display: grid; grid-template-columns: var(--indice) minmax(0, 1fr); min-height: 100vh; }
+.indice { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 1.5rem 1.1rem 2rem; border-right: 1px solid var(--line); background: var(--surface); }
+.marchio { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; font-size: 1.05rem; color: var(--ink); text-decoration: none; }
+.marchio img { width: 30px; height: 30px; border-radius: 8px; }
+.marchio small { display: block; font-weight: 500; font-size: 0.78rem; color: var(--muted); }
+.cerca { margin: 1.1rem 0 0.9rem; }
+.cerca input { width: 100%; font: inherit; font-size: 0.92rem; padding: 0.5rem 0.75rem; border-radius: 9px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.cerca p { margin: 0.4rem 0 0; font-size: 0.8rem; color: var(--muted); min-height: 1.2em; }
+.indice ol { list-style: none; margin: 0; padding: 0; }
+.indice > nav > ol > li { margin-top: 0.15rem; }
+.indice a { display: block; padding: 0.28rem 0.6rem; border-radius: 7px; color: var(--ink); text-decoration: none; font-size: 0.9rem; line-height: 1.35; }
+.indice a:hover { background: var(--surface-2); }
+.indice a.attivo { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.indice ol ol a { padding-left: 1.4rem; font-size: 0.84rem; color: var(--muted); }
+.indice ol ol a.attivo { color: var(--accent); }
+.indice .nascosto { display: none; }
+.indice .gruppo { margin: 1rem 0 0.25rem; padding: 0 0.6rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+main { padding: 3rem clamp(1.25rem, 5vw, 4.5rem) 6rem; }
+.testo { max-width: var(--larghezza-testo); }
+
+/* ---------- titoli e testo ---------- */
+.copertina { padding-bottom: 2rem; border-bottom: 1px solid var(--line); margin-bottom: 1rem; }
+.copertina .sopra { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: clamp(2.2rem, 1.6rem + 2.4vw, 3.2rem); line-height: 1.05; letter-spacing: -0.025em; margin: 0.4rem 0 0.8rem; }
+.copertina .sotto { font-size: 1.2rem; color: var(--muted); margin: 0; max-width: 40rem; }
+section.capitolo { padding-top: 2.5rem; }
+h2 { font-size: 1.85rem; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 0.9rem; }
+h2 .num { color: var(--accent); margin-right: 0.35rem; font-variant-numeric: tabular-nums; }
+h3 { font-size: 1.25rem; line-height: 1.25; margin: 2rem 0 0.5rem; letter-spacing: -0.01em; }
+h4 { font-size: 1.02rem; margin: 1.4rem 0 0.35rem; }
+p, ul, ol, table, figure, .nota, .attenzione, .passi { margin: 0 0 1rem; }
+ul, ol { padding-left: 1.3rem; }
+li { margin: 0.25rem 0; }
+li::marker { color: var(--accent); }
+strong { font-weight: 650; }
+code, kbd { font-family: var(--mono); font-size: 0.88em; }
+code { background: var(--surface-2); padding: 0.08em 0.35em; border-radius: 5px; }
+kbd { display: inline-block; min-width: 1.6em; text-align: center; padding: 0.05em 0.4em; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; background: var(--surface); line-height: 1.4; }
+.percorso { font-weight: 600; }
+.percorso::before { content: ""; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2.5rem 0 0; }
+
+/* ---------- riquadri ---------- */
+.nota, .attenzione, .consiglio { padding: 0.85rem 1rem; border-radius: 12px; font-size: 0.97rem; }
+.nota { background: var(--nota); color: var(--nota-ink); }
+.attenzione { background: var(--attenzione); color: var(--attenzione-ink); }
+.consiglio { background: var(--accent-soft); margin: 0 0 1rem; }
+.nota b, .attenzione b, .consiglio b { display: block; margin-bottom: 0.15rem; }
+.profili { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin: 0 0 1rem; }
+.profili > div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0.8rem 0.9rem; font-size: 0.93rem; }
+.profili b { display: block; margin-bottom: 0.2rem; }
+.passi { counter-reset: passo; list-style: none; padding: 0; }
+.passi > li { counter-increment: passo; position: relative; padding-left: 2.4rem; margin: 0.6rem 0; }
+.passi > li::before { content: counter(passo); position: absolute; left: 0; top: 0.05rem; width: 1.65rem; height: 1.65rem; border-radius: 999px; display: grid; place-items: center; background: var(--accent); color: #fff; font-size: 0.85rem; font-weight: 700; }
+
+/* ---------- tabelle e immagini ---------- */
+.tabella { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+th, td { text-align: left; vertical-align: top; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--line); }
+th { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 650; }
+td:first-child { font-weight: 600; white-space: nowrap; }
+figure { margin-left: 0; margin-right: 0; }
+figure img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 30px -12px rgba(0,0,0,.18); }
+figcaption { margin-top: 0.55rem; font-size: 0.86rem; color: var(--muted); }
+mark { background: color-mix(in srgb, var(--accent) 22%, transparent); color: inherit; border-radius: 3px; }
+.torna { display: inline-block; margin-top: 0.5rem; font-size: 0.85rem; }
+
+/* ---------- finestra stretta: l'indice diventa un menu in alto ---------- */
+.apri-indice { display: none; }
+@media (max-width: 900px) {
+  .guida { grid-template-columns: 1fr; }
+  .indice { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+  .indice nav { display: none; }
+  .indice.aperto nav { display: block; }
+  .apri-indice { display: inline-flex; margin-top: 0.25rem; font: inherit; font-size: 0.9rem; padding: 0.45rem 0.8rem; border-radius: 9px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+  main { padding-top: 2rem; }
+  .profili { grid-template-columns: 1fr; }
+}
+
+/* ---------- stampa: solo il testo, senza indice ---------- */
+@media print {
+  .indice, .torna, .salta { display: none !important; }
+  .guida { display: block; }
+  main { padding: 0; }
+  body { background: #fff; color: #000; font-size: 11pt; }
+  a { color: inherit; text-decoration: none; }
+  section.capitolo { break-before: page; }
+  figure, table, .nota, .attenzione { break-inside: avoid; }
+}

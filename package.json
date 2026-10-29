@@ -1,0 +1,237 @@
+{
+  "name": "tio",
+  "productName": "TIO",
+  "version": "1.0.0",
+  "description": "TIO, Tutto In Ordine: gestionale locale per avvocati, liberi professionisti e ditte individuali: pratiche, scadenze, compiti, anagrafica, attività svolte, parcelle.",
+  "main": "electron/main.js",
+  "author": {
+    "name": "Matteo Lugli",
+    "url": "https://github.com/kalkyril"
+  },
+  "desktopName": "TIO.desktop",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env MNGMNT_DEV=1 electron .\"",
+    "build": "vite build",
+    "start": "npm run build && electron .",
+    "dist": "npm run build && electron-builder",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:win": "npm run build && electron-builder --win",
+    "icon": "electron scripts/make-icon.js",
+    "test:db": "node scripts/test-db.js",
+    "test:smoke": "sh scripts/run-smoke.sh",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:db && npm run test:compenso && npm run test:print && npm run test:robustezza && npm run test:calendari && npm run test:import && npm run test:conflitti && npm run test:agenda && npm run test:report && npm run test:blocco && npm run test:backup && npm run test:doctext && npm run test:attivita && npm run test:giudiziale && npm run test:docfile && npm run test:release && npm run test:pdf && npm run typecheck && npm run test:regressioni && npm run test:proforma && npm run test:parametri && npm run test:sicurezza-extra && npm run test:ripristino-crash && npm run test:backup-cifrato && npm run test:aggiornamenti && npm run test:revisione-proforma && npm run test:licenses && npm run test:pubblicazione && npm run test:confini && npm run test:canali && npm run test:termini && npm run test:cartella-dati && npm run test:nuove-versioni && npm run test:pacchetto && npm run test:cartelle-utente && npm run test:pratiche-da-eventi && npm run test:registro && npm run test:sito && npm run test:release-metadata && npm run test:gestione && npm run test:professionisti && npm run test:anonimizza && npm run test:documento && npm run test:pdf-oscura && npm run test:fatturapa && npm run test:nota-credito && npm run test:modelli-word && npm run test:scadenze-fiscali && npm run test:guida",
+    "test:compenso": "node scripts/test-compenso.mjs",
+    "test:print": "node scripts/test-print.mjs",
+    "test:robustezza": "node scripts/test-robustezza.js",
+    "test:calendari": "node scripts/test-calendari.js",
+    "test:import": "node scripts/test-import.js",
+    "test:conflitti": "node scripts/test-conflitti.mjs",
+    "test:agenda": "node scripts/test-agenda.mjs",
+    "test:report": "node scripts/test-report.mjs",
+    "test:blocco": "node scripts/test-blocco.js",
+    "test:backup": "node scripts/test-backup-auto.js",
+    "test:doctext": "node scripts/test-doctext.js",
+    "test:attivita": "node scripts/test-attivita.mjs",
+    "test:giudiziale": "node scripts/test-compenso-giudiziale.mjs",
+    "test:docfile": "node scripts/test-docfile.js",
+    "test:release": "node scripts/test-release-safety.js",
+    "test:pdf": "node scripts/test-document-pdf.js",
+    "test:regressioni": "node scripts/audit-casi-limite.js",
+    "test:proforma": "node scripts/test-proforma-import.js",
+    "licenses": "node scripts/collect-notices.js",
+    "test:parametri": "node scripts/test-parametri-normativi.js",
+    "verifica:pubblicazione": "node scripts/check-publication.js",
+    "test:sicurezza-extra": "node scripts/test-extra-safety.js",
+    "test:ripristino-crash": "node scripts/test-restore-crash.js",
+    "test:backup-cifrato": "node scripts/test-backup-encryption.js",
+    "test:aggiornamenti": "node scripts/test-upgrades.js",
+    "test:revisione-proforma": "node scripts/test-proforma-review.js",
+    "licenses:check": "node scripts/check-native-licenses.js",
+    "test:licenses": "node scripts/test-native-licenses.js",
+    "test:pubblicazione": "node scripts/test-publication.js",
+    "test:confini": "node scripts/test-security-boundaries.js",
+    "test:canali": "node --test scripts/test-ipc-canali.js",
+    "test:termini": "node scripts/test-termini.mjs",
+    "test:cartella-dati": "node scripts/test-cartella-dati.js",
+    "test:nuove-versioni": "node scripts/test-nuove-versioni.js",
+    "test:pacchetto": "node scripts/test-pacchetto.js",
+    "test:cartelle-utente": "node scripts/test-cartelle-utente.js",
+    "test:pratiche-da-eventi": "node scripts/test-pratiche-da-eventi.js",
+    "postinstall": "node node_modules/electron/install.js",
+    "test:registro": "node scripts/test-registro.js",
+    "test:sito": "electron scripts/test-sito.js",
+    "prepare:sito": "node scripts/prepare-site.js",
+    "test:release-metadata": "node scripts/test-release-metadata.js",
+    "test:packaged": "node scripts/run-packaged-smoke.js",
+    "test:gestione": "node scripts/test-gestione.js",
+    "test:professionisti": "node scripts/test-professionisti.mjs",
+    "test:anonimizza": "node scripts/test-anonimizza.mjs",
+    "test:documento": "node scripts/test-documento.js",
+    "test:pdf-oscura": "node scripts/test-pdf-oscura.js",
+    "test:fatturapa": "node scripts/test-fatturapa.mjs",
+    "test:nota-credito": "node scripts/test-nota-credito.js",
+    "test:modelli-word": "node scripts/test-modelli-word.js",
+    "test:scadenze-fiscali": "node scripts/test-scadenze-fiscali.mjs",
+    "test:guida": "node scripts/test-guida.js"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "axe-core": "^4.14.0",
+    "concurrently": "^10.0.6",
+    "cross-env": "^10.1.0",
+    "electron": "44.9.3",
+    "electron-builder": "^26.15.3",
+    "lucide-react": "^1.55.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "wait-on": "^9.5.1"
+  },
+  "build": {
+    "appId": "it.tio.app",
+    "productName": "TIO",
+    "copyright": "Copyright © 2026 Matteo Lugli and TIO contributors",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "build/icon.png",
+      "package.json",
+      "build/trayTemplate.png",
+      "build/trayTemplate@2x.png",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md",
+      "scripts/smoke-packaged.js",
+      "PRIVACY.md",
+      "SECURITY.md",
+      "!node_modules/pdfjs-dist/wasm/quickjs-eval.*",
+      "!node_modules/pdfjs-dist/build/**",
+      "!node_modules/pdfjs-dist/web/**",
+      "!node_modules/pdfjs-dist/image_decoders/**",
+      "!node_modules/pdfjs-dist/types/**",
+      "!node_modules/pdfjs-dist/legacy/web/**",
+      "!node_modules/pdfjs-dist/legacy/image_decoders/**",
+      "!node_modules/pdfjs-dist/legacy/build/*.min.mjs",
+      "!node_modules/pdfjs-dist/legacy/build/pdf.sandbox*",
+      "!node_modules/tesseract.js-core/*.wasm.js",
+      "!node_modules/tesseract.js-core/*-lstm.{js,wasm}",
+      "!node_modules/@tesseract.js-data/ita/4.0.0_best_int/**",
+      "!node_modules/**/*.map"
+    ],
+    "asar": true,
+    "mac": {
+      "category": "public.app-category.business",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "identity": "-",
+      "hardenedRuntime": false,
+      "icon": "build/icon.icns",
+      "minimumSystemVersion": "13.0"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "TIO",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "language": "1040",
+      "installerLanguages": [
+        "it_IT"
+      ],
+      "uninstallDisplayName": "TIO",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "electronLanguages": [
+      "it",
+      "en",
+      "en-US",
+      "en_US"
+    ],
+    "compression": "maximum",
+    "dmg": {
+      "title": "TIO ${version}",
+      "format": "UDBZ",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "contents": [
+        {
+          "x": 140,
+          "y": 190,
+          "type": "file"
+        },
+        {
+          "x": 400,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "asarUnpack": [
+      "electron/**",
+      "node_modules/**"
+    ],
+    "beforePack": "scripts/prepare-native.js",
+    "extraResources": [
+      {
+        "from": "licenses",
+        "to": "licenses",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "guida",
+        "to": "guida",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "afterPack": "scripts/check-packaged-licenses.js"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.11",
+    "@tesseract.js-data/ita": "^1.0.0",
+    "pdfjs-dist": "^6.4.299",
+    "tesseract.js": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=24 <26"
+  },
+  "overrides": {
+    "global-agent": "^4.1.3"
+  }
+}

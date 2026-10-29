@@ -1,0 +1,4 @@
+# Fine riga LF anche sul runner Windows: le prove confrontano codici di controllo e testo dei file
+* text=auto eol=lf
+# schema ufficiale dell'Agenzia delle Entrate: conservato byte per byte
+*.xsd -text

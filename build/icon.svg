@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<title>TIO — Firma · competenza e responsabilità</title>
+<rect x="64" y="64" width="896" height="896" rx="200" fill="#3d0012"/>
+<g transform="rotate(38 512 480)"><path d="M512 224 704 474 630 686H394L320 474z" fill="#fde8f0"/><path d="M512 224v274" stroke="#3d0012" stroke-width="32"/><circle cx="512" cy="530" r="43" fill="#3d0012"/></g>
+<path d="M248 756c99 31 225 20 316-16s167-39 212-7" fill="none" stroke="#ff99d3" stroke-width="42" stroke-linecap="round"/>
+</svg>

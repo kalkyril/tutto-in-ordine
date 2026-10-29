@@ -1,0 +1,507 @@
+/* TIO — pagina di download.
+   Snella: primo schermo, confronto, tre schede come nell'app, giorno e sera, installazione, domande.
+   Colori: fondo bordeaux, testo carta, rosa sui pulsanti e sulle iniziali. Titoli in Literata, il resto
+   nel carattere di sistema come in TIO; schede bianche e pastiglie come nella Panoramica dell'app. */
+
+@import url('font/literata.css');
+
+:root {
+  --bg: #3d0012;
+  --bg-deep: #2a000c;
+  --surface: #4d0519;
+  --ink: #fde8f0;
+  --muted: #d39ab6;
+  --accent: #ff99d3;
+  --accent-ink: #3d0012;
+  --paper: #fbe9f0;
+  --paper-ink: #3d0012;
+  --paper-muted: #7a3550;
+
+  /* le schede dell'app (tema chiaro di TIO, src/stile-dati.css) */
+  --app-carta: #ffffff;
+  --app-testo: #111111;
+  --app-piano: #5f6368;
+  --app-bordo: #e8e8e8;
+  --app-colore: #8a1538;
+
+  --font: 'Literata', Georgia, 'Times New Roman', serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Inter, Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --step-small: clamp(0.875rem, 0.84rem + 0.12vw, 0.9375rem);
+  --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --step-lead: clamp(1.1875rem, 1.05rem + 0.6vw, 1.5rem);
+  --step-head: clamp(2rem, 1.3rem + 3.2vw, 4rem);
+  --step-display: clamp(3.25rem, 1rem + 6.2vw, 7.5rem);
+  --larghezza: 74rem;          /* la larghezza della barra in alto: tutta la pagina sta qui dentro */
+
+  --margin: clamp(1.25rem, 2.2vw, 2rem);
+  --gutter: clamp(1rem, 2vw, 2rem);
+  --section: clamp(6.5rem, 10vw, 10rem);
+  --stacco: clamp(1.5rem, 8svh, 7rem); /* dalla barra al titolo di ogni sezione del menu: uguale ovunque */
+  --radius: 999px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-press: 140ms;
+  --t-hover: 180ms;
+}
+
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: var(--step-body); line-height: 1.55; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+h1, h2, h3, p, figure, ul, ol, dl, dd { margin: 0; }
+ul[class], ol[class] { padding: 0; list-style: none; }
+img { display: block; max-width: 100%; height: auto; }
+button, input, select { font: inherit; color: inherit; }
+button { background: none; border: 0; padding: 0; cursor: pointer; }
+a { color: inherit; }
+h1, h2 { font-family: var(--font); font-weight: 500; text-wrap: balance; letter-spacing: -0.02em; line-height: 1.05; }
+h3 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
+p { max-width: 62ch; text-wrap: pretty; }
+::selection { background: var(--accent); color: var(--accent-ink); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+:target { scroll-margin-top: 5rem; }
+#dati { scroll-margin-top: 7rem; }
+.iniziale { color: var(--accent); }
+.barra .salta { position: absolute; left: var(--margin); top: -6rem; z-index: 20; pointer-events: auto; padding: 0.6rem 1rem; border-radius: var(--radius); background: var(--accent); color: var(--accent-ink); text-decoration: none; }
+.barra .salta:focus { top: 4.5rem; }
+[data-ui] { font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+
+/* pulsanti: tutti a pillola */
+.pulsante { display: inline-flex; align-items: center; justify-content: center; gap: 0.6em; min-height: 3.5rem; padding: 0 1.6rem; border-radius: var(--radius); background: var(--accent); color: var(--accent-ink); font-weight: 600; text-decoration: none; transition: transform var(--t-press) var(--ease-out), background-color var(--t-hover) ease, color var(--t-hover) ease; }
+.pulsante:active { transform: scale(0.97); }
+.collegamento { text-decoration: underline; text-decoration-thickness: 0.07em; text-underline-offset: 0.2em; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); transition: text-decoration-color var(--t-hover) ease; }
+@media (hover: hover) and (pointer: fine) {
+  .pulsante:hover { background: var(--ink); color: var(--accent-ink); }
+  .collegamento:hover { text-decoration-color: currentColor; }
+}
+
+/* ---------- barra in alto come Free My TV: una pillola sospesa che resta in vista ----------
+   Marchio a sinistra, voci al centro esatto della pagina, GitHub a destra; l'ombra solo quando la pagina scorre sotto. */
+.barra { position: fixed; top: 14px; left: 0; right: 0; z-index: 10; padding: 0 var(--margin); pointer-events: none; }
+.barra-pillola { position: relative; isolation: isolate; pointer-events: auto; max-width: var(--larghezza); margin: 0 auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: clamp(1rem, 2vw, 2rem); padding: 0.5rem 0.5rem 0.5rem 1rem; border-radius: var(--radius); font-size: 0.9375rem;
+  /* Liquid Glass (HIG, liquid-glass.md): vetro sottile che lascia passare la pagina, più saturo, con un filo di luce sul bordo */
+  background: color-mix(in srgb, var(--surface) 38%, transparent); -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7); /* taste-skill-ignore: barra fissa in vetro (Liquid Glass): sfocatura e riflesso sono il materiale */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 0 rgba(255, 255, 255, 0.06), 0 12px 32px -14px rgba(0, 0, 0, 0.55); transition: background-color 300ms var(--ease-out); } /* taste-skill-ignore: barra fissa in vetro, la luce sul bordo è il materiale */
+.barra-pillola::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.06) 35%, rgba(255, 255, 255, 0) 60%, rgba(255, 153, 211, 0.25)); /* taste-skill-ignore: barra fissa in vetro (Liquid Glass): sfocatura e riflesso sono il materiale */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); } /* taste-skill-ignore: il riflesso del vetro sul bordo */
+.barra-pillola::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 55%); } /* taste-skill-ignore: la luce che il vetro prende dall'alto */
+.barra.scorre .barra-pillola { background: color-mix(in srgb, var(--surface) 18%, transparent); } /* scorrendo la pagina si vede di più attraverso il vetro */
+/* chi chiede meno trasparenza o più contrasto ha una barra piena */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .barra-pillola, .barra.scorre .barra-pillola { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; } /* taste-skill-ignore: barra fissa in vetro (Liquid Glass): sfocatura e riflesso sono il materiale */
+  .barra-pillola::before, .barra-pillola::after { display: none; }
+}
+.barra-marchio { justify-self: start; display: inline-flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 1.0625rem; letter-spacing: 0.01em; }
+.barra-marchio img { width: 30px; height: 30px; }
+.barra-voci { display: flex; gap: clamp(1rem, 2.2vw, 2.25rem); }
+.barra a { text-decoration: none; }
+.barra-voci a, .barra-marchio { color: var(--ink); text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 0.3em; transition: text-decoration-color var(--t-hover) ease; }
+.barra-voci a:hover { text-decoration-color: currentColor; }
+.barra-github { justify-self: end; display: inline-flex; align-items: center; gap: 0.55rem; min-height: 44px; padding: 0 1.15rem; border-radius: var(--radius); background: var(--ink); color: var(--bg); font-weight: 600; transition: background-color var(--t-hover) ease, transform var(--t-press) var(--ease-out); }
+.barra-github svg { width: 1.15rem; height: 1.15rem; fill: currentColor; }
+.barra-github:hover { background: #ffffff; }
+.barra-github:active { transform: scale(0.97); }
+
+/* ---------- eroe: il nome, il motto, un pulsante; frammenti dell'app ai lati, la finestra di TIO sotto ---------- */
+.eroe { position: relative; padding: 0 var(--margin); text-align: center; overflow: clip; }
+/* il primo schermo è tutto del testo, centrato; la finestra di TIO comincia sotto */
+/* il blocco sta al centro dello spazio visibile sotto la barra (--barra-sotto la misura lo script), non dello schermo intero */
+.eroe-testo { position: relative; max-width: var(--larghezza); margin: 0 auto; min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: calc(var(--barra-sotto, 4.75rem) + 1.5rem) 0 1.5rem; }
+.eroe-testo > :not(.sciame) { position: relative; z-index: 2; }
+.nome { font-size: var(--step-display); line-height: 0.9; letter-spacing: -0.04em; color: var(--ink); text-wrap: balance; font-weight: 500; }
+.eroe-motto { font-family: var(--font); margin-top: clamp(1.25rem, 2.4vw, 2rem); font-size: clamp(1.75rem, 1.1rem + 2.3vw, 3.25rem); line-height: 1.05; letter-spacing: -0.02em; max-width: none; text-wrap: balance; }
+.eroe-motto em { font-style: italic; color: var(--muted); }
+.eroe-frase { margin-top: 1.25rem; font-size: clamp(1rem, 0.94rem + 0.25vw, 1.125rem); line-height: 1.55; max-width: 58ch; color: color-mix(in srgb, var(--ink) 88%, var(--muted)); }
+.eroe-azioni { margin-top: 2.5rem; }
+/* tre sistemi, tutti con lo stesso rosa */
+.due-sistemi { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
+.pulsante-grande { min-height: 3.375rem; padding: 0 1.75rem; font-size: 1.0625rem; }
+.pulsante svg { width: 1.3em; height: 1.3em; fill: currentColor; flex: none; }
+.eroe-meta { margin-top: 1.75rem; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.35rem 0.7rem; font-size: var(--step-small); color: var(--muted); max-width: none; }
+.eroe-meta a { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--ink); text-decoration: underline; text-decoration-thickness: 0.07em; text-underline-offset: 0.22em; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); transition: text-decoration-color var(--t-hover) ease; }
+.eroe-meta a:hover { text-decoration-color: currentColor; }
+.eroe-meta svg { width: 1rem; height: 1rem; fill: currentColor; }
+
+/* pezzi veri dell'app (Agenda e Panoramica), ai lati del testo, a profondità diverse */
+.sciame { position: absolute; inset: var(--barra-sotto, 4.75rem) 0 0; z-index: 1; pointer-events: none; }
+.frammento { position: absolute; left: var(--x); top: var(--y); width: var(--w); height: auto; rotate: var(--r); border-radius: 12px; box-shadow: 0 22px 50px -12px rgba(0, 0, 0, 0.5); } /* taste-skill-ignore: frammenti dell'app sospesi, l'ombra dice la profondità */
+.frammento.a-destra { left: auto; right: var(--x); }
+
+.finestra-app { position: relative; container-type: inline-size; border-radius: 14px; overflow: hidden; background: #ffffff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 50px 120px -30px rgba(0, 0, 0, 0.7), 0 24px 50px -24px rgba(0, 0, 0, 0.55); } /* taste-skill-ignore: finestra disegnata dentro un frammento data-ui */
+.semafori { position: absolute; top: 1.55cqi; left: 1.55cqi; z-index: 1; display: flex; gap: 0.62cqi; }
+.semafori i { width: 0.95cqi; height: 0.95cqi; min-width: 7px; min-height: 7px; border-radius: 50%; background: #ff5f57; }
+.semafori i:nth-child(2) { background: #febc2e; } .semafori i:nth-child(3) { background: #28c840; }
+
+/* i momenti di TIO accanto al titolo: schede disegnate con i colori e il carattere dell'app */
+.adesivo { padding: 12px 14px 13px; border-radius: 14px; background: #ffffff; color: #111111; font-size: 0.8125rem; line-height: 1.35; text-align: left; }
+.adesivo p { max-width: none; }
+.ad-testa { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; font-size: 0.75rem; font-weight: 600; color: #5f6368; }
+.ad-testa span:not(.ad-simbolo) { margin-left: auto; padding: 1px 8px; border-radius: 999px; background: #fbeef2; color: #8a1538; font-weight: 600; white-space: nowrap; }
+.ad-testa .ad-ok { background: #dcfae5; color: #247b50; }
+.ad-verde { color: #247b50; }
+.adesivo b { display: block; font-size: 0.875rem; font-weight: 650; }
+.ad-piano { margin-top: 3px; font-size: 0.75rem; color: #5f6368; }
+.ad-etichetta { font-size: 0.75rem; color: #5f6368; }
+.ad-grande { font-size: 1.1875rem; font-weight: 650; letter-spacing: -0.01em; line-height: 1.2; color: #8a1538; }
+.ad-nero { color: #111111; font-size: 1.375rem; }
+.ad-pallino { display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: #c4242a; vertical-align: 1px; }
+.ad-riga { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; font-size: 0.78125rem; font-variant-numeric: tabular-nums; }
+.ad-riga span:first-child { color: #5f6368; }
+.ad-riga span:last-child, .ad-testa { white-space: nowrap; }
+.ad-totale { margin-top: 4px; padding-top: 6px; border-top: 1px solid #e8e8e8; font-weight: 650; } /* taste-skill-ignore: riga del totale, come nell'app */
+.ad-totale span:first-child { color: inherit; }
+/* simboli dei riquadri: forme disegnate con una maschera, colorate dal testo */
+.ad-simbolo { width: 14px; height: 14px; flex: none; background: #8a1538; -webkit-mask: var(--s) center / contain no-repeat; mask: var(--s) center / contain no-repeat; }
+.ad-scuro .ad-simbolo { background: #e5566f; } .ad-verde .ad-simbolo { background: #247b50; }
+.ad-simbolo.campana { --s: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%208a6%206%200%200%201%2012%200c0%207%203%209%203%209H3s3-2%203-9M10.3%2021a1.94%201.94%200%200%200%203.4%200%22/%3E%3C/svg%3E"); }
+.ad-simbolo.calendario { --s: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22/%3E%3Cpath%20d%3D%22M3%2010h18M8%203v4M16%203v4%22/%3E%3C/svg%3E"); }
+.ad-simbolo.documento { --s: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203H7a2%202%200%200%200-2%202v14a2%202%200%200%200%202%202h10a2%202%200%200%200%202-2V8z%22/%3E%3Cpath%20d%3D%22M14%203v5h5%22/%3E%3C/svg%3E"); }
+.ad-simbolo.euro { --s: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M18%207a7%207%200%201%200%200%2010M4%2010h9M4%2014h9%22/%3E%3C/svg%3E"); }
+.ad-simbolo.orologio { --s: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22/%3E%3Cpath%20d%3D%22M12%207v5l3%202%22/%3E%3C/svg%3E"); }
+.ad-simbolo.spunta { --s: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%206%209%2017l-5-5%22/%3E%3C/svg%3E"); }
+/* una scheda nel tema scuro dell'app */
+.ad-scuro { background: #131217; color: #f4f4f5; }
+.ad-scuro .ad-testa, .ad-scuro .ad-riga span:first-child { color: #8f9197; }
+.ad-scuro .ad-testa span:not(.ad-simbolo) { background: #2c1a20; color: #f19bb0; }
+.ad-scuro .ad-totale { border-top-color: #26252a; }
+.ad-scuro .ad-totale span:first-child { color: #f4f4f5; }
+
+/* ---------- sezioni: titolo al centro, contenuto sotto ---------- */
+:is(.confronto-sezione, .funz, .funzioni, .installa, .domande, .chiusura) { padding: var(--section) var(--margin) 0; text-align: center; }
+:is(.funz, .funzioni, .installa, .domande, .chiusura, .palco) h2 { font-size: var(--step-head); }
+/* i sottotitoli delle sezioni: tutti uguali, 16 px nel colore del testo */
+.sezione-sotto { margin: 1rem auto 0; max-width: var(--larghezza); font-size: 1rem; color: var(--ink); }
+
+/* ---------- prima e dopo: come il confronto di Free My TV; --x è la posizione del cursore ---------- */
+.confronto-sezione { padding: var(--section) var(--margin) 0; text-align: center; }
+.confronto-sezione h2 { font-size: var(--step-head); }
+.confronto-sotto { margin: 1rem auto 0; max-width: var(--larghezza); font-size: 1rem; color: var(--ink); }
+.confronto { --x: 50%; position: relative; container-type: inline-size; width: min(60rem, 100%, calc((100svh - 9rem) * 1.6)); aspect-ratio: 16 / 10; margin: clamp(2.5rem, 5vw, 4rem) auto 0; border-radius: 16px; overflow: hidden; cursor: ew-resize; touch-action: pan-y; user-select: none; -webkit-user-select: none; font-family: var(--font-ui); text-align: left; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 50px 110px -40px rgba(0, 0, 0, 0.7); } /* taste-skill-ignore: schermo disegnato dentro un frammento data-ui */
+/* dentro il confronto si trascina solo il cursore: le immagini non si prendono e non ricevono il clic */
+.confronto img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
+.confronto:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+.scrivania { position: absolute; inset: 0; isolation: isolate; background: #6b2440; color: #1d1d1f; }
+.scrivania-prima { clip-path: inset(0 calc(100% - var(--x)) 0 0); }
+.dock { position: absolute; bottom: 1.1cqi; left: 50%; translate: -50% 0; z-index: 3; display: flex; gap: 0.7cqi; padding: 0.6cqi; border-radius: 1.5cqi; background: rgba(255, 255, 255, 0.32); }
+.dock :is(i, img) { display: block; width: 3.6cqi; height: 3.6cqi; border-radius: 0.9cqi; background: #d9d9de; }
+.dock i:nth-child(8n+1) { background: #3b82f6; } .dock i:nth-child(8n+2) { background: #22a35a; } .dock i:nth-child(8n+3) { background: #f2f2f4; } .dock i:nth-child(8n+4) { background: #e5484d; } .dock i:nth-child(8n+5) { background: #2b6cb0; } .dock i:nth-child(8n+6) { background: #f5b301; } .dock i:nth-child(8n+7) { background: #8e8e93; } .dock i:nth-child(8n) { background: #ff7a45; }
+.scrivania-dopo .dock i { background: #c7c7cc; }
+
+/* con TIO: una finestra sola */
+.finestra-sola { position: absolute; left: 19%; top: 9%; width: 62%; border-radius: 1cqi; overflow: hidden; box-shadow: 0 2cqi 5cqi rgba(0, 0, 0, 0.45); } /* taste-skill-ignore: finestra disegnata dentro un frammento data-ui */
+.finestra-sola img { display: block; width: 100%; height: auto; }
+.finestra-sola .semafori { top: 1.25cqi; left: 1.25cqi; gap: 0.5cqi; }
+.finestra-sola .semafori i { width: 0.78cqi; height: 0.78cqi; min-width: 0; min-height: 0; }
+
+/* senza TIO: cartelle, foglio di calcolo, posta, documento, calendario e foglietti, uno sopra l'altro */
+.fin { position: absolute; display: flex; flex-direction: column; overflow: hidden; border-radius: 0.9cqi; background: #ffffff; font-size: 1.02cqi; line-height: 1.35; box-shadow: 0 1.4cqi 3.5cqi rgba(0, 0, 0, 0.4); } /* taste-skill-ignore: finestre disegnate dentro un frammento data-ui */
+.fin-barra { flex: none; display: flex; align-items: center; gap: 1cqi; padding: 0.55cqi 0.9cqi; background: #ececee; color: #3a3a3c; font-weight: 600; white-space: nowrap; }
+.fin .semafori { position: static; display: inline-flex; gap: 0.45cqi; }
+.fin .semafori i { width: 0.8cqi; height: 0.8cqi; min-width: 0; min-height: 0; }
+.fin-cartelle { left: 3%; top: 8%; width: 41%; height: 45%; }
+.cartelle-griglia { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2cqi 0.8cqi; padding: 1.4cqi 1.2cqi; }
+.cartella-f { display: grid; justify-items: center; gap: 0.4cqi; text-align: center; font-size: 0.92cqi; color: #3a3a3c; }
+.cartella-f::before { content: ''; width: 4.6cqi; height: 3.5cqi; border-radius: 0.4cqi; background: #57a5f5; box-shadow: inset 0 0.7cqi 0 #7fbcf8; } /* taste-skill-ignore: disegno di una cartella */
+.fin-foglio { left: 29%; top: 23%; width: 37%; height: 45%; }
+.fin-foglio table { border-collapse: collapse; width: 100%; font-size: 0.98cqi; }
+.fin-foglio :is(th, td) { border: 1px solid #dcdce0; padding: 0.35cqi 0.6cqi; text-align: left; white-space: nowrap; } /* taste-skill-ignore: griglia del foglio di calcolo */
+.fin-foglio th { background: #f2f2f4; font-weight: 600; }
+.fin-foglio tr.rosso td { background: #fde2e2; } .fin-foglio tr.giallo td { background: #fff4c2; }
+.fin-documento { left: 63%; top: 6%; width: 25%; height: 60%; }
+.foglio-bianco { margin: 1.2cqi; padding: 1.4cqi; background: #fff; box-shadow: 0 0 0 1px #e5e5ea; display: grid; gap: 0.75cqi; } /* taste-skill-ignore: pagina disegnata */
+.foglio-bianco b { font-size: 1.3cqi; } .foglio-bianco i { height: 0.5cqi; border-radius: 1cqi; background: #d9d9de; } .foglio-bianco i:nth-child(3n) { width: 70%; }
+.fin-posta { left: 9%; top: 50%; width: 33%; height: 38%; }
+.fin-posta ul { margin: 0; padding: 0; list-style: none; }
+.fin-posta li { display: grid; padding: 0.55cqi 1cqi; border-bottom: 1px solid #ececee; color: #6e6e73; } /* taste-skill-ignore: righe della posta disegnata */
+.fin-posta li b { color: #1d1d1f; }
+.fin-calendario { left: 53%; top: 57%; width: 34%; height: 30%; }
+.settimana { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: #e5e5ea; }
+.settimana span { background: #fff; padding: 0.5cqi; display: grid; align-content: start; gap: 0.4cqi; }
+.settimana em { font-style: normal; font-size: 0.9cqi; padding: 0.2cqi 0.4cqi; border-radius: 0.3cqi; background: #dbeafe; color: #1e40af; }
+.post-it { position: absolute; z-index: 2; left: var(--px); top: var(--py); width: 11cqi; min-height: 9cqi; padding: 1cqi; rotate: var(--pr); background: #ffe66d; color: #3a3a3c; font-size: 1.1cqi; line-height: 1.3; box-shadow: 0 0.8cqi 1.6cqi rgba(0, 0, 0, 0.3); } /* taste-skill-ignore: foglietto disegnato */
+
+.confronto-etichetta { position: absolute; top: 4cqi; z-index: 4; padding: 0.45rem 0.85rem; border-radius: 999px; background: rgba(20, 0, 7, 0.72); color: #ffffff; font-size: var(--step-small); font-family: var(--font); white-space: nowrap; pointer-events: none; transition: opacity 200ms var(--ease-out); }
+.confronto-etichetta.sinistra { left: 2cqi; } .confronto-etichetta.destra { right: 2cqi; }
+.confronto-maniglia { position: absolute; top: 0; bottom: 0; left: var(--x); z-index: 5; width: 3px; translate: -50% 0; background: #ffffff; pointer-events: none; }
+.confronto-maniglia svg { position: absolute; top: 50%; left: 50%; width: 3.25rem; height: 3.25rem; translate: -50% -50%; padding: 0.8rem; border-radius: 50%; background: #ffffff; fill: #3d0012; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); } /* taste-skill-ignore: maniglia del cursore */
+
+/* ---------- funzioni: titolo e testo restano fermi, scorrendo cambiano immagine e testo (Sticky Content Switch).
+   Senza script, sul tablet e sul telefono ogni immagine ha il suo testo sopra. ---------- */
+/* senza palco fermo (telefono, finestre basse) Funzioni e Strumenti iniziano come le altre sezioni del menu */
+.funz { margin-top: max(2rem, calc(var(--section) - var(--barra-sotto, 4.75rem) - var(--stacco))); padding-top: calc(var(--barra-sotto, 4.75rem) + var(--stacco)); }
+.funz-scorri { max-width: var(--larghezza); margin: clamp(2.5rem, 5vw, 4rem) auto 0; display: grid; gap: clamp(4rem, 9vw, 6rem); text-align: left; }
+.funz-fisso { display: none; }
+.funz-voci { display: grid; gap: clamp(3.5rem, 9vw, 6rem); }
+.funz-voce { display: grid; gap: 1.75rem; max-width: 40rem; margin: 0 auto; }
+.funz-testo h3, .funz-fisso h3, .palco-testo h3 { font-family: var(--font); font-weight: 500; font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.75rem); line-height: 1.08; letter-spacing: -0.02em; text-wrap: balance; }
+.funz-testo p, .funz-fisso p, .palco-testo > p { margin-top: 1rem; font-size: var(--step-body); line-height: 1.55; max-width: 40ch; }
+.funz-figura img { display: block; width: 100%; height: auto; }
+.funz-punti { display: flex; gap: 0.5rem; margin-top: 2rem; }
+.funz-punti i { width: 0.5rem; height: 0.5rem; border-radius: 999px; background: color-mix(in srgb, var(--ink) 25%, transparent); transition: width 400ms var(--ease-out), background-color 400ms var(--ease-out); }
+.funz-punti i.on { width: 1.75rem; background: var(--accent); }
+/* palco: le sezioni del menu (Tutto incluso, I tuoi dati, Installare, Domande) impaginate come Strumenti.
+   Il titolo arriva sotto la barra, sotto il testo a sinistra e l'immagine o il contenuto a destra, su uno schermo */
+/* lo spazio sopra il titolo (barra + 24 px) fa già parte del distacco tra le sezioni: il margine aggiunge solo il resto */
+.palco { margin-top: max(2rem, calc(var(--section) - var(--barra-sotto, 4.75rem) - var(--stacco))); padding: calc(var(--barra-sotto, 4.75rem) + var(--stacco)) var(--margin) 2svh; min-height: 100svh; display: flex; flex-direction: column; text-align: center; }
+:is(.funzioni, .installa, .domande).palco { padding-top: calc(var(--barra-sotto, 4.75rem) + var(--stacco)); }
+.palco-griglia { max-width: var(--larghezza); margin: clamp(2rem, 5svh, 4rem) auto 0; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(2.5rem, 5vw, 5rem); align-items: center; text-align: left; }
+.palco-griglia[hidden] { display: none; }
+.palco-figura { margin: 0; }
+.palco-figura img { display: block; width: 100%; height: auto; }
+.palco-nota { margin-top: 1.25rem; max-width: 44ch; font-size: 0.9375rem; line-height: 1.5; color: var(--muted); }
+.palco-link { margin-top: 1.5rem; font-size: 1rem; }
+.palco-fermo { position: sticky; top: calc(var(--barra-sotto, 4.75rem) + 24px); align-self: start; }
+.domande .palco-griglia { align-items: start; }
+.domande .domande-elenco { max-width: none; margin: 0; }
+.installa .palco-griglia { margin-top: clamp(1.25rem, 3.5svh, 3rem); }
+.installa .palco-testo > p { margin-top: 0.75rem; font-size: 1rem; }
+.installa .installa-scarica { margin-top: 1.25rem; gap: 0.6rem; }
+.installa .installa-scarica { flex-wrap: wrap; }
+.installa .installa-scarica .pulsante-grande { min-height: 3rem; padding: 0 1.05rem; gap: 0.45em; font-size: 0.9375rem; }
+.installa .installa-scarica { justify-content: flex-start; }
+.installa .palco-testo .download-nota, .installa .palco-testo .installa-file { margin: 0.7rem 0 0; text-align: left; white-space: normal; max-width: 50ch; font-size: 0.875rem; line-height: 1.4; }
+.installa .passi { margin: 0; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.installa .passo { display: grid; grid-template-columns: minmax(0, 13rem) minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 1.25rem; align-items: center; padding: 8px 20px 8px 8px; }
+.installa .passo-figura { grid-row: 1 / 3; height: clamp(6rem, 14svh, 8.5rem); }
+/* sul computer i disegni dei passi restano interi, solo più piccoli: zoom riduce anche lo spazio che occupano */
+@media (min-width: 64.01em) {
+  .installa .passo-figura > * { scale: none; zoom: 0.36; }
+  .installa .passo-figura > .smartscreen { width: 27rem; flex: none; }
+}
+.installa .passo h3 { margin: 0; align-self: end; font-size: 1rem; }
+.installa .passo p { margin: 0.3rem 0 0; align-self: start; font-size: 0.875rem; line-height: 1.45; }
+/* finestre basse: qualche pixel in meno tra i blocchi, così la sezione resta in uno schermo */
+@media (max-height: 42.5em) { .installa .palco-griglia { margin-top: 0.9rem; } .installa .palco-testo .download-nota, .installa .palco-testo .installa-file { margin-top: 0.45rem; } .installa .installa-scarica { margin-top: 0.9rem; } }
+@media (max-width: 64em) {
+  .palco { min-height: 0; }
+  .palco-griglia { grid-template-columns: minmax(0, 1fr); }
+  .palco-fermo { position: static; }
+  .installa .passo { grid-template-columns: minmax(0, 1fr); padding: 12px 12px 22px; }
+  .installa .passo-figura { grid-row: auto; height: 14.5rem; }
+  .installa .passo-figura > * { scale: 0.78; }
+  .installa .passo h3 { margin: 1.1rem 6px 0; }
+  .installa .passo p { margin: 0.5rem 6px 0; }
+}
+/* Strumenti: sopra il titolo lo strumento (Documenti o Anonimizza), sotto il testo tre dettagli */
+.funz-tag { display: inline-block; margin-bottom: 0.75rem; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.funz-elenco { margin: 1.25rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.6rem; max-width: 44ch; }
+.funz-elenco li { position: relative; padding-left: 1.25rem; font-size: 1rem; line-height: 1.5; color: color-mix(in srgb, var(--ink) 85%, var(--muted)); }
+.funz-elenco li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 0.42rem; height: 0.42rem; border-radius: 999px; background: var(--accent); }
+.funz-grazie { margin-top: 1.25rem; font-size: 0.9375rem; line-height: 1.5; color: var(--muted); }
+/* sul computer (finestra abbastanza alta) la sezione è lunga quanto serve a far passare le immagini; il palco resta fermo:
+   titolo e sottotitolo dove li porta il menu, il testo a sinistra, le immagini una sopra l'altra a destra */
+@media (min-width: 64.01em) and (min-height: 37.5em) {
+  .js .funz { height: calc(100svh + (var(--n) - 1) * 35svh); margin-top: var(--section); padding-top: 0; padding-bottom: 0; }
+  /* il titolo arriva sempre alla stessa distanza dalla barra (--stacco), come in tutte le sezioni del menu */
+  .js .funz-palco { position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column; padding: calc(var(--barra-sotto, 4.75rem) + var(--stacco)) 0 0; }
+  /* alta quanto l'immagine (larghezza della colonna destra / 1,581), mai più dello spazio lasciato da titolo e sottotitolo */
+  .js .funz-scorri { flex: 0 0 auto; height: max(14rem, min(calc((min(100vw - 2 * var(--margin), var(--larghezza)) - clamp(2.5rem, 5vw, 5rem)) * 0.4025), calc(100svh - var(--barra-sotto, 4.75rem) - var(--stacco) - 13rem))); min-height: 0; width: 100%; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); align-items: start; gap: clamp(2.5rem, 5vw, 5rem); margin-top: clamp(2rem, 5svh, 4rem); }
+  .js .funz-fisso { display: block; } /* lo spazio sopra lo calcola lo script: centro del testo all'altezza del centro dell'immagine */
+  .js .funz-voci { position: relative; height: 100%; container-type: size; }
+  .js .funz-voce { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: flex-end; max-width: none; margin: 0; pointer-events: none; }
+  .js .funz-voce.attiva { pointer-events: auto; }
+  /* il testo di ogni immagine resta per chi usa un lettore di schermo; si vede quello a sinistra */
+  .js .funz-voce .funz-testo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .js .funz-voce .funz-figura { width: min(100cqw, 100cqh * 1.581); }
+  /* l'immagine nuova sale dal basso, quella passata va su e svanisce */
+  .js .funz-voce .finestra-app { opacity: 0; translate: 0 8%; scale: 0.97; transition: opacity 500ms var(--ease-out), translate 700ms var(--ease-out), scale 700ms var(--ease-out); }
+  .js .funz-voce.passata .finestra-app { translate: 0 -8%; }
+  .js .funz-voce.attiva .finestra-app { opacity: 1; translate: 0 0; scale: 1; }
+  .js .funz-fisso .cambia { animation: cambia 450ms var(--ease-out); }
+  /* Strumenti: testo più lungo (etichetta e dettagli), colonna più larga e caratteri che seguono l'altezza della finestra */
+  .js .funz-strumenti .funz-scorri { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  /* i titoli di colonna di tutti i palchi hanno la stessa misura, legata all'altezza dello schermo */
+  .js .funz-fisso h3, .palco-testo h3 { font-size: clamp(1.5rem, 4.4svh, 2.75rem); }
+  .js .funz-strumenti .funz-fisso p, .js .funz-strumenti .funz-fisso li { font-size: clamp(0.875rem, 2.05svh, 1.0625rem); }
+  .js .funz-strumenti .funz-fisso .funz-elenco { margin-top: clamp(0.75rem, 2svh, 1.25rem); gap: clamp(0.35rem, 1svh, 0.6rem); }
+  .js .funz-strumenti .funz-punti { margin-top: clamp(1rem, 3svh, 2rem); }
+  /* sul palco il ringraziamento è quello del testo fermo: la copia della slide non deve ricevere il fuoco */
+  .js .funz-voce .funz-grazie { display: none; }
+}
+@keyframes cambia { from { opacity: 0; transform: translateY(10px); filter: blur(4px); } }
+@media (prefers-reduced-motion: reduce) { .js .funz-voce .finestra-app, .funz-punti i { transition: none; } .js .funz-voce .finestra-app { translate: none; scale: none; } .js .funz-fisso .cambia { animation: none; } }
+
+/* ---------- tutto incluso: tre schede come quelle della Panoramica di TIO ---------- */
+/* tutta la sezione sta in una schermata: titolo, scelta dell'attività e schede */
+.funzioni .segmentato { margin-top: 1.25rem; }
+.palco > .segmentato { align-self: center; }
+/* dalla barra si arriva con il titolo subito sotto la barra, non con lo spazio sopra la sezione */
+#funzioni, #strumenti { scroll-margin-top: calc(5.5rem - var(--section)); }
+/* la scheda a cui si arriva dalla barra si accende per un momento */
+@keyframes evidenzia { 0%, 35% { box-shadow: 0 0 0 4px var(--accent); } 100% { box-shadow: 0 0 0 4px rgba(255, 153, 211, 0); } } /* taste-skill-ignore: segnale breve, non un'ombra a riposo */
+
+/* ---------- giorno e sera: la sezione resta ferma mentre si scorre; --p va da 0 (pomeriggio) a 1 (sera) ---------- */
+.tramonto { --p: 0; position: relative; height: 170svh; margin-top: var(--section); }
+.tramonto-fermo { position: sticky; top: 0; height: 100svh; min-height: 40rem; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(1.75rem, 4vh, 3rem); padding: 8rem var(--margin) 3rem; background: var(--cielo-fondo, var(--paper)); color: var(--cielo-testo, var(--paper-ink)); text-align: center; }
+.tramonto-testa { position: relative; z-index: 2; display: grid; justify-items: center; gap: 1.1rem; width: var(--larga); }
+/* due righe larghe quanto la finestra dell'app: il giorno a sinistra, la sera a destra */
+.tramonto-testa h2 { width: 100%; font-size: var(--step-head); }
+.tramonto-testa h2 > span { display: block; }
+.tramonto-testa .di-giorno { text-align: left; }
+.tramonto-testa .di-sera { text-align: right; }
+.tramonto-testa .di-giorno { opacity: 1; }
+.tramonto-testa .di-sera { font-style: italic; opacity: 1; }
+.tramonto-testa p { width: 100%; max-width: none; font-size: 1rem; text-align: justify; text-align-last: left; color: var(--cielo-testo, var(--paper-ink)); }
+/* finestra e testo hanno la stessa larghezza */
+.tramonto { --larga: min(52rem, 100%, calc((100svh - 25rem) * 1.58)); }
+.tramonto-finestra { position: relative; z-index: 2; width: var(--larga); }
+.tramonto-finestra .finestra-app img { width: 100%; height: auto; }
+.tramonto-finestra .finestra-app { box-shadow: 0 0 0 1px rgba(26, 0, 9, 0.18), 0 34px 80px -34px rgba(26, 0, 9, 0.55); } /* taste-skill-ignore: finestra disegnata dentro un frammento data-ui */
+.tramonto-finestra .di-notte { position: absolute; inset: 0; opacity: var(--notte, 0); }
+.cielo { position: absolute; inset: 0; pointer-events: none; }
+.sole { position: absolute; width: clamp(6rem, 10vw, 9.5rem); aspect-ratio: 1; border-radius: 50%; left: 8%; top: 14%; background: radial-gradient(circle, #fff6e3 0%, #ffd38a 42%, #ff9a4a 70%, rgba(255, 140, 70, 0) 72%); box-shadow: 0 0 120px 40px rgba(255, 170, 90, 0.45); } /* taste-skill-ignore: il sole come in Free My TV, la luce è il disegno */
+.luna { position: absolute; width: clamp(4rem, 7vw, 6.5rem); aspect-ratio: 1; border-radius: 50%; right: 10%; top: 14%; box-shadow: inset -1.5rem -0.45rem 0 0 #eef1ff; filter: drop-shadow(0 0 26px rgba(190, 200, 255, 0.85)); opacity: 0; } /* taste-skill-ignore: l'ombra interna disegna la falce di luna e il bagliore è la sua luce */
+/* con lo script sole e luna girano sulla stessa ruota, il cui mozzo sta sopra la finestra: si danno il cambio dietro TIO */
+.cielo.in-orbita :is(.sole, .luna) { left: 0; top: 0; right: auto; will-change: transform; }
+.stelle { position: absolute; inset: 0; opacity: calc((var(--p) - 0.4) * 1.8); }
+.stelle i { position: absolute; left: var(--sx); top: var(--sy); width: var(--ss); height: var(--ss); border-radius: 50%; background: var(--ink); }
+
+/* ---------- installare: il sistema, poi tre passi in fila ---------- */
+.segmentato { display: inline-flex; gap: 4px; margin-top: 1.75rem; padding: 4px; border-radius: var(--radius); background: var(--surface); }
+.segmentato button { min-height: 44px; padding: 0 1.5rem; border-radius: var(--radius); font-size: 0.9375rem; font-weight: 600; color: var(--ink); transition: background-color var(--t-hover) ease, color var(--t-hover) ease, transform var(--t-press) var(--ease-out); }
+.segmentato button:active { transform: scale(0.97); }
+.installa-scarica { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 1.5rem; }
+.segmentato button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.passi { max-width: var(--larghezza); margin: 2.25rem auto 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; text-align: left; }
+.passo { padding: 12px 12px 22px; border-radius: 20px; background: var(--surface); }
+.passo-figura { height: 14.5rem; display: grid; place-items: center; overflow: hidden; border-radius: 12px; background: var(--bg-deep); }
+.passo-figura > * { scale: 0.78; }
+.passo h3 { display: flex; align-items: center; gap: 0.6rem; margin: 1.1rem 6px 0; font-size: 1.0625rem; }
+.passo-n { flex: none; color: var(--accent); font-variant-numeric: tabular-nums; }
+.passo p { margin: 0.5rem 6px 0; font-size: 1rem; line-height: 1.5; color: var(--ink); }
+.passo code { padding: 0.1em 0.4em; border-radius: 6px; background: var(--bg-deep); color: var(--ink); font-size: 0.9em; }
+.installa-file { margin: 1.75rem auto 0; max-width: var(--larghezza); font-size: 0.875rem; color: var(--muted); }
+@media (min-width: 75em) { .installa-file { white-space: nowrap; } } /* su una riga dove ci sta (da 1200 px circa) */
+.installa-file a { color: var(--ink); }
+.terminale { width: 22rem; display: grid; gap: 0.35rem; padding: 1.1rem 1.2rem; border-radius: 12px; background: #1d1f20; color: #e8e8e8; font-size: 0.875rem; }
+
+/* finestre disegnate: com'è sul computer (dentro data-ui valgono le convenzioni del sistema) */
+.finestra { width: min(100%, 27rem); background: #f5f5f7; color: #1d1d1f; border-radius: 12px; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35); overflow: hidden; font-size: 0.875rem; line-height: 1.4; } /* taste-skill-ignore: finestra disegnata dentro un frammento data-ui */
+.finestra-barra { display: flex; align-items: center; gap: 0.45rem; padding: 0.65rem 0.8rem; background: #e8e8ea; font-size: 0.8125rem; color: #3a3a3c; }
+.finestra-barra s { width: 0.75rem; height: 0.75rem; border-radius: 50%; display: block; }
+.finestra-barra s:nth-child(1) { background: #ff5f57; } .finestra-barra s:nth-child(2) { background: #febc2e; } .finestra-barra s:nth-child(3) { background: #28c840; }
+.finestra-barra b { flex: 1; text-align: center; font-weight: 600; margin-right: 2.6rem; }
+.dmg { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; justify-items: center; padding: 2.25rem 1.5rem 2rem; background: #ffffff; }
+.dmg figure { display: grid; justify-items: center; gap: 0.5rem; font-size: 0.8125rem; }
+.dmg img { width: 88px; height: 88px; }
+.cartella { width: 88px; height: 70px; background: #4a9df8; border-radius: 6px 6px 8px 8px; position: relative; margin-top: 18px; }
+.cartella::before { content: ''; position: absolute; left: 0; top: -12px; width: 38px; height: 16px; background: #4a9df8; border-radius: 5px 5px 0 0; }
+.cartella::after { content: 'A'; position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255, 255, 255, 0.85); font-weight: 700; font-size: 1.6rem; }
+.freccia { font-size: 2rem; color: #8e8e93; }
+.privacy { display: grid; grid-template-columns: 9.5rem 1fr; background: #ffffff; min-height: 15rem; }
+.privacy-lato { background: #ececee; padding: 0.9rem 0.6rem; display: grid; align-content: start; gap: 0.25rem; font-size: 0.8125rem; color: #3a3a3c; }
+.privacy-lato span { padding: 0.3rem 0.5rem; border-radius: 6px; }
+.privacy-lato span.sel { background: #0a64d6; color: #fff; }
+.privacy-corpo { padding: 1.1rem 1.2rem; }
+.privacy-corpo b { display: block; font-size: 0.9375rem; }
+.privacy-corpo p { margin-top: 0.7rem; color: #3a3a3c; }
+.mac-pulsante { display: inline-block; margin-top: 0.9rem; padding: 0.35rem 0.9rem; background: #ffffff; border: 1px solid #c7c7cc; border-radius: 7px; font-weight: 500; box-shadow: 0 0 0 3px rgba(10, 100, 214, 0.35); } /* taste-skill-ignore: finestra disegnata dentro un frammento data-ui */
+.notifica { width: min(100%, 23rem); background: rgba(246, 246, 248, 0.98); color: #1d1d1f; border-radius: 16px; box-shadow: 0 16px 44px rgba(0, 0, 0, 0.4); padding: 0.85rem 1rem; display: grid; grid-template-columns: 2.6rem 1fr; gap: 0.75rem; align-items: start; font-size: 0.875rem; line-height: 1.35; } /* taste-skill-ignore: finestra disegnata dentro un frammento data-ui */
+.notifica img { width: 2.6rem; height: 2.6rem; }
+.notifica b { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.875rem; }
+.notifica b span { font-weight: 400; color: #6e6e73; font-size: 0.75rem; }
+.notifica p { margin-top: 0.15rem; color: #3a3a3c; }
+.smartscreen { width: min(100%, 27rem); background: #0b5cad; color: #ffffff; font-family: 'Segoe UI', var(--font-ui); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35); padding: 1.6rem 1.6rem 1.3rem; font-size: 0.875rem; line-height: 1.45; } /* taste-skill-ignore: finestra disegnata dentro un frammento data-ui */
+.smartscreen b { display: block; font-size: 1.375rem; font-weight: 600; line-height: 1.2; }
+.smartscreen p { margin-top: 0.8rem; color: #dbe9f8; }
+.smartscreen u { display: inline-block; margin-top: 0.8rem; color: #ffffff; }
+.smartscreen dl { margin-top: 0.8rem; display: grid; grid-template-columns: auto 1fr; gap: 0.15rem 0.8rem; color: #dbe9f8; }
+.smartscreen dt { color: #ffffff; }
+.smartscreen-tasti { margin-top: 1.4rem; display: flex; justify-content: flex-end; gap: 0.6rem; }
+.smartscreen-tasti span { padding: 0.4rem 1.1rem; border: 2px solid #ffffff; min-width: 7rem; text-align: center; }
+.smartscreen-tasti span.sel { background: #ffffff; color: #0b5cad; font-weight: 600; }
+.toast { width: min(100%, 23rem); background: #2b2b2b; color: #ffffff; font-family: 'Segoe UI', var(--font-ui); box-shadow: 0 16px 44px rgba(0, 0, 0, 0.45); padding: 0.9rem 1rem 1rem; font-size: 0.875rem; line-height: 1.4; border-radius: 8px; } /* taste-skill-ignore: finestra disegnata dentro un frammento data-ui */
+.toast-testa { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: #c8c8c8; }
+.toast-testa img { width: 1rem; height: 1rem; }
+.toast b { display: block; margin-top: 0.6rem; font-size: 0.9375rem; }
+.toast p { margin-top: 0.2rem; color: #dcdcdc; }
+
+/* ---------- domande: un elenco che si apre, come le liste dell'app ---------- */
+.domande-elenco { max-width: 48rem; margin: 2.25rem auto 0; padding: 4px 22px; border-radius: 20px; background: var(--surface); text-align: left; }
+.domande-elenco details + details { border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent); } /* taste-skill-ignore: righe di un elenco dell'app */
+.domande-elenco summary { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 60px; font-size: 1.0625rem; font-weight: 600; cursor: pointer; list-style: none; }
+.domande-elenco summary::-webkit-details-marker { display: none; }
+.domande-elenco summary::after { content: '+'; flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--bg-deep); color: var(--accent); font-size: 1.125rem; font-weight: 500; transition: rotate 250ms var(--ease-out); }
+.domande-elenco details[open] summary::after { rotate: 45deg; }
+.domande-elenco p { padding-bottom: 18px; font-size: 1.0625rem; font-weight: 400; color: var(--ink); } /* stessa grandezza della domanda, senza grassetto */
+
+/* ---------- chiusura: il nome e i tre pulsanti ---------- */
+.chiusura .due-sistemi { margin-top: 2rem; }
+.download-nota { margin: 0.85rem auto 0; font-size: 0.875rem; line-height: 1.5; color: var(--muted); }
+
+/* ---------- piè di pagina: una riga ---------- */
+/* il piè di pagina è una fascia nera a tutta larghezza; il contenuto resta nella larghezza della barra in alto */
+.piede { margin-top: 18svh; display: grid; grid-template-columns: 1fr auto 1fr; align-items: baseline; gap: 1.5rem; padding: clamp(2.5rem, 6vh, 4rem) max(var(--margin), calc((100% - var(--larghezza)) / 2)) 32px; background: #000; font-size: var(--step-small); color: #b9a8b0; }
+.piede nav { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+.piede a { color: var(--ink); }
+.piede-destra { justify-self: end; text-align: right; }
+.piede-note { grid-column: 1 / -1; max-width: none; margin: 0.5rem 0 0; font-size: 0.71875rem; line-height: 1.55; }
+
+/* ---------- movimento (contenuto visibile anche senza JavaScript) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  /* come Free My TV: entrando nello schermo ogni blocco sale di poco e mette a fuoco, i fratelli uno dopo l'altro */
+  .js [data-reveal] { opacity: 0; transform: translateY(28px); filter: blur(8px); transition: opacity 800ms var(--ease-out), transform 1000ms var(--ease-expo), filter 800ms var(--ease-out); transition-delay: var(--d, 0s); }
+  .js [data-reveal].is-in { opacity: 1; transform: none; filter: none; }
+  .js .eroe [data-rise] { opacity: 0; transform: translateY(18px); filter: blur(4px); animation: sale 900ms var(--ease-expo) forwards; animation-delay: calc(var(--i, 0) * 80ms + 100ms); }
+  .js .frammento { opacity: 0; scale: 0.94; filter: blur(6px); animation: sale 1000ms var(--ease-expo) forwards; animation-delay: calc(var(--n, 0) * 90ms + 380ms); }
+  .frammento:nth-child(2) { --n: 1; } .frammento:nth-child(3) { --n: 2; } .frammento:nth-child(4) { --n: 3; } .frammento:nth-child(5) { --n: 4; } .frammento:nth-child(6) { --n: 5; } .frammento:nth-child(7) { --n: 6; } .frammento:nth-child(8) { --n: 7; }
+  /* «Tutto In Ordine» scritto lettera per lettera: il resto del primo schermo arriva quando ha finito */
+  .js.scrive .nome:not(.pronta) { visibility: hidden; }
+  .js.scrive .nome .lettera:not(.vista) { visibility: hidden; }
+  .js.scrive .eroe [data-rise] { animation-delay: calc(var(--i, 0) * 80ms + 1100ms); }
+  .js.scrive .frammento { animation-delay: calc(var(--n, 0) * 90ms + 1300ms); }
+}
+/* il cursore che scrive: una barretta rosa che non occupa spazio */
+.cursore { position: relative; display: inline-block; width: 0; }
+.cursore::after { content: ''; position: absolute; left: 0.03em; top: 0.12em; bottom: 0.04em; width: 0.055em; border-radius: 1px; background: var(--accent); animation: lampeggia 900ms steps(1) infinite; }
+.cursore.via { opacity: 0; transition: opacity 400ms var(--ease-out); }
+@keyframes lampeggia { 50% { opacity: 0; } }
+@keyframes sale { to { opacity: 1; transform: none; translate: 0 0; scale: 1; filter: none; } }
+
+/* ---------- tablet ---------- */
+@media (max-width: 64em) {
+  .sciame { display: none; }
+  .passi { grid-template-columns: 1fr; max-width: 38rem; }
+}
+
+/* ---------- telefono ---------- */
+@media (max-width: 47.99em) {
+  :root { --section: 5.5rem; }
+  .barra { top: 10px; padding: 0 10px; }
+  .barra-pillola { display: flex; font-size: var(--step-small); padding-left: 0.75rem; }
+  .barra-marchio { margin-right: auto; }
+  .barra-voci a:not([href="#domande"]) { display: none; }
+  .barra-github { padding: 0 0.9rem; }
+  .eroe-testo { padding-top: 5.5rem; }
+  .nome { font-size: 15vw; }
+  .due-sistemi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; width: 100%; }
+  .due-sistemi > :last-child { grid-column: 1 / -1; }
+  .due-sistemi .pulsante { flex: 1 1 0; min-width: 0; padding: 0 0.5rem; gap: 0.4em; font-size: 1rem; }
+  .eroe-meta { gap: 0.35rem 1rem; }
+  .eroe-meta > [aria-hidden] { display: none; }
+  .confronto { aspect-ratio: 4 / 3; border-radius: 12px; }
+  .confronto-etichetta { top: 0.6rem; font-size: 0.75rem; padding: 0.3rem 0.6rem; }
+  .tramonto { height: 150svh; }
+  .tramonto-fermo { padding-top: 6rem; }
+  .sole { width: 4.5rem; box-shadow: 0 0 70px 24px rgba(255, 170, 90, 0.45); } .luna { width: 3rem; box-shadow: inset -0.85rem -0.25rem 0 0 #eef1ff; } /* taste-skill-ignore: sole e luna disegnati con luce e ombra */
+  .segmentato { display: flex; width: 100%; max-width: 26rem; margin-inline: auto; }
+  .segmentato button { flex: 1 1 0; min-width: 0; padding: 0.35rem 0.5rem; font-size: 0.875rem; line-height: 1.2; } /* tre scelte sempre nella larghezza del telefono, al massimo su due righe */
+  .passo-figura { height: 12.5rem; }
+  .passo-figura .finestra { width: 27rem; flex: none; }
+  .passo-figura > * { scale: none; zoom: 0.66; } /* le finestre disegnate restano intere, solo più piccole (zoom riduce anche lo spazio che occupano) */
+  .tramonto-testa p { text-align: left; } /* giustificato su righe così corte lascerebbe buchi tra le parole */
+  .domande-elenco { padding: 2px 16px; }
+  .piede { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 14svh; padding-top: 2.5rem; font-size: 0.875rem; }
+  .piede nav { justify-content: flex-start; gap: 8px 20px; }
+  .piede-destra { justify-self: start; text-align: left; }
+}
+/* telefoni stretti (fino a 360 px circa): finestre dei passi un po' più piccole; sotto i 320 px la barra tiene solo marchio e GitHub */
+@media (max-width: 23em) { .passo-figura > * { zoom: 0.56; } }
+@media (max-width: 19.95em) { .barra-voci { display: none; } }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .segmentato button, .pulsante, .barra a { transition: none; }
+}
