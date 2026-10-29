@@ -24,8 +24,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with: { node-version: 24, cache: npm }
       - run: npm ci
       # Ubuntu sui runner di GitHub: Electron vuole la sua sandbox (chrome-sandbox) di proprietà di root con il bit setuid,
@@ -35,14 +35,14 @@ jobs:
       - name: Download, layout e accessibilità del sito
         run: xvfb-run -a npm run test:sito
       - id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Link statici e metadati del sito
         run: npm run prepare:sito
         env:
           TIO_SITE_URL: ${{ steps.pages.outputs.base_url }}
       # la guida dell'app, la stessa inclusa nell'installer, anche online: <sito>/guida/
       - run: cp -R guida sito/guida
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with: { path: sito }
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
