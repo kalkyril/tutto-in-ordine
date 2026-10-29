@@ -13,7 +13,7 @@ let n = 0; const ok = s => console.log(`ok ${++n} - ${s}`)
   for (const permission of ['media','geolocation','notifications','clipboard-read','display-capture','unknown']) {assert.equal(check(trusted,permission),false);request(trusted,permission,r=>assert.equal(r,false))}
   assert.equal(check(trusted,'clipboard-sanitized-write'),true);assert.equal(check(external,'clipboard-sanitized-write'),false)
   ok('permessi non necessari negati; sola scrittura degli appunti limitata alla finestra autorizzata')
-  assert.equal(printResourceAllowed(appPage,appPage),true);assert.equal(printResourceAllowed('file:///tmp/NOME~1/documento.html','file:///tmp/NOME%7E1/documento.html'),true);assert.equal(printResourceAllowed('file:///tmp/NOME~1/altro.html','file:///tmp/NOME%7E1/documento.html'),false);assert.equal(printResourceAllowed('data:image/png;base64,AAAA',appPage),true)
+  assert.equal(printResourceAllowed(appPage,appPage),true);const doc=require('node:url').pathToFileURL(path.join(os.tmpdir(),'NOME~1','documento.html')).href.replace(/%7E/gi,'~');assert.equal(printResourceAllowed(doc,doc.replace(/~/g,'%7E')),true);assert.equal(printResourceAllowed(doc.replace('documento.html','altro.html'),doc.replace(/~/g,'%7E')),false);assert.equal(printResourceAllowed('data:image/png;base64,AAAA',appPage),true)
   for (const url of ['https://example.invalid/x','http://127.0.0.1/x','file:///etc/passwd','file:///tmp/altro.html','javascript:void(0)'])assert.equal(printResourceAllowed(url,appPage),false)
   ok('stampa senza rete e senza letture arbitrarie di altri file locali')
   const root = fs.mkdtempSync(path.join(os.tmpdir(),'mngmnt-private-print-test-'))
