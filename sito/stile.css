@@ -127,8 +127,8 @@ p { max-width: 62ch; text-wrap: pretty; }
 
 /* pezzi veri dell'app (Agenda e Panoramica), ai lati del testo, a profondità diverse */
 .sciame { position: absolute; inset: var(--barra-sotto, 4.75rem) 0 0; z-index: 1; pointer-events: none; }
-.frammento { position: absolute; left: var(--x); top: var(--y); width: var(--w); height: auto; rotate: var(--r); border-radius: 12px; box-shadow: 0 22px 50px -12px rgba(0, 0, 0, 0.5); } /* taste-skill-ignore: frammenti dell'app sospesi, l'ombra dice la profondità */
-.frammento.a-destra { left: auto; right: var(--x); }
+.frammento { --frammento-scala: 0.8; scale: var(--frammento-scala); transform-origin: left center; position: absolute; left: var(--x); top: var(--y); width: var(--w); height: auto; rotate: var(--r); border-radius: 12px; box-shadow: 0 22px 50px -12px rgba(0, 0, 0, 0.5); } /* taste-skill-ignore: frammenti dell'app sospesi, l'ombra dice la profondità */
+.frammento.a-destra { left: auto; right: var(--x); transform-origin: right center; }
 
 .finestra-app { position: relative; container-type: inline-size; border-radius: 14px; overflow: hidden; background: #ffffff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 50px 120px -30px rgba(0, 0, 0, 0.7), 0 24px 50px -24px rgba(0, 0, 0, 0.55); } /* taste-skill-ignore: finestra disegnata dentro un frammento data-ui */
 .semafori { position: absolute; top: 1.55cqi; left: 1.55cqi; z-index: 1; display: flex; gap: 0.62cqi; }
@@ -446,7 +446,7 @@ p { max-width: 62ch; text-wrap: pretty; }
   .js [data-reveal] { opacity: 0; transform: translateY(28px); filter: blur(8px); transition: opacity 800ms var(--ease-out), transform 1000ms var(--ease-expo), filter 800ms var(--ease-out); transition-delay: var(--d, 0s); }
   .js [data-reveal].is-in { opacity: 1; transform: none; filter: none; }
   .js .eroe [data-rise] { opacity: 0; transform: translateY(18px); filter: blur(4px); animation: sale 900ms var(--ease-expo) forwards; animation-delay: calc(var(--i, 0) * 80ms + 100ms); }
-  .js .frammento { opacity: 0; scale: 0.94; filter: blur(6px); animation: sale 1000ms var(--ease-expo) forwards; animation-delay: calc(var(--n, 0) * 90ms + 380ms); }
+  .js .frammento { opacity: 0; scale: calc(var(--frammento-scala) * 0.94); filter: blur(6px); animation: sale 1000ms var(--ease-expo) forwards; animation-delay: calc(var(--n, 0) * 90ms + 380ms); }
   .frammento:nth-child(2) { --n: 1; } .frammento:nth-child(3) { --n: 2; } .frammento:nth-child(4) { --n: 3; } .frammento:nth-child(5) { --n: 4; } .frammento:nth-child(6) { --n: 5; } .frammento:nth-child(7) { --n: 6; } .frammento:nth-child(8) { --n: 7; }
   /* «Tutto In Ordine» scritto lettera per lettera: il resto del primo schermo arriva quando ha finito */
   .js.scrive .nome:not(.pronta) { visibility: hidden; }
@@ -459,7 +459,7 @@ p { max-width: 62ch; text-wrap: pretty; }
 .cursore::after { content: ''; position: absolute; left: 0.03em; top: 0.12em; bottom: 0.04em; width: 0.055em; border-radius: 1px; background: var(--accent); animation: lampeggia 900ms steps(1) infinite; }
 .cursore.via { opacity: 0; transition: opacity 400ms var(--ease-out); }
 @keyframes lampeggia { 50% { opacity: 0; } }
-@keyframes sale { to { opacity: 1; transform: none; translate: 0 0; scale: 1; filter: none; } }
+@keyframes sale { to { opacity: 1; transform: none; translate: 0 0; scale: var(--frammento-scala, 1); filter: none; } }
 
 /* ---------- tablet ---------- */
 @media (max-width: 64em) {
