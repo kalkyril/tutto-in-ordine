@@ -9,6 +9,7 @@ Correzioni emerse soprattutto su Windows (verificate anche su Mac) e alcune voci
 - **Impostazioni › Aspetto:** il tema scuro (e il chiaro) si applica appena lo scegli, senza premere «Salva»; anche la barra del titolo di Windows, i menu e le finestre di sistema seguono il tema scelto.
 - **Documenti:**
   - nuovi modelli «Delega» (per tutti i profili) e «Delega di udienza» (studio legale); chi ha già i modelli li aggiunge con «Aggiungi i predefiniti»;
+  - **intelligenza artificiale (L. 132/2025, art. 13):** nuovo modello «Informativa uso dell’intelligenza artificiale» per studi legali e professionisti, e clausola sull’IA nell’«Incarico professionale» (un «Incarico professionale» già presente non cambia da solo: per avere la clausola, eliminalo e premi «Aggiungi i predefiniti», oppure scrivila nel tuo modello); `PRIVACY.md` spiega pseudonimizzazione, AI Act e cartella di Cliens;
   - **«+ Nuovo modello» › Modello personalizzato:** un modello da zero con il nome che scegli, pagina bianca o con l'intestazione dei documenti di vendita;
   - **Impaginazione:** margini in alto, in basso e ai lati e dimensione del testo, anche nei file Word, OpenDocument e RTF;
   - **font:** Palace Script MT tra i caratteri pronti, font importati da file (incorporati nel PDF) e **font installati sul computer**, scelti da un elenco con ricerca;

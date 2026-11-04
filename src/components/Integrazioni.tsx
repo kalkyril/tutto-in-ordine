@@ -167,12 +167,12 @@ export function ImportPanel() {
             </div>
           </div>
         ))}
-        <CartellaCliens />
         <div className="import-card">
           <FolderInput size={22} className="import-ico" />
           <h3>Documenti da una cartella</h3><p className="muted small">Ogni sottocartella diventa (o si collega a) una pratica e i suoi file vengono collegati ai documenti (restano nella cartella: nessuna copia). I file originali restano dove sono.</p>
           <Btn size="sm" variant="primary" onClick={() => setCartella(true)}>Scegli la cartella…</Btn>
         </div>
+        <CartellaCliens />
       </div>
       {wizard && <ImportWizard tipo={wizard} onClose={() => setWizard(null)} />}
       {cartella && <ImportCartella onClose={() => setCartella(false)} />}
@@ -200,11 +200,11 @@ function CartellaCliens() {
   const trovate = abb?.abbinamenti.filter((a) => a.pratica).length ?? 0
   return <div className="import-card">
     <Cloud size={22} className="import-ico" />
-    <h3>Documenti di Cliens</h3>
+    <h3>Cartella di Cliens</h3>
     <p className="muted small">Scegli la cartella in cui scarichi i documenti da Cliens (una sottocartella per pratica): TIO abbina ogni sottocartella alla sua pratica e, a ogni sincronizzazione, mostra in un’unica vista i file di Cliens e quelli del computer. Un file presente in entrambe compare una sola volta. TIO legge soltanto: non modifica nulla.</p>
     {settings.cartella_cliens && <p className="small"><b>Cartella:</b> <span className="muted" title={settings.cartella_cliens}>{settings.cartella_cliens}</span></p>}
     <div className="row wrap">
-      <Btn size="sm" variant="primary" onClick={scegli}>{settings.cartella_cliens ? 'Cambia cartella…' : 'Scegli la cartella…'}</Btn>
+      <Btn size="sm" variant="primary" onClick={scegli}>{settings.cartella_cliens ? 'Cambia la cartella di Cliens…' : 'Collega la cartella di Cliens…'}</Btn>
       {settings.cartella_cliens && <Btn size="sm" disabled={lavoro} aria-busy={lavoro} onClick={sincronizza}><FolderSync size={14} /> {lavoro ? 'Sincronizzazione…' : 'Sincronizza tutte le pratiche'}</Btn>}
       {settings.cartella_cliens && !abb && <Btn size="sm" variant="ghost" onClick={mostra}>Mostra abbinamenti</Btn>}
     </div>
