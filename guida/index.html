@@ -160,16 +160,16 @@
 <div class="tabella"><table>
   <thead><tr><th>Sistema</th><th>File da scaricare</th></tr></thead>
   <tbody>
-    <tr><td>Mac con chip Apple (M1, M2…)</td><td><code>TIO-1.0.0-arm64.dmg</code> · macOS 13 Ventura o successivo</td></tr>
-    <tr><td>Mac con processore Intel</td><td><code>TIO-1.0.0.dmg</code> · macOS 13 o successivo</td></tr>
-    <tr><td>Windows</td><td><code>TIO-Setup-1.0.0.exe</code> · Windows 10 o 11 a 64 bit</td></tr>
+    <tr><td>Mac con chip Apple (M1, M2…)</td><td><code>TIO-1.0.1-arm64.dmg</code> · macOS 13 Ventura o successivo</td></tr>
+    <tr><td>Mac con processore Intel</td><td><code>TIO-1.0.1.dmg</code> · macOS 13 o successivo</td></tr>
+    <tr><td>Windows</td><td><code>TIO-Setup-1.0.1.exe</code> · Windows 10 o 11 a 64 bit</td></tr>
   </tbody>
 </table></div>
 <p>L’app occupa circa 420 MB su Mac e 510 MB su Windows, più l’archivio e i backup. Non sai che Mac hai? Menu Apple › <span class="percorso">Informazioni su questo Mac</span>: «Chip Apple M…» indica Apple Silicon, «Processore Intel» un Mac Intel.</p>
 <p>Gli installer sono nella pagina <strong>Releases</strong> del progetto su GitHub, insieme al file <code>SHA256SUMS.txt</code>. Per controllare che il file scaricato sia integro e sia proprio quello pubblicato, confronta il suo codice:</p>
 <ul>
-  <li>Mac, nel Terminale: <code>shasum -a 256 TIO-1.0.0-arm64.dmg</code></li>
-  <li>Windows, nel Prompt dei comandi: <code>certutil -hashfile TIO-Setup-1.0.0.exe SHA256</code></li>
+  <li>Mac, nel Terminale: <code>shasum -a 256 TIO-1.0.1-arm64.dmg</code></li>
+  <li>Windows, nel Prompt dei comandi: <code>certutil -hashfile TIO-Setup-1.0.1.exe SHA256</code></li>
 </ul>
 
 <h3 id="installare-mac">Su Mac</h3>
@@ -183,7 +183,7 @@
 
 <h3 id="installare-windows">Su Windows</h3>
 <ol class="passi">
-  <li>Scarica <code>TIO-Setup-1.0.0.exe</code>. Se il browser dice che il file «non viene scaricato comunemente», scegli di conservarlo (in Edge: menu <strong>…</strong> › <strong>Mantieni</strong> › <strong>Mantieni comunque</strong>).</li>
+  <li>Scarica <code>TIO-Setup-1.0.1.exe</code>. Se il browser dice che il file «non viene scaricato comunemente», scegli di conservarlo (in Edge: menu <strong>…</strong> › <strong>Mantieni</strong> › <strong>Mantieni comunque</strong>).</li>
   <li>Fai doppio clic. Se compare <strong>«Windows ha protetto il PC»</strong> (SmartScreen), premi <strong>Ulteriori informazioni</strong> e poi <strong>Esegui comunque</strong>. L’avviso dipende dalla mancanza di una firma digitale a pagamento.</li>
   <li>Segui l’installazione in italiano: non servono permessi da amministratore. TIO crea l’icona sul desktop e nel menu Start e alla fine si apre.</li>
 </ol>
@@ -318,6 +318,15 @@
   <li>Per sicurezza TIO non avvia programmi o script contenuti nei documenti collegati.</li>
 </ul>
 
+<h3 id="documenti-cliens">Documenti di Cliens</h3>
+<p>Se scarichi i documenti dei fascicoli da Cliens in una cartella del computer, nella scheda Documenti della pratica scegli <strong>Collega cartella di Cliens…</strong> (oppure, per tutte le pratiche insieme, la cartella principale in <span class="percorso">Impostazioni › Integrazioni › Documenti di Cliens</span>: ogni sottocartella viene abbinata alla sua pratica per numero o titolo). TIO mostra un’unica vista con tre sezioni:</p>
+<ul>
+  <li><strong>In comune con Cliens</strong>: lo stesso file è nella cartella di Cliens e in quella della pratica; compare una volta sola e si apre dalla copia sul computer;</li>
+  <li><strong>Solo su Cliens</strong> e <strong>Solo sul computer</strong>: i file presenti in una sola delle due cartelle.</li>
+</ul>
+<p><strong>Sincronizza cartelle</strong> (nella pratica) e <strong>Sincronizza tutte le pratiche</strong> (nelle Integrazioni) collegano i file nuovi delle due cartelle e uniscono gli eventuali doppioni. TIO legge soltanto: non copia, non sposta e non cancella nulla, né su Cliens né sul computer.</p>
+<p>L’esportazione dei fascicoli di Cliens Cube (<code>EXPORT_FASCICOLI.csv</code>) e l’elenco delle pratiche di Cliens Più (XLS o CSV) si importano da <span class="percorso">Impostazioni › Integrazioni › Importa i dati esistenti</span>: TIO riconosce cliente, controparte (anche dall’oggetto «ROSSI MARIO c/ BIANCHI SRL»), autorità, RG e giudice, conserva nelle note le colonne senza un campo e, riimportando, completa i campi vuoti senza creare doppioni.</p>
+
 <h3 id="attivita-spese">Attività, ore e spese</h3>
 <p>In <strong>Attività e spese</strong> registri le ore lavorate (data, durata, descrizione, tariffa oraria) e le spese anticipate (con o senza IVA), anche con un allegato. Quando prepari un documento contabile dal lavoro, ore e spese non ancora fatturate si possono importare come voci; se elimini il documento tornano «da fatturare».</p>
 
@@ -441,7 +450,10 @@
 <h3 id="calcolo-forense">Compensi forensi <small>(studi legali)</small></h3>
 <p>Nel documento, «Calcola il compenso con i parametri forensi» apre il calcolo con le tabelle del <strong>DM 55/2014</strong> aggiornate dal <strong>DM 147/2022</strong>: 48 competenze, scaglioni per valore (anche indeterminabile), fasi con minimo, medio e massimo, aumenti e riduzioni, compenso tabellare o in percentuale. Il risultato entra nel prospetto insieme alle altre voci (ore, spese, importi liberi). È un’ipotesi da verificare sul caso concreto.</p>
 
+<p>Nello stesso menu <strong>Competenza</strong>, il gruppo <strong>Fatture avvocati e conti</strong> offre i calcoli della fattura: <em>Fattura avvocati e studi legali</em> (onorari, spese esenti e imponibili, spese generali, CPA, IVA, ritenuta), <em>Scorporo importi</em> (gli onorari a partire dal totale, dal netto a pagare o dall’imponibile), <em>Calcolo ritenuta d’acconto</em> e <em>Compenso a ore</em>, con regime ordinario o forfettario e bollo.</p>
+
 <h3 id="pdf-documento">Il PDF</h3>
+<p><strong>Anteprima</strong>, in basso a destra, mostra il documento come sarà nel PDF, comprese le modifiche non ancora salvate. Con <strong>Titolo e font</strong> (o <strong>Titolo, intestazione e piè di pagina</strong> nella nota pro forma) scegli testo, font, dimensione, stile e allineamento del titolo di nota pro forma, fattura, preventivo e nota di credito.</p>
 <p><strong>Salva PDF…</strong> crea il documento con la tua intestazione, il logo e il piè di pagina. L’aspetto si imposta una volta in <span class="percorso">Impostazioni › Modello PDF</span>, con anteprima: posizione e dimensione del logo, testi, caratteri. «Ripristina» ricostruisce il modello dai dati dello studio o dell’attività.</p>
 <p>Con <strong>Importa PDF / Word</strong> puoi anche caricare il riepilogo di una parcella preparato altrove: TIO legge le voci e ricalcola i totali, segnalando le differenze.</p>
 
@@ -523,16 +535,18 @@
 <h3 id="modelli-predefiniti">Modelli predefiniti</h3>
 <figure><img src="img/strumento-modelli.webp" width="1600" height="1012" loading="lazy" alt="L’elenco dei modelli predefiniti e il modello Preventivo con l’anteprima A4"><figcaption>I modelli del profilo e l’anteprima A4.</figcaption></figure>
 <p>Alla prima apertura trovi i modelli del tuo profilo: per esempio lettera, preventivo, diffida e messa in mora, procura alle liti, incarico professionale, verbale, relazione, conferma d’ordine, sollecito di pagamento e l’<strong>informativa privacy</strong> (art. 13 GDPR). L’incarico professionale contiene già la clausola sul trattamento dei dati, il recesso e l’assicurazione; i dati della tua attività sono inseriti.</p>
-<p>Puoi <strong>rinominarli</strong> come vuoi, modificarli, <strong>duplicarli</strong>, eliminarli o crearne di nuovi con <strong>Nuovo modello</strong>.</p>
+<p>Ci sono anche la <strong>delega</strong> (per ritirare, consegnare o firmare per conto del delegante) e, per gli studi legali, la <strong>delega di udienza</strong> al collega. Il menu <strong>Modello predefinito</strong>, sopra il nome, passa da un modello all’altro.</p>
+<p>Puoi <strong>rinominarli</strong> come vuoi, modificarli, <strong>duplicarli</strong>, eliminarli o crearne di nuovi con <strong>Nuovo modello</strong>: parti da un testo pronto oppure da un <strong>modello personalizzato</strong>, una pagina bianca con il nome che scegli.</p>
 
 <h3 id="editor-modello">Modificare un modello</h3>
 <p>Il modello ha quattro schede:</p>
 <ul>
   <li><strong>Contenuto</strong>: il testo, con titoli, grassetto, corsivo, sottolineato, elenchi;</li>
   <li><strong>Intestazione</strong> e <strong>Piè di pagina</strong>: righe, logo, dimensione e allineamento;</li>
-  <li><strong>Impaginazione</strong>: disposizione del testo, carattere del documento, città per la data.</li>
+  <li><strong>Impaginazione</strong>: carattere e dimensione del testo, margini della pagina (in alto, in basso, ai lati), luogo e data, numeri di pagina.</li>
 </ul>
 <p><strong>Disposizione del testo</strong>: a sinistra, al centro, a destra o giustificato, per tutto il documento o per il singolo paragrafo. <strong>Tutto su due colonne</strong> mette l’intero testo su due colonne; selezionando alcuni paragrafi, <strong>Due colonne</strong> lo fa solo per quella parte.</p>
+<p><strong>Caratteri:</strong> oltre a quelli di serie (anche <em>Palace Script MT</em>, il corsivo calligrafico di Office) puoi <strong>importare un font da file</strong> (TTF, OTF, WOFF, incorporato nel PDF) o scegliere un <strong>font del computer</strong> dall’elenco dei caratteri installati. Nei file Word i font del computer si vedono solo dove sono installati.</p>
 <p>L’anteprima A4 a destra mostra il risultato; le modifiche si salvano da sole.</p>
 
 <h3 id="campi">I campi automatici</h3>
@@ -589,7 +603,7 @@
   <li>indirizzi, CAP, città, telefoni, email e PEC, siti;</li>
   <li>date, importi, targhe, documenti d’identità, numeri degli atti (R.G., fatture), dati catastali.</li>
 </ul>
-<p>Ogni dato diventa un <strong>segnaposto</strong> come <code>[FULLNAME_1]</code> o <code>[IBAN_1]</code>. La stessa persona ha sempre lo stesso segnaposto, anche quando compare col solo cognome. Con l’archivio, TIO riconosce i tuoi clienti, controparti e lavori; a scelta anonimizza anche i dati della tua attività.</p>
+<p>Ogni dato diventa un <strong>segnaposto</strong> come <code>[NOME_COMPLETO_1]</code> o <code>[IBAN_1]</code>. La stessa persona ha sempre lo stesso segnaposto, anche quando compare col solo cognome. Con l’archivio, TIO riconosce i tuoi clienti, controparti e lavori; a scelta anonimizza anche i dati della tua attività.</p>
 
 <h3 id="anonimizza-correggere">Correggere il risultato</h3>
 <ul>
@@ -597,6 +611,7 @@
   <li><strong>Seleziona una parola</strong> → scegli la categoria e «Anonimizza»: viene coperta ovunque compaia. Le tue correzioni restano elencate.</li>
   <li>A destra, <strong>Cosa anonimizzare</strong> accende o spegne intere categorie (per esempio lascia le date).</li>
   <li>Le icone dell’occhio mostrano il testo originale o quello anonimizzato.</li>
+  <li>Se il PDF è una scansione o il testo letto è incompleto, <strong>Rileggi come scansione</strong> riconosce il testo dalle immagini delle pagine (OCR, sul computer; può richiedere qualche minuto).</li>
 </ul>
 
 <h3 id="anonimizza-salvare">Copiare e salvare</h3>
@@ -613,7 +628,7 @@
 <ul>
   <li>Ogni documento viene letto, anonimizzato e salvato come copia «… anonimizzato»: PDF e Word con la loro impaginazione, gli altri come testo.</li>
   <li>La stessa persona ha lo <strong>stesso segnaposto in tutti i file</strong> e una <strong>sola chiave</strong> vale per tutto il lavoro.</li>
-  <li>Per le scansioni attiva «Leggi anche i PDF scansionati con l’OCR» (più lento). Togliendo «Salva una chiave di ripristino comune» l’anonimizzazione è definitiva.</li>
+  <li>Per le scansioni attiva «Leggi anche i PDF scansionati» (più lento). Togliendo «Salva una chiave di ripristino comune» l’anonimizzazione è definitiva.</li>
   <li>Accanto a ogni file compare l’esito: quanti dati, il nome della copia, oppure perché non è stato possibile.</li>
 </ul>
 
@@ -779,7 +794,7 @@
     <tr><td>OCR</td><td>Riconoscimento del testo nelle immagini e nelle scansioni.</td></tr>
     <tr><td>Ritenuta d’acconto</td><td>La parte del compenso che il cliente sostituto d’imposta trattiene e versa al posto tuo.</td></tr>
     <tr><td>SdI</td><td>Sistema di Interscambio dell’Agenzia delle Entrate, che recapita le fatture elettroniche. TIO non vi invia nulla.</td></tr>
-    <tr><td>Segnaposto</td><td>In Anonimizza, il testo che sostituisce un dato personale, come <code>[FULLNAME_1]</code>.</td></tr>
+    <tr><td>Segnaposto</td><td>In Anonimizza, il testo che sostituisce un dato personale, come <code>[NOME_COMPLETO_1]</code>.</td></tr>
     <tr><td>SHA-256</td><td>Il codice di controllo che permette di verificare che un file scaricato sia integro.</td></tr>
     <tr><td>TD01, TD04</td><td>Tipi di documento della fattura elettronica: fattura e nota di credito.</td></tr>
   </tbody>

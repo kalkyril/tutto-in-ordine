@@ -48,7 +48,7 @@ function attach({ getWindow, db }) {
 
       // ---- elenco completo delle competenze del sito ----
       const gruppi = await js(`[...document.querySelectorAll('select[aria-label="Competenza"] optgroup')].map(g => [g.label, g.querySelectorAll('option').length])`)
-      check('competenze raggruppate come i calcolatori del sito: stragiudiziale 2, civile 29, penale 17', JSON.stringify(gruppi) === JSON.stringify([['Stragiudiziale', 2], ['Giudiziale civile', 29], ['Giudiziale penale', 17]]), JSON.stringify(gruppi))
+      check('competenze raggruppate come i calcolatori del sito: stragiudiziale 2, civile 29, penale 17, fatture avvocati e conti 4', JSON.stringify(gruppi) === JSON.stringify([['Stragiudiziale', 2], ['Giudiziale civile', 29], ['Giudiziale penale', 17], ['Fatture avvocati e conti', 4]]), JSON.stringify(gruppi))
       const nomi = await js(`[...document.querySelectorAll('select[aria-label="Competenza"] option')].map(o => o.textContent)`)
       check('ci sono tutte le competenze (Giudice di pace, Tribunale, T.A.R., Cassazione, Arbitrato, Tribunale monocratico, Corte d\'Assise…)', ['Giudice di pace', 'cognizione innanzi al tribunale', 'T.A.R.', 'Corte di Cassazione', 'Arbitrato', 'Tribunale monocratico', "Corte d'Assise", 'Atto di precetto', 'Esecuzioni immobiliari'].every((x) => nomi.some((n) => n.includes(x))))
 

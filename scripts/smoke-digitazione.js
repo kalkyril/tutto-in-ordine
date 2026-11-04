@@ -142,7 +142,7 @@ function attach({ getWindow, db }) {
 
       // ---- ricerca globale ----
       await chiudiModale()
-      check('finestre sovrapposte: un solo Esc chiude solo quella in primo piano', (await js('document.body.innerText')).includes('Nuova nota pro forma') && !(await js('document.body.innerText')).includes('Valgono per tutte le note pro forma'))
+      check('finestre sovrapposte: un solo Esc chiude solo quella in primo piano', (await js('document.body.innerText')).includes('Nuova nota pro forma') && !(await js('document.body.innerText')).includes('Il titolo vale per ogni tipo di documento'))
       await chiudiModale()
       await js(`window.dispatchEvent(new KeyboardEvent('keydown',{key:'k',metaKey:true,bubbles:true}))`); await sleep(400)
       await digita('ricerca globale', { sel: '.modal input' }, 'rossi')

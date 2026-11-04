@@ -6,7 +6,21 @@ export const FONT_DOCUMENTO = [
   { id: 'times', nome: 'Times New Roman', css: '"Times New Roman",Times,serif' },
   { id: 'verdana', nome: 'Verdana', css: 'Verdana,Arial,sans-serif' },
   { id: 'courier', nome: 'Courier New', css: '"Courier New",Courier,monospace' },
+  // corsivo calligrafico per firme e intestazioni: incluso in Windows con Office; dove manca si usa un corsivo del sistema
+  { id: 'palace-script', nome: 'Palace Script MT', css: '"Palace Script MT","Palace Script","Snell Roundhand","Apple Chancery","Segoe Script",cursive' },
 ] as const
+/** Nome di un font installato: le stesse regole dell'esportazione in Word (lettere, cifre, spazi e trattini). */
+export const NOME_FONT = /^[\p{L}\p{N} -]{1,60}$/u
+export const MAX_FONT_SISTEMA = 12
+export const idSistema = (nome: string) => `sys:${nome.trim()}`
+export const fontSistemaValidi = (l: unknown): string[] => Array.isArray(l) ? [...new Set(l.filter((x): x is string => typeof x === 'string' && NOME_FONT.test(x.trim())).map((x) => x.trim()))].slice(0, MAX_FONT_SISTEMA) : []
+/** Nome leggibile del font (per Word, LibreOffice e RTF il nome con cui il font è installato). */
+export function nomeFont(id: string | undefined, m: { fontPersonali?: FontDocumento[]; fontSistema?: string[] }): string {
+  const standard = FONT_DOCUMENTO.find(f => f.id === id)
+  if (standard) return standard.nome
+  if (id?.startsWith('sys:') && fontSistemaValidi(m.fontSistema).includes(id.slice(4))) return id.slice(4)
+  return m.fontPersonali?.find(f => f.id === id)?.nome || 'Arial'
+}
 export const MAX_FONT_BYTES = 2 * 1024 * 1024
 export const MAX_FONT_TOTAL = 4 * 1024 * 1024
 export const MAX_FONT_COUNT = 4
@@ -34,11 +48,13 @@ export function fontValidi(font: FontDocumento[] = []): FontDocumento[] {
 export function famigliaFont(id: string | undefined, fonts: FontDocumento[] = []): string {
   const standard = FONT_DOCUMENTO.find(f => f.id === id)
   if (standard) return standard.css
+  // font installato sul computer: il nome passa il controllo, quindi può stare tra virgolette nel CSS
+  if (id?.startsWith('sys:') && NOME_FONT.test(id.slice(4))) return `"${id.slice(4)}",Arial,sans-serif`
   return ID.test(id || '') && fontValidi(fonts).some(f => f.id === id) ? `"MNGMNT_${id}",Arial,sans-serif` : FONT_DOCUMENTO[0].css
 }
 
 export function fontFaceCss(m: ModelloPdf): string {
-  const usati = new Set([m.fontDocumento, ...[...m.intestazione, ...m.pagamento, ...m.footer].map(r => r.font)])
+  const usati = new Set([m.fontDocumento, ...[...m.intestazione, ...m.pagamento, ...m.footer, ...Object.values(m.titoli || {})].map(r => r?.font)])
   return fontValidi(m.fontPersonali).filter(f => usati.has(f.id)).map(f =>
     `@font-face{font-family:"MNGMNT_${f.id}";src:url("${f.dati}") format("${FORMATI[f.formato]}");font-display:block;}`
   ).join('\n')

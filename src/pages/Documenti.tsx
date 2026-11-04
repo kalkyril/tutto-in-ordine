@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Braces, Columns2, Copy, Download, FilePlus2, FileText, FileUp, Italic, List, ListOrdered, Plus, Trash2, Underline, Wand2 } from 'lucide-react'
+import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Braces, Columns2, Copy, Download, FilePlus2, FileUp, Italic, List, ListOrdered, Plus, Trash2, Underline, Wand2 } from 'lucide-react'
 import { api, type InfoWord } from '../api'
 import { useData } from '../store'
 import { Btn, Field, Input, Modal, PageHeader, Segmented, Select, Tabs, useAction, useFeedback } from '../components/ui'
 import { CreaDocumentoModal } from '../components/CreaDocumento'
 import { AnteprimaNota, ImmagineBlocco, RigheEditor } from '../components/ModelloPdfEditor'
-import { FONT_DOCUMENTO, fontValidi } from '../lib/font-documento'
+import { GestioneFont, OpzioniFont } from '../components/SceltaFont'
 import { modelloEffettivo } from '../lib/modello'
-import { CSS_ALLINEA, campiDisponibili, duplicaModello, documentoHtml, modelliPredefiniti, nuovoModello, predefinitiMancanti, pulisciHtml, rigaVuota, tipiDocumento, valoriCampi, type Campo } from '../lib/documento'
+import { CSS_ALLINEA, MARGINI_PREDEFINITI, campiDisponibili, duplicaModello, documentoHtml, modelliPredefiniti, modelloPersonalizzato, nuovoModello, predefinitiMancanti, pulisciHtml, rigaVuota, tipiDocumento, valoriCampi, type Campo } from '../lib/documento'
 import type { Allineamento, ModelloDocumento, Settings } from '../types'
 
 const tipiPer = tipiDocumento
@@ -24,6 +24,7 @@ export default function Documenti() {
   const [stato, setStato] = useState<'salvato' | 'in-salvataggio' | ''>('')
   const [nuovo, setNuovo] = useState(false)
   const [crea, setCrea] = useState<ModelloDocumento | null>(null)
+  const schedaIniziale = useRef<Record<string, Scheda>>({})
   const timer = useRef<number | undefined>(undefined)
   const daSalvare = useRef<ModelloDocumento[] | null>(null)
   const salva = (lista: ModelloDocumento[], subito = false) => {
@@ -53,6 +54,7 @@ export default function Documenti() {
     const nuovo = 'word-' + crypto.randomUUID()
     if (await run(() => api.duplicaModelloWord(m.id, nuovo))) aggiungi({ ...structuredClone(m), id: nuovo, nome: `${m.nome} (copia)`, predefinito: false, aggiornato: new Date().toISOString() })
   }
+  const daZero = (nome: string, conIntestazione: boolean) => { const x = modelloPersonalizzato(settings, nome, conIntestazione); schedaIniziale.current[x.id] = 'impaginazione'; aggiungi(x) }
   const mancanti = predefinitiMancanti(settings, modelli)
   // i modelli pronti e quelli creati dall'utente, ciascuno in ordine alfabetico
   const gruppi = useMemo(() => {
@@ -65,28 +67,49 @@ export default function Documenti() {
       <PageHeader title="Documenti" eyebrow="Strumenti" subtitle="Modelli per lettere, preventivi e qualsiasi altro documento, con la tua intestazione e il tuo piè di pagina. Crea il file in Word, PDF e altri formati, già compilato con i dati dell’archivio."
         actions={<>{stato && <span className="muted small" role="status">{stato === 'salvato' ? 'Modifiche salvate' : 'Salvataggio…'}</span>}{mancanti.length > 0 && <Btn variant="ghost" onClick={() => { salva([...modelli, ...mancanti], true); setScelto(mancanti[0].id); toast(mancanti.length === 1 ? 'Aggiunto un modello predefinito' : `Aggiunti ${mancanti.length} modelli predefiniti`) }} title="Rimette i modelli pronti che hai eliminato">Aggiungi i predefiniti</Btn>}<Btn variant="ghost" onClick={importaWord} title="Usa come modello un tuo documento Word, per esempio la carta intestata dello studio"><FileUp size={15} /> Importa da Word…</Btn><Btn variant="primary" onClick={() => setNuovo(true)}><Plus size={15} /> Nuovo modello</Btn></>} />
       {!modelli.length
-        ? <ScegliTipo settings={settings} onScegli={(t) => aggiungi(nuovoModello(settings, t))} intro />
-        : <div className="documenti-griglia">
-          <nav className="documenti-elenco" aria-label="Modelli">
-            {gruppi.map(([tipo, lista]) => (
-              <div key={tipo}><p className="nav-section">{tipo}</p>
-                {lista.map((x) => <button key={x.id} type="button" className={`documenti-voce${x.id === scelto ? ' on' : ''}`} aria-current={x.id === scelto ? 'true' : undefined} onClick={() => setScelto(x.id)}><FileText size={16} aria-hidden /><span>{x.nome}{x.nome.trim().toLowerCase() !== x.tipo.toLowerCase() && <small className="muted">{x.tipo}</small>}</span></button>)}
-              </div>
-            ))}
-          </nav>
+        ? <ScegliTipo settings={settings} onScegli={(t) => aggiungi(nuovoModello(settings, t))} intro onDaZero={daZero} />
+        : <div className="documenti-lavoro">
+          <div className="documenti-scelta">
+            <Field label="Modello predefinito" hint={`${modelli.length} ${modelli.length === 1 ? 'modello' : 'modelli'}: scegli quello da modificare o da usare`}>
+              <Select value={scelto ?? ''} onChange={(e) => setScelto(e.target.value)} aria-label="Modello da modificare">
+                {!m && <option value="">Scegli un modello…</option>}
+                {gruppi.map(([g, lista]) => <optgroup key={g} label={g}>{lista.map((x) => <option key={x.id} value={x.id}>{x.nome}{x.nome.trim().toLowerCase() !== x.tipo.toLowerCase() ? ` · ${x.tipo}` : ''}</option>)}</optgroup>)}
+              </Select>
+            </Field>
+          </div>
           {m ? m.word
             ? <EditorWord key={m.id} m={m} settings={settings} onChange={aggiorna} onCrea={() => setCrea(m)} onDuplica={duplicaWord} onElimina={elimina} />
-            : <Editor key={m.id} m={m} settings={settings} onChange={aggiorna} onCrea={() => setCrea(m)} onDuplica={() => aggiungi(duplicaModello(m))} onElimina={elimina} /> : <p className="muted">Scegli un modello dall’elenco.</p>}
+            : <Editor key={m.id} m={m} settings={settings} schedaIniziale={schedaIniziale.current[m.id]} onChange={aggiorna} onCrea={() => setCrea(m)} onDuplica={() => aggiungi(duplicaModello(m))} onElimina={elimina} /> : <p className="muted">Scegli un modello dal menu.</p>}
         </div>}
-      {nuovo && <Modal title="Nuovo modello" subtitle="Parte con l’intestazione e il piè di pagina già impostati per i tuoi documenti di vendita" width={760} onClose={() => setNuovo(false)} protectChanges={false}><ScegliTipo settings={settings} onScegli={(t) => aggiungi(nuovoModello(settings, t))} /></Modal>}
+      {nuovo && <Modal title="Nuovo modello" subtitle="Crea un modello tutto tuo partendo da zero, oppure parti da un testo pronto con l’intestazione e il piè di pagina dei tuoi documenti di vendita" width={760} onClose={() => setNuovo(false)} protectChanges={false}>
+        <ModelloDaZero onCrea={daZero} />
+        <ScegliTipo settings={settings} onScegli={(t) => aggiungi(nuovoModello(settings, t))} />
+      </Modal>}
       {crea && <CreaDocumentoModal m={crea} onClose={() => setCrea(null)} />}
     </div>
   )
 }
 
-function ScegliTipo({ settings, onScegli, intro }: { settings: Settings; onScegli: (tipo: string) => void; intro?: boolean }) {
+/** Modello personalizzato: un nome, una pagina bianca e l'impaginazione da decidere (margini, testo, intestazione e piè di pagina). */
+function ModelloDaZero({ onCrea }: { onCrea: (nome: string, conIntestazione: boolean) => void }) {
+  const [nome, setNome] = useState('')
+  const [conIntestazione, setConIntestazione] = useState(false)
+  const crea = () => nome.trim() && onCrea(nome.trim(), conIntestazione)
+  return <section className="documenti-da-zero">
+    <h3>Modello personalizzato</h3>
+    <p className="muted small">Una pagina bianca con il nome che scegli: decidi tu margini, dimensione del testo, intestazione in cima alla pagina e piè di pagina.</p>
+    <div className="row wrap documenti-da-zero-riga">
+      <Field label="Nome del modello"><Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Es. Delega al collega" autoFocus onKeyDown={(e) => { if (e.key === 'Enter') crea() }} /></Field>
+      <Btn variant="primary" disabled={!nome.trim()} onClick={crea}><Plus size={15} /> Crea modello</Btn>
+    </div>
+    <label className="check"><input type="checkbox" checked={conIntestazione} onChange={(e) => setConIntestazione(e.target.checked)} /> Parti con intestazione, piè di pagina e font dei documenti di vendita</label>
+    <p className="nav-section documenti-oppure">Oppure parti da un testo pronto</p>
+  </section>
+}
+
+function ScegliTipo({ settings, onScegli, intro, onDaZero }: { settings: Settings; onScegli: (tipo: string) => void; intro?: boolean; onDaZero?: (nome: string, conIntestazione: boolean) => void }) {
   return <section className={intro ? 'card documenti-intro' : ''}>
-    {intro && <><h2>Crea il primo modello</h2><p className="muted">Scegli il tipo di documento: troverai un testo di partenza da adattare, l’intestazione e il piè di pagina dei tuoi documenti di vendita e i campi che TIO compila da solo.</p></>}
+    {intro && <><h2>Crea il primo modello</h2>{onDaZero && <ModelloDaZero onCrea={onDaZero} />}<p className="muted">Scegli il tipo di documento: troverai un testo di partenza da adattare, l’intestazione e il piè di pagina dei tuoi documenti di vendita e i campi che TIO compila da solo.</p></>}
     <div className="documenti-tipi">
       {tipiPer(settings).map((t) => <button key={t.tipo} type="button" className="documenti-tipo" onClick={() => onScegli(t.tipo)}><FilePlus2 size={20} aria-hidden /><b>{t.tipo}</b><span className="muted small">{t.descrizione}</span></button>)}
     </div>
@@ -95,15 +118,16 @@ function ScegliTipo({ settings, onScegli, intro }: { settings: Settings; onScegl
 
 type Scheda = 'contenuto' | 'intestazione' | 'piede' | 'impaginazione'
 
-function Editor({ m, settings, onChange, onCrea, onDuplica, onElimina }: { m: ModelloDocumento; settings: Settings; onChange: (p: Partial<ModelloDocumento>) => void; onCrea: () => void; onDuplica: () => void; onElimina: () => void }) {
-  const [scheda, setScheda] = useState<Scheda>('contenuto')
-  const fonts = fontValidi(m.fontPersonali)
-  const opzioniFont = <>{FONT_DOCUMENTO.map((f) => <option key={f.id} value={f.id}>{f.nome}</option>)}{fonts.map((f) => <option key={f.id} value={f.id}>{f.nome} · personale</option>)}</>
+function Editor({ m, settings, schedaIniziale, onChange, onCrea, onDuplica, onElimina }: { m: ModelloDocumento; settings: Settings; schedaIniziale?: Scheda; onChange: (p: Partial<ModelloDocumento>) => void; onCrea: () => void; onDuplica: () => void; onElimina: () => void }) {
+  const [scheda, setScheda] = useState<Scheda>(schedaIniziale || 'contenuto')
+  const opzioniFont = <OpzioniFont m={m} />
+  const margini = { ...MARGINI_PREDEFINITI, ...m.margini }
+  const setMargine = (k: keyof typeof margini, v: number) => onChange({ margini: { ...margini, [k]: Math.min(60, Math.max(5, Math.round(v) || MARGINI_PREDEFINITI[k])) } })
   // anteprima: i dati dell'attività sono veri, quelli di destinatario e pratica restano campi evidenziati
   const valori = useMemo(() => Object.fromEntries(Object.entries(valoriCampi(settings, {})).filter(([k]) => k.startsWith('studio.') || k === 'oggi' || k === 'luogo')), [settings])
   const [html, setHtml] = useState(() => documentoHtml(m, { valori }))
   useEffect(() => { const t = window.setTimeout(() => setHtml(documentoHtml(m, { valori })), 350); return () => window.clearTimeout(t) }, [m, valori])
-  const daParcelle = () => { const p = modelloEffettivo(settings); onChange({ intestazione: p.intestazione, footer: p.footer, logo: p.logo, logoAltezza: p.logoAltezza, logoAllineamento: p.logoAllineamento, immagineFooter: p.immagineFooter, immagineFooterAltezza: p.immagineFooterAltezza, immagineFooterAllineamento: p.immagineFooterAllineamento, fontDocumento: p.fontDocumento, fontPersonali: p.fontPersonali }) }
+  const daParcelle = () => { const p = modelloEffettivo(settings); onChange({ intestazione: p.intestazione, footer: p.footer, logo: p.logo, logoAltezza: p.logoAltezza, logoAllineamento: p.logoAllineamento, immagineFooter: p.immagineFooter, immagineFooterAltezza: p.immagineFooterAltezza, immagineFooterAllineamento: p.immagineFooterAllineamento, fontDocumento: p.fontDocumento, fontPersonali: p.fontPersonali, fontSistema: p.fontSistema }) }
   return (
     <div className="documenti-editor">
       <div className="documenti-form">
@@ -124,20 +148,38 @@ function Editor({ m, settings, onChange, onCrea, onDuplica, onElimina }: { m: Mo
           <header><div><h3>Intestazione</h3><p className="muted small">Si ripete in cima a ogni pagina. Puoi usare i campi, per esempio {'{{studio.nome}}'}.</p></div></header>
           <ImmagineBlocco titolo="Intestazione" src={m.logo} altezza={m.logoAltezza} allineamento={m.logoAllineamento} max={140} onChange={(logo, logoAltezza, logoAllineamento) => onChange({ logo, logoAltezza, logoAllineamento })} />
           <RigheEditor righe={m.intestazione} titolo="Intestazione" opzioniFont={opzioniFont} nuova={() => rigaVuota()} onChange={(intestazione) => onChange({ intestazione })} />
-          <Btn size="sm" variant="ghost" onClick={daParcelle}>Usa intestazione, piè di pagina e font dei documenti di vendita</Btn>
+          <Btn size="sm" variant="ghost" className="btn-a-capo" onClick={daParcelle} title="Copia in questo modello intestazione, piè di pagina, immagini e font del modello dei documenti di vendita (Impostazioni › Modello PDF)">Usa intestazione, piè di pagina e font dei documenti di vendita</Btn>
         </section>}
         {scheda === 'piede' && <section className="modello-blocco">
           <header><div><h3>Piè di pagina</h3><p className="muted small">In fondo a ogni pagina: sede, recapiti, codice fiscale e partita IVA…</p></div></header>
           <ImmagineBlocco titolo="Piè di pagina" src={m.immagineFooter || null} altezza={m.immagineFooterAltezza ?? 36} allineamento={m.immagineFooterAllineamento || 'centro'} max={64} onChange={(immagineFooter, immagineFooterAltezza, immagineFooterAllineamento) => onChange({ immagineFooter, immagineFooterAltezza, immagineFooterAllineamento })} />
           <RigheEditor righe={m.footer} titolo="Piè di pagina" opzioniFont={opzioniFont} nuova={() => rigaVuota({ dimensione: 'piccola' })} onChange={(footer) => onChange({ footer })} />
         </section>}
-        {scheda === 'impaginazione' && <section className="modello-blocco">
-          <Field label="Carattere del documento"><Select value={m.fontDocumento || 'arial'} onChange={(e) => onChange({ fontDocumento: e.target.value })}>{opzioniFont}</Select></Field>
-          <label className="check"><input type="checkbox" checked={m.mostraLuogoData} onChange={(e) => onChange({ mostraLuogoData: e.target.checked })} /> Luogo e data in alto a destra</label>
-          <input value={m.luogo} onChange={(e) => onChange({ luogo: e.target.value })} disabled={!m.mostraLuogoData} placeholder="Città, es. Modena" aria-label="Città per la data" style={{ maxWidth: 240 }} />
-          <label className="check"><input type="checkbox" checked={m.numeriPagina} onChange={(e) => onChange({ numeriPagina: e.target.checked })} /> Numeri di pagina («Pagina 1 di 3»)</label>
-          <p className="muted small">I font personali importati nel modello dei documenti di vendita valgono anche qui. In Word, LibreOffice e RTF il carattere deve essere installato sul computer che apre il file.</p>
-        </section>}
+        {scheda === 'impaginazione' && <>
+          <section className="modello-blocco">
+            <header><div><h3>Carattere</h3><p className="muted small">Font e dimensione del testo del documento. Su ogni riga di intestazione e piè di pagina puoi sceglierne un altro.</p></div></header>
+            <div className="row wrap modello-font-controlli">
+              <Field label="Carattere del documento"><Select value={m.fontDocumento || 'arial'} onChange={(e) => onChange({ fontDocumento: e.target.value })}>{opzioniFont}</Select></Field>
+              <Field label="Dimensione del testo"><Select value={String(m.corpoPt ?? 11)} onChange={(e) => onChange({ corpoPt: Number(e.target.value) })}>{[9, 10, 10.5, 11, 12, 13, 14].map((n) => <option key={n} value={n}>{String(n).replace('.', ',')} pt</option>)}</Select></Field>
+            </div>
+            <GestioneFont value={m} righe={['intestazione', 'footer']} onChange={onChange} />
+          </section>
+          <section className="modello-blocco">
+            <header><div><h3>Margini della pagina</h3><p className="muted small">Spazio tra il bordo del foglio A4 e il testo, in millimetri: in cima alla pagina (sopra l’intestazione), in fondo (sotto il piè di pagina) e ai lati.</p></div></header>
+            <div className="documenti-margini">
+              {([['sopra', 'In alto'], ['sotto', 'In basso'], ['lati', 'Ai lati']] as const).map(([k, l]) =>
+                <Field key={k} label={`${l} (mm)`}><Input type="number" min={5} max={60} step={1} value={margini[k]} onChange={(e) => setMargine(k, Number(e.target.value))} /></Field>)}
+              <Btn size="sm" variant="ghost" disabled={!m.margini && m.corpoPt === undefined} onClick={() => onChange({ margini: undefined, corpoPt: undefined })}>Ripristina</Btn>
+            </div>
+          </section>
+          <section className="modello-blocco">
+            <header><h3>Pagina</h3></header>
+            <label className="check"><input type="checkbox" checked={m.mostraLuogoData} onChange={(e) => onChange({ mostraLuogoData: e.target.checked })} /> Luogo e data in alto a destra</label>
+            <input value={m.luogo} onChange={(e) => onChange({ luogo: e.target.value })} disabled={!m.mostraLuogoData} placeholder="Città, es. Modena" aria-label="Città per la data" style={{ maxWidth: 240 }} />
+            <label className="check"><input type="checkbox" checked={m.numeriPagina} onChange={(e) => onChange({ numeriPagina: e.target.checked })} /> Numeri di pagina («Pagina 1 di 3»)</label>
+            <p className="muted small">Intestazione e piè di pagina si modificano nelle loro schede. In Word, LibreOffice e RTF i font «del computer» devono essere installati sul computer che apre il file.</p>
+          </section>
+        </>}
       </div>
       <AnteprimaNota html={html} etichetta={m.nome} />
     </div>

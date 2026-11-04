@@ -37,7 +37,7 @@ export function AnonimizzaPratica({ praticaIniziale }: { praticaIniziale?: numbe
       setEsiti((e) => ({ ...e, [doc.id]: { stato: 'lavoro' } }))
       try {
         const d = await api.anonApriDocumento(doc.id, o.ocr)
-        if (!d.testo.trim()) { setEsiti((e) => ({ ...e, [doc.id]: { stato: 'vuoto', dettaglio: d.stato === 'scansione' ? 'scansione: riprova con l’OCR' : 'nessun testo' } })); continue }
+        if (!d.testo.trim()) { setEsiti((e) => ({ ...e, [doc.id]: { stato: 'vuoto', dettaglio: d.stato === 'scansione' ? 'scansione: attiva «Leggi anche i PDF scansionati»' : 'nessun testo' } })); continue }
         const r = uni.applica(anonimizza(d.testo, { archivio, reversibile: o.reversibile }))
         let pos = 0
         const posizioni = r.segmenti.flatMap((s) => { const a = pos; pos += s.t.length; return s.tag ? [{ start: a, end: pos, da: s.t, a: s.ph! }] : [] })
@@ -63,7 +63,7 @@ export function AnonimizzaPratica({ praticaIniziale }: { praticaIniziale?: numbe
         <label className="check"><input type="checkbox" checked={o.usaArchivio} onChange={(e) => setO({ ...o, usaArchivio: e.target.checked })} /> Riconosci {settings.profilo === 'ditta' ? `clienti, fornitori e ${L.pratiche.toLowerCase()}` : 'clienti, controparti e pratiche'} dell’archivio</label>
         <label className="check"><input type="checkbox" checked={o.includiStudio} disabled={!o.usaArchivio} onChange={(e) => setO({ ...o, includiStudio: e.target.checked })} /> Anonimizza anche i dati della tua attività</label>
         <label className="check"><input type="checkbox" checked={o.reversibile} onChange={(e) => setO({ ...o, reversibile: e.target.checked })} /> Salva una chiave di ripristino comune</label>
-        <label className="check"><input type="checkbox" checked={o.ocr} onChange={(e) => setO({ ...o, ocr: e.target.checked })} /> Leggi anche i PDF scansionati con l’OCR (più lento)</label>
+        <label className="check"><input type="checkbox" checked={o.ocr} onChange={(e) => setO({ ...o, ocr: e.target.checked })} /> Leggi anche i PDF scansionati (riconoscimento del testo nelle immagini, più lento)</label>
       </div>
     </section>
     {praticaId && <section className="card">

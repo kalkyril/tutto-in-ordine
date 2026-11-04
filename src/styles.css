@@ -322,6 +322,16 @@ input[type=radio] { width: 16px; height: 16px; accent-color: var(--accent); marg
 .modello-font-list { list-style: none; padding: 0; margin: 10px 0 0; }
 .modello-font-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--border); }
 .modello-font-list span { min-width: 0; overflow-wrap: anywhere; }
+.riga-titolo .riga-titolo-nome { flex: 1 0 100%; font-weight: 600; overflow-wrap: anywhere; }
+.font-computer { display: grid; gap: 10px; }
+.font-computer-cerca { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: var(--radius); padding: 0 10px; background: var(--surface); }
+.font-computer-cerca input { border: 0; outline: none; background: transparent; flex: 1; min-height: 36px; box-shadow: none; }
+.font-computer-elenco { list-style: none; margin: 0; padding: 0; max-height: 46vh; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+.font-computer-elenco li + li { border-top: 1px solid var(--border); }
+.font-computer-elenco button { display: flex; width: 100%; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 12px; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; font-size: 17px; }
+.font-computer-elenco button:hover, .font-computer-elenco button:focus-visible, .font-computer-elenco button[aria-current] { background: var(--surface-2); outline: none; }
+.font-computer-elenco small { font-size: 11px; white-space: nowrap; }
+.font-computer-elenco li.muted { padding: 10px 12px; }
 @media (max-width: 1150px) { .modello { grid-template-columns: 1fr; } .modello-preview { position: static; grid-row: 1; } }
 
 /* ---------- Form di calcolo con impostazione "a righe" (come il calcolatore del sito) ---------- */
@@ -488,3 +498,9 @@ input[type=radio] { width: 16px; height: 16px; accent-color: var(--accent); marg
 .business-panel .card-head { flex-wrap: wrap; }
 .scelte { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
 .scelte .scelta { min-width: 150px; flex: 1; }
+.anteprima-documento .modello-preview { position: static; } .anteprima-documento { min-height: 60vh; }
+.doc-sezione > .nav-section { padding: 12px 16px 4px; margin: 0; }
+.doc-sezione + .doc-sezione { border-top: 1px solid var(--border); }
+.doc-sezione-vuota { padding: 2px 16px 10px; margin: 0; }
+.cliens-abbinamenti ul { list-style: none; margin: 6px 0 0; padding: 0; max-height: 220px; overflow: auto; border-top: 1px solid var(--border); }
+.cliens-abbinamenti li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); } .cliens-abbinamenti li span { min-width: 0; overflow-wrap: anywhere; }

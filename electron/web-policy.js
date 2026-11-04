@@ -9,7 +9,9 @@ function isAppUrl(value, development = false) {
   } catch { return false }
 }
 function denyUnusedPermissions(session, canWriteClipboard = () => false) {
-  const allowed = (contents, permission) => permission === 'clipboard-sanitized-write' && !!contents && canWriteClipboard(contents)
+  // soltanto la pagina dell'app: copia negli appunti e elenco dei font installati (scelta del carattere nei modelli)
+  const CONSENTITI = new Set(['clipboard-sanitized-write', 'local-fonts'])
+  const allowed = (contents, permission) => CONSENTITI.has(permission) && !!contents && canWriteClipboard(contents)
   session.setPermissionCheckHandler((contents, permission) => allowed(contents, permission))
   session.setPermissionRequestHandler((contents, permission, callback) => callback(allowed(contents, permission)))
 }

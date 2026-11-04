@@ -1,4 +1,4 @@
-import type { Anagrafica, Labels, ModelloPdf, Parcella, RigaModello, Settings, VoceParcella } from '../types'
+import type { Anagrafica, Labels, ModelloPdf, Parcella, RigaModello, Settings, StileTitolo, TipoTitolo, VoceParcella } from '../types'
 import { modelloEffettivo } from './modello'
 import { calcolaParcella } from './calc'
 import { type DettaglioCalcolo } from './compenso'
@@ -10,13 +10,16 @@ import { famigliaFont, fontFaceCss } from './font-documento'
 export function parcellaHtml(p: Parcella, voci: VoceParcella[], cliente: Anagrafica | null | undefined, s: Settings, L: Labels, praticaLabel?: string): string {
   if (p.tipo === 'proforma') return notaProFormaHtml(p, voci, cliente, s)
   const st = s.studio
-  const titolo = p.tipo === 'preventivo' ? 'Preventivo' : p.tipo === 'nota_credito' ? 'Nota di credito' : s.profilo === 'avvocato' ? 'Parcella / Nota spese' : L.parcella
+  const mod = modelloEffettivo(s)
+  const stile = titoloDocumento(mod, p.tipo, s, L)
+  const titolo = stile.testo
   const sec = (tipo: VoceParcella['tipo']) => voci.filter((v) => v.tipo === tipo)
   const rows = (list: VoceParcella[]) => list.map((v) => `<tr><td>${esc(v.descrizione)}</td><td class="n">${decimal(v.quantita)}</td><td class="n">${money(v.importo)}</td><td class="n">${money((v.quantita || 0) * (v.importo || 0))}</td></tr>`).join('')
   const block = (label: string, list: VoceParcella[]) => list.length ? `<tr class="sec"><td colspan="4">${label}</td></tr>${rows(list)}` : ''
   const line = (l: string, v: number, bold = false) => v || bold ? `<tr class="${bold ? 'tot' : ''}"><td>${l}</td><td class="n">${money(v)}</td></tr>` : ''
   const cliAddr = cliente ? [cliente.indirizzo, [cliente.cap, cliente.citta, cliente.provincia ? '(' + cliente.provincia + ')' : ''].filter(Boolean).join(' ')].filter(Boolean).join(', ') : ''
   return `<!doctype html><html lang="it"><head><meta charset="utf-8"><title>${esc(titolo)} ${esc(p.numero)}</title><style>
+  ${stile.personalizzato ? fontFaceCss(mod) : ''}
   @page{size:A4;margin:1.6cm}
   *{box-sizing:border-box} body{font:12px/1.45 -apple-system,"Segoe UI",Helvetica,Arial,sans-serif;color:#111;margin:0}
   header{display:flex;justify-content:space-between;gap:24px;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:18px}
@@ -28,6 +31,7 @@ export function parcellaHtml(p: Parcella, voci: VoceParcella[], cliente: Anagraf
   </style></head><body>
   <header><div><h1>${esc(st.intestazione || st.nome || 'Studio')}</h1><div class="muted">${[st.indirizzo, st.cap_citta].filter(Boolean).map(esc).join(' — ')}<br>${[st.cf && 'C.F. ' + st.cf, st.piva && 'P.IVA ' + st.piva].filter(Boolean).map(esc).join(' · ')}<br>${[st.telefono, st.email, st.pec && 'PEC ' + st.pec].filter(Boolean).map(esc).join(' · ')}</div></div>
   <div class="box"><b>${esc(titolo)} n. ${esc(p.numero)}</b><br>del ${fmtDate(p.data)}${cliente ? `<br><br><b>${esc(cliente.denominazione)}</b><br>${esc(cliAddr)}<br>${[cliente.codice_fiscale && 'C.F. ' + cliente.codice_fiscale, cliente.partita_iva && 'P.IVA ' + cliente.partita_iva].filter(Boolean).map(esc).join(' · ')}` : ''}</div></header>
+  ${stile.personalizzato ? `<h1 class="doc-title" style="margin:0 0 12px;${esc(stileTitoloCss(stile, mod))}">${esc(titolo)}</h1>` : ''}
   ${p.oggetto || praticaLabel ? `<p><b>Oggetto:</b> ${esc(p.oggetto || '')}${praticaLabel ? `<br><span class="muted">${esc(L.pratica)}: ${esc(praticaLabel)}</span>` : ''}</p>` : ''}
   <table><thead><tr><th>Descrizione</th><th class="n">Q.tà</th><th class="n">Importo unit.</th><th class="n">Totale</th></tr></thead><tbody>
   ${block(s.profilo === 'avvocato' ? 'Compensi professionali' : 'Prestazioni e forniture', sec('compenso'))}${block('Spese imponibili', sec('spesa_imponibile'))}${block('Spese anticipate esenti IVA (art. 15 DPR 633/72)', sec('spesa_esente'))}</tbody></table>
@@ -43,6 +47,21 @@ export function parcellaHtml(p: Parcella, voci: VoceParcella[], cliente: Anagraf
 }
 
 const eur2 = (n: number) => fmtNum(n)
+
+/** Titolo predefinito di ogni documento di vendita (lo stesso usato finora nei PDF). */
+export function titoloPredefinito(tipo: TipoTitolo, s: Pick<Settings, 'profilo'>, L: Pick<Labels, 'parcella'>): StileTitolo {
+  if (tipo === 'proforma') return { testo: 'NOTA PRO FORMA', dimensione: 22, grassetto: true, corsivo: false, allineamento: 'sinistra' }
+  return { testo: tipo === 'preventivo' ? 'Preventivo' : tipo === 'nota_credito' ? 'Nota di credito' : s.profilo === 'avvocato' ? 'Parcella / Nota spese' : L.parcella, dimensione: 20, grassetto: true, corsivo: false, allineamento: 'sinistra' }
+}
+const tipoTitolo = (t: string): TipoTitolo => (t === 'preventivo' || t === 'nota_credito' || t === 'proforma' ? t : 'parcella')
+/** Titolo scelto nel modello (Impostazioni › Modello PDF), oppure quello predefinito. */
+export function titoloDocumento(m: ModelloPdf, tipo: string, s: Pick<Settings, 'profilo'>, L: Pick<Labels, 'parcella'>): StileTitolo & { personalizzato: boolean } {
+  const k = tipoTitolo(tipo), t = m.titoli?.[k]
+  const base = titoloPredefinito(k, s, L)
+  return t && (t.testo || '').trim() ? { ...base, ...t, dimensione: Math.min(40, Math.max(10, Number(t.dimensione) || base.dimensione)), personalizzato: true } : { ...base, personalizzato: false }
+}
+export const stileTitoloCss = (t: StileTitolo, m: ModelloPdf) =>
+  `text-align:${ALLIN[t.allineamento] || 'left'};font-size:${t.dimensione}pt;font-weight:${t.grassetto ? 700 : 400};font-style:${t.corsivo ? 'italic' : 'normal'};${t.font ? `font-family:${famigliaFont(t.font, m.fontPersonali)};` : ''}`
 const DIM: Record<string, string> = { grande: '18pt', media: '13pt', normale: '10pt', piccola: '9pt' }
 const ALLIN: Record<string, string> = { sinistra: 'left', centro: 'center', destra: 'right' }
 
@@ -71,6 +90,7 @@ export function leggiDettaglio(p: { calcolo?: string | null }): DettaglioCalcolo
 /** Modello autonomo TIO: dati economici e riferimenti scelti dal professionista. */
 export function notaProFormaHtml(p: Parcella, voci: VoceParcella[], cliente: Anagrafica | null | undefined, s: Settings, anteprima = false): string {
   const m = modelloEffettivo(s), d = leggiDettaglio(p)
+  const titolo = titoloDocumento(m, 'proforma', s, s.etichette)
   const footerImage = footerImmagineHtml(m)
   const footerContent = `<div class="footer-content">${footerImage}${righeHtml(m.footer, m)}</div>`
   const footerRighe = m.footer.filter(r => r.testo.trim()).reduce((h, r) => h + ({ grande: 24, media: 17.34, normale: 13.34, piccola: 12 }[r.dimensione] || 13.34) * 1.3 * Math.max(1, Math.ceil(r.testo.length / 85)), 0)
@@ -94,7 +114,7 @@ export function notaProFormaHtml(p: Parcella, voci: VoceParcella[], cliente: Ana
   .document-layout{margin:0;border:0}.document-layout>tbody>tr{break-inside:auto}.document-layout>tbody>tr>td{padding:0;border:0}.document-layout>tfoot{display:table-footer-group}.document-layout>tfoot td{padding:6mm 0 0;border:0}.footer-reserve{visibility:hidden}.footer-content{font-size:8pt;line-height:1.4;color:#536276}
   footer{font-size:8pt;color:#536276;${anteprima ? 'position:absolute;left:20mm;right:20mm;bottom:12mm;' : 'position:fixed;left:0;right:0;bottom:0;'}}
   </style></head><body>${anteprima ? '' : '<table class="document-layout"><tbody><tr><td>'}<header>${logoHtml(m)}${righeHtml(m.intestazione, m)}</header>
-  <h1 class="document-title">NOTA PRO FORMA</h1><div class="meta">N. ${esc(p.numero)} · ${fmtDate(p.data)}${m.mostraLuogoData && m.luogo ? ' · ' + esc(m.luogo) : ''}</div>
+  <h1 class="document-title" style="${esc(stileTitoloCss(titolo, m))}">${esc(titolo.testo)}</h1><div class="meta">N. ${esc(p.numero)} · ${fmtDate(p.data)}${m.mostraLuogoData && m.luogo ? ' · ' + esc(m.luogo) : ''}</div>
   ${address.length ? `<div class="recipient"><b>Destinatario</b>${address.map(x => `<div>${esc(x)}</div>`).join('')}</div>` : ''}
   ${p.oggetto ? `<p><b>Oggetto:</b> ${esc(p.oggetto).replace(/\n/g, '<br>')}</p>` : ''}
   <table><thead><tr><th>Prestazione / spesa</th><th class="amount">Importo</th></tr></thead><tbody>${details}</tbody></table>

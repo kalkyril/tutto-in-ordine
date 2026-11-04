@@ -59,6 +59,14 @@ export const api = {
   cartellaPratica: (praticaId: number): Promise<{ cartella: string; aggiornati: number } | null> => inv('documenti:cartellaPratica', praticaId),
   collegaCartella: (praticaId: number): Promise<{ collegati: number; gia: number; incompleto: boolean } | null> => inv('documenti:collegaCartella', praticaId),
   apriCartellaPratica: (praticaId: number): Promise<string> => inv('documenti:apriCartella', praticaId),
+  cliensCartella: (praticaId: number): Promise<RapportoCliens | null> => inv('documenti:cliensCartella', praticaId),
+  cliensScollega: (praticaId: number) => inv('documenti:cliensScollega', praticaId),
+  cliensSincronizza: (praticaId: number): Promise<RapportoCliens> => inv('documenti:cliensSincronizza', praticaId),
+  sezioniDocumenti: (praticaId: number): Promise<Record<number, SezioneDocumento>> => inv('documenti:sezioni', praticaId),
+  cliensApri: (praticaId: number): Promise<string> => inv('documenti:cliensApri', praticaId),
+  cliensRadice: (): Promise<AbbinamentiCliens | null> => inv('documenti:cliensRadice'),
+  cliensAbbinamenti: (): Promise<AbbinamentiCliens | null> => inv('documenti:cliensAbbinamenti'),
+  cliensTutte: (): Promise<{ pratiche: number; collegate: number; nuovi: number; uniti: number; condivisi: number; errori: { pratica: string; motivo: string }[] }> => inv('documenti:cliensTutte'),
   scegliAllegati: (): Promise<string[]> => inv('documenti:scegli'),
   anteprimaDocumento: (id: number) => inv('documenti:anteprima', id),
   openDocumento: (id: number) => inv('documenti:open', id),
@@ -145,3 +153,7 @@ export const api = {
   backup: (folder?: string, options?: { includeLinked?: boolean; password?: string }): Promise<string | null> => inv('backup:run', folder, options),
   restore: (password = '', verifyOnly = false): Promise<{ safety?: string; valido?: boolean; integritaFile?: boolean; documenti?: number; mancanti?: number; portabile?: boolean } | null> => inv('backup:restore', password, verifyOnly).then((result) => { if (result?.safety) window.dispatchEvent(new Event('archive-restored')); return result }),
 }
+
+export type SezioneDocumento = 'cliens' | 'locale' | 'condivisa'
+export interface RapportoCliens { praticaId: number; cliens: number; locali: number; condivisi: number; nuovi: number; uniti: number; toltiDaCliens: number; incompleto: boolean; cartellaCliens: boolean; cartellaLocale: boolean }
+export interface AbbinamentiCliens { cartella: string; abbinamenti: { nome: string; percorso: string; pratica: { id: number; numero: string; titolo: string; giaCollegata: boolean } | null }[] }

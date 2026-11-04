@@ -52,7 +52,7 @@ function attach({ getWindow, db }) {
       await sleep(600)
       const predefiniti = (db.getSettings().modelli_documento || []).map((m) => m.nome)
       check('alla prima apertura ci sono già i modelli predefiniti del profilo, salvati', ['Lettera', 'Preventivo', 'Diffida e messa in mora', 'Procura alle liti', 'Incarico professionale', 'Verbale', 'Relazione', 'Informativa privacy'].every((n) => predefiniti.includes(n)) && (db.getSettings().modelli_documento || []).every((m) => m.predefinito), JSON.stringify(predefiniti))
-      check('elenco dei modelli visibile e primo modello aperto', await js(`document.querySelectorAll('.documenti-voce').length`) >= 7 && await js(`document.querySelector('.documenti-titolo')?.value`) === 'Lettera')
+      check('elenco dei modelli visibile e primo modello aperto', await js(`document.querySelectorAll('.documenti-scelta select option').length`) >= 7 && await js(`document.querySelector('.documenti-titolo')?.value`) === 'Lettera')
       await shot('strumenti-1-documenti-predefiniti')
       check('modello «Lettera» pronto con il suo testo', (db.getSettings().modelli_documento || []).some((m) => m.tipo === 'Lettera' && /Gentile cliente/.test(m.corpo)))
       check('intestazione presa dai dati dello studio', /Studio Legale Prova/.test(JSON.stringify(db.getSettings().modelli_documento[0].intestazione)))
@@ -149,9 +149,9 @@ function attach({ getWindow, db }) {
       // ---------- rinomina e documento dalla pratica ----------
       await clickText('.nav-item', 'Anonimizza'); await sleep(200)
       await js(`[...document.querySelectorAll('.nav-item')].find(b=>b.textContent.trim()==='Documenti').click()`); await sleep(600)
-      await js(`[...document.querySelectorAll('.documenti-voce')].find(b=>b.textContent.trim()==='Lettera').click()`); await sleep(300)
+      await js(`(() => { const s=document.querySelector('.documenti-scelta select'); const o=[...s.options].find(o=>o.textContent.trim()==='Lettera'); Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(s,o.value); s.dispatchEvent(new Event('change',{bubbles:true})) })()`); await sleep(300)
       await setVal('.documenti-titolo', 'Lettera al cliente'); await sleep(1200)
-      check('il modello si rinomina a piacere: nome salvato e aggiornato nell’elenco', (db.getSettings().modelli_documento || []).some((m) => m.nome === 'Lettera al cliente') && await js(`[...document.querySelectorAll('.documenti-voce span')].some(b=>b.firstChild?.textContent==='Lettera al cliente')`))
+      check('il modello si rinomina a piacere: nome salvato e aggiornato nell’elenco', (db.getSettings().modelli_documento || []).some((m) => m.nome === 'Lettera al cliente') && await js(`[...document.querySelectorAll('.documenti-scelta select option')].some(o=>o.textContent.trim().split(' · ')[0]==='Lettera al cliente')`))
       await clickText('.nav-item', 'Pratiche'); await sleep(500)
       await js(`[...document.querySelectorAll('.pcard h2')].find(h=>h.textContent.includes('Zanichelli')).click()`); await sleep(600)
       await clickText('.tabs button', 'Documenti'); await sleep(500)
@@ -191,15 +191,15 @@ function attach({ getWindow, db }) {
       await setVal('.anon-salva select', 'txt'); await clickText('.anon-salva button', 'Salva'); await sleep(700)
       const anon = fs.readdirSync(file).filter((n) => /anonimizzato/.test(n))
       const tAnon = anon.find((n) => n.endsWith('.txt')) ? fs.readFileSync(path.join(file, anon.find((n) => n.endsWith('.txt'))), 'utf8') : ''
-      check('testo anonimizzato salvato senza dati personali', anon.length === 2 && /\[FULLNAME_1\]/.test(tAnon) && !/Zanichelli|ZNCZEI|Bianchi|IT60/.test(tAnon) && /Carpi/.test(tAnon), tAnon.slice(0, 200))
+      check('testo anonimizzato salvato senza dati personali', anon.length === 2 && /\[NOME_COMPLETO_1\]/.test(tAnon) && !/Zanichelli|ZNCZEI|Bianchi|IT60/.test(tAnon) && /Carpi/.test(tAnon), tAnon.slice(0, 200))
       const tDocx = anon.find((n) => n.endsWith('.docx')) ? leggiDocx(path.join(file, anon.find((n) => n.endsWith('.docx')))) : ''
-      check('Word anonimizzato', /\[ORG_\d\]/.test(tDocx) && !/Zanichelli/.test(tDocx))
+      check('Word anonimizzato', /\[SOCIETA_\d\]/.test(tDocx) && !/Zanichelli/.test(tDocx))
       await clickText('.anon-azioni button', 'Salva la chiave'); await sleep(400); await clickText('.modal .btn-primary, .confirm .btn-primary, [role=dialog] .btn-primary', 'Salva la chiave'); await sleep(600)
       const chiave = fs.readdirSync(file).find((n) => /chiave di ripristino/.test(n))
       check('chiave di ripristino salvata con i valori originali', chiave && /Ezio Zanichelli/.test(fs.readFileSync(path.join(file, chiave), 'utf8')))
       // ripristino di una risposta dell'IA (segnaposto anche senza parentesi)
       await clickText('.segmented button', 'Ripristina'); await sleep(400)
-      await setVal('.anon-ripristino textarea', 'Gentile FULLNAME_1, ho esaminato la posizione di [ORG_1] e il codice [CF_1].'); await sleep(400)
+      await setVal('.anon-ripristino textarea', 'Gentile NOME_COMPLETO_1, ho esaminato la posizione di [SOCIETA_1] e il codice [CODICE_FISCALE_1].'); await sleep(400)
       const esito = await js(`document.querySelector('.anon-esito')?.textContent || ''`)
       check('ripristino della risposta dell’IA con i dati veri', /Gentile Ezio Zanichelli/.test(esito) && /ZNCZEI70A01F257X/.test(esito), esito)
       await shot('strumenti-6-anon-ripristino')
@@ -219,7 +219,7 @@ function attach({ getWindow, db }) {
       await clickText('.anon-salva button', 'Salva'); await sleep(1000)
       const orig = fs.readdirSync(file).find((n) => /Ezio Zanichelli anonimizzato\.docx$/.test(n))
       const tOrig = orig ? leggiDocx(path.join(file, orig)) : ''
-      check('copia Word anonimizzata: corpo e intestazione senza dati personali', orig && !/Zanichelli|Studio Legale Prova|41012/.test(tOrig) && /\[FULLNAME_\d\]/.test(tOrig) && /Importo dovuto/.test(tOrig), tOrig.slice(0, 300))
+      check('copia Word anonimizzata: corpo e intestazione senza dati personali', orig && !/Zanichelli|Studio Legale Prova|41012/.test(tOrig) && /\[NOME_COMPLETO_\d\]/.test(tOrig) && /Importo dovuto/.test(tOrig), tOrig.slice(0, 300))
       const origXml = orig ? require('../electron/zip').leggiZip(fs.readFileSync(path.join(file, orig))) : null
       check('la copia conserva struttura, intestazione e piè di pagina dell’originale', origXml && ['word/header1.xml', 'word/footer1.xml', 'word/media/logo.png', 'word/numbering.xml'].filter((n) => require('../electron/zip').leggiZip(fs.readFileSync(nuovoPercorso)).nomi.includes(n)).every((n) => origXml.nomi.includes(n)))
       // accessibilità della sezione

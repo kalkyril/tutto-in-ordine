@@ -44,6 +44,13 @@ export const TAGS: { tag: Tag; nome: string; esempio: string }[] = [
   { tag: 'IPADDR', nome: 'Indirizzi IP', esempio: '192.168.1.10' },
 ]
 export const NOME_TAG = Object.fromEntries(TAGS.map((t) => [t.tag, t.nome])) as Record<Tag, string>
+/** Parola del segnaposto, in italiano: [NOME_COMPLETO_1], [DATA_1]… (solo lettere senza accenti e trattini bassi, per l'IA e il ripristino). */
+export const SEGNAPOSTO: Record<Tag, string> = {
+  FULLNAME: 'NOME_COMPLETO', ORG: 'SOCIETA', CF: 'CODICE_FISCALE', PIVA: 'PARTITA_IVA', IBAN: 'IBAN', CREDITCARDNUMBER: 'CARTA_PAGAMENTO',
+  EMAIL: 'EMAIL', TELEPHONENUM: 'TELEFONO', STREET: 'INDIRIZZO', ZIPCODE: 'CAP', CITY: 'CITTA', PROVINCE: 'PROVINCIA', DATE: 'DATA', TIME: 'ORARIO',
+  AGE: 'ETA', AMOUNT: 'IMPORTO', TARGA: 'TARGA', ID_DOC: 'DOCUMENTO_IDENTITA', DOCID: 'NUMERO_ATTO', CATASTO: 'DATI_CATASTALI', URL: 'SITO_WEB', IPADDR: 'INDIRIZZO_IP',
+}
+const segnaposto = (tag: Tag, n: number) => `[${SEGNAPOSTO[tag]}_${n}]`
 
 export interface Entita { tag: Tag; start: number; end: number; score: number; validata: boolean; fonte: Fonte; chiave?: string }
 export interface Segmento { t: string; tag?: Tag; ph?: string; fonte?: Fonte; validata?: boolean; chiave?: string }
@@ -219,7 +226,9 @@ const MINUSC = 'a-zß-öø-ÿ'
 // una parola di nome: «Rossi», «D'Amico», «ROSSI», «De» dentro un cognome composto
 const PAROLA = `(?:[${MAIUSC}][${MINUSC}]+(?:['’][${MAIUSC}][${MINUSC}]+)?|[${MAIUSC}]{2,}(?:['’][${MAIUSC}]+)?)`
 const PARTICELLA = `(?:De|Di|Del|Della|Dei|Da|Dal|Dalla|La|Lo|Li|Van|Von|D['’])`
-const NOME = `${PAROLA}(?:\\s+(?:${PARTICELLA}\\s*)?${PAROLA}){0,3}`
+// le parole di un nome restano sulla stessa riga: «ROSSI MARIO» a capo «Nome …» non è un nome solo
+const SP = '[^\\S\\n]'
+const NOME = `${PAROLA}(?:${SP}+(?:${PARTICELLA}${SP}*)?${PAROLA}){0,3}`
 // parole con l'iniziale maiuscola che non sono nomi: aprono frasi e titoli degli atti
 const NON_NOMI = new Set(('Il La Lo Le Gli I Un Una Uno Con Per Del Della Dei Delle Nel Nella Sul Sulla Al Alla Ai Alle Dal Dalla Da In Di Che Se Ma E Ed O '
   + 'Tribunale Corte Giudice Procura Repubblica Ufficio Ministero Comune Regione Provincia Stato Cassazione Appello Tar Consiglio Agenzia Entrate '
@@ -229,6 +238,7 @@ const NON_NOMI = new Set(('Il La Lo Le Gli I Un Una Uno Con Per Del Della Dei De
   + 'Lunedì Martedì Mercoledì Giovedì Venerdì Sabato Domenica Gennaio Febbraio Marzo Aprile Maggio Giugno Luglio Agosto Settembre Ottobre Novembre Dicembre '
   + 'Avv Avvocato Dott Dottor Dottoressa Sig Signor Signora Sigra Ing Arch Geom Rag Prof Notaio Studio Legale Società Srl Spa Snc Sas Ditta '
   + 'Foro Ordine Collegio Camera Sezione Cancelleria Ricorrente Resistente Attore Attrice Convenuto Convenuta Parte Parti Cliente Controparte Sottoscritto Sottoscritta Imputato Imputata Teste Testimone '
+  + 'Nome Cognome Nominativo Generalità Indirizzo Residenza Domicilio Telefono Cellulare Professione Qualifica Sesso Cittadinanza Nazionalità Firmatario Delegante Delegato '
   + 'Totale Importo Compenso Spese Onorari Netto Saldo Acconto Nota Note Articolo Art Legge Codice Civile Penale Dlgs DPR Gazzetta Ufficiale Italia Italiana').split(' '))
 const parolaNome = (w: string) => !NON_NOMI.has(w.replace(/['’.]/g, '')) && !NON_NOMI.has(w.charAt(0) + w.slice(1).toLowerCase())
 
@@ -251,13 +261,13 @@ const NOMI_PROPRI = new Set(('Mario Giuseppe Giovanni Antonio Luigi Francesco An
 // titoli e ruoli che precedono un nome di persona
 const TITOLO = String.raw`(?:sig(?:\.|nor|nora|\.ra|\.na)?|sigg\.|dott(?:\.|or|ore|oressa|\.ssa)?|dr\.?|avv(?:\.|\.to|ocato|ocatessa|ocata)?|ing(?:\.|egnere)?|arch(?:\.|itetto)?|geom(?:\.|etra)?|rag(?:\.|ioniere)?|prof(?:\.|essore|essoressa|\.ssa)?|p\.\s?i\.|per\.\s?ind\.|notaio|on\.|giudice|g\.i\.|g\.o\.p\.|consigliere|ctu|c\.t\.u\.|teste|testimone|perito|il\s+sottoscritto|la\s+sottoscritta|io\s+sottoscritt[oa]|sottoscritt[oa])`
 // il titolo si riconosce senza badare alle maiuscole, il nome che segue no: «dott. Rossi», non «dott. vista»
-const RE_TITOLO = new RegExp(String.raw`(?<![\p{L}])(?i:${TITOLO})\s+(${NOME})`, 'gu')
+const RE_TITOLO = new RegExp(String.raw`(?<![\p{L}])(?i:${TITOLO})${SP}+(${NOME})`, 'gu')
 // «Mario Rossi, nato a», «ROSSI MARIO (C.F. …», «Rossi Mario, residente in»
 const RE_PRIMA_DI = new RegExp(String.raw`(${NOME})(?=\s*,?\s*(?:\(?\s*(?:c\.?\s?f\.?|cod(?:ice|\.)\s+fisc(?:ale|\.)?)|nat[oa]\s+(?:a|il|in)\b|resident[ei]\b|domiciliat[oa]\b|c\.f\.))`, 'gu')
-const RE_LUOGO = new RegExp(String.raw`\b(?:nat[oa]|resident[ei]|domiciliat[oa]|elettivamente\s+domiciliat[oa]|con\s+sede(?:\s+legale)?|sit[oa]|ubicat[oa])\s+(?:a|in|ad)\s+((?:[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})(?:[\s-](?:sul|sulla|di|del|della|in|al|San|Santa|S\.|[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})){0,3})(?:\s*\(([A-Z]{2})\))?`, 'gu')
-const RE_CAP_CITTA = new RegExp(String.raw`(?<!\d)(\d{5})\s*[-–]?\s*((?:[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})(?:[\s-](?:sul|sulla|di|del|della|San|Santa|[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})){0,3})(?:\s*\(([A-Z]{2})\))?`, 'gu')
+const RE_LUOGO = new RegExp(String.raw`\b(?:nat[oa]|resident[ei]|domiciliat[oa]|elettivamente\s+domiciliat[oa]|con\s+sede(?:\s+legale)?|sit[oa]|ubicat[oa])\s+(?:a|in|ad)\s+((?:[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})(?:(?:${SP}|-)(?:sul|sulla|di|del|della|in|al|San|Santa|S\.|[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})){0,3})(?:\s*\(([A-Z]{2})\))?`, 'gu')
+const RE_CAP_CITTA = new RegExp(String.raw`(?<!\d)(\d{5})\s*[-–]?\s*((?:[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})(?:(?:${SP}|-)(?:sul|sulla|di|del|della|San|Santa|[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})){0,3})(?:\s*\(([A-Z]{2})\))?`, 'gu')
 const RE_VIA = new RegExp(String.raw`(?<![\p{L}])(?i:via|viale|v\.le|piazza|p\.zza|p\.za|piazzale|p\.le|corso|c\.so|largo|vicolo|vico|strada|contrada|c\.da|località|loc\.|borgo|lungomare|lungotevere|galleria|salita|traversa|frazione|fraz\.)\s+(?:(?:dei|degli|delle|del|della|dello|di|de|da|al|alla|alle|ai|San|Santa|Sant['’]|S\.|[${MAIUSC}0-9][\p{L}0-9'’.]*)\s*){0,6}?(?:[${MAIUSC}0-9][\p{L}0-9'’.]*)(?:\s*,?\s*(?:n\.?\s*°?|nr\.?|num\.?|civ\.?|civico)?\s*\d+[A-Za-z]?(?:\/\s?[A-Za-z0-9]+)?)?`, 'gu')
-const RE_ORG = new RegExp(String.raw`((?:(?:[${MAIUSC}0-9][\p{L}0-9&'’.-]*|&|e|di|del|della|dei|delle|de)\s+){0,5}[${MAIUSC}0-9][\p{L}0-9&'’.-]*)\s*,?\s*(?:S\.?\s?r\.?\s?l\.?(?:\s?s\.?)?(?:\s+unipersonale)?|S\.?\s?p\.?\s?A\.?|S\.?\s?n\.?\s?c\.?|S\.?\s?a\.?\s?s\.?|S\.?\s?s\.?|S\.?\s?c\.?\s?a\.?\s?r\.?\s?l\.?|soc\.?\s*coop\.?(?:\s+a\s+r\.?\s?l\.?)?|società\s+cooperativa|onlus|o\.n\.l\.u\.s\.|ETS|APS)(?![\p{L}])`, 'gu')
+const RE_ORG = new RegExp(String.raw`((?:(?:[${MAIUSC}0-9][\p{L}0-9&'’.-]*|&|e|di|del|della|dei|delle|de)${SP}+){0,5}[${MAIUSC}0-9][\p{L}0-9&'’.-]*)\s*,?\s*(?:S\.?\s?r\.?\s?l\.?(?:\s?s\.?)?(?:\s+unipersonale)?|S\.?\s?p\.?\s?A\.?|S\.?\s?n\.?\s?c\.?|S\.?\s?a\.?\s?s\.?|S\.?\s?s\.?|S\.?\s?c\.?\s?a\.?\s?r\.?\s?l\.?|soc\.?\s*coop\.?(?:\s+a\s+r\.?\s?l\.?)?|società\s+cooperativa|onlus|o\.n\.l\.u\.s\.|ETS|APS)(?![\p{L}])`, 'gu')
 const RE_ORG_PREFISSO = new RegExp(String.raw`(?<![\p{L}])(?:Studio\s+(?:Legale|Notarile|Associato|Tecnico|Commerciale)|Banca|Ditta|Impresa|Associazione|Fondazione|Cooperativa|Società|Agenzia\s+(?:Immobiliare|Viaggi))\s+(?:(?:${PARTICELLA}\s*)?${PAROLA}|&)(?:\s+(?:(?:${PARTICELLA}\s*)?${PAROLA}|&|e)){0,4}`, 'gu')
 const RE_ETA = /\b(?:di|dell['’]età\s+di|età(?:\s+di)?|anni|età:)\s*(\d{1,3})\s*(?:anni)?\b|\b(\d{1,3})\s*(?:-?\s*enne|anni\s+compiuti)\b/giu
 const RE_ETA_DI_ANNI = /\bdi\s+anni\s+(\d{1,3})\b/giu
@@ -288,7 +298,7 @@ export function rilevaContesto(testo: string): Entita[] {
   for (const m of testo.matchAll(RE_TITOLO)) nome(m, 1, 0.9)
   for (const m of testo.matchAll(RE_PRIMA_DI)) nome(m, 1, 0.8)
   // nome proprio comune + parola maiuscola, in entrambi gli ordini
-  for (const m of testo.matchAll(new RegExp(String.raw`(?<![\p{L}])(${PAROLA})\s+(${PAROLA})(?:\s+(${PAROLA}))?`, 'gu'))) {
+  for (const m of testo.matchAll(new RegExp(String.raw`(?<![\p{L}])(${PAROLA})${SP}+(${PAROLA})(?:${SP}+(${PAROLA}))?`, 'gu'))) {
     const [a, b, c] = [m[1], m[2], m[3]]
     const cap = (w: string) => w.charAt(0) + w.slice(1).toLowerCase()
     const primo = NOMI_PROPRI.has(cap(a)), secondo = NOMI_PROPRI.has(cap(b))
@@ -462,7 +472,7 @@ function fondi(tutti: Entita[], testo: string): Entita[] {
   return unite
 }
 
-/** Trova i dati personali e prepara il testo anonimizzato con segnaposto reversibili ([FULLNAME_1], [CF_1]…). */
+/** Trova i dati personali e prepara il testo anonimizzato con segnaposto reversibili ([NOME_COMPLETO_1], [CODICE_FISCALE_1]…). */
 export function anonimizza(testo: string, o: Opzioni = {}): Risultato {
   const esclusi = new Set(o.esclusi || [])
   const ignorati = new Set([...(o.ignorati || [])].map(normalizza))
@@ -499,7 +509,7 @@ export function anonimizza(testo: string, o: Opzioni = {}): Risultato {
     let ph = visti.get(chiave)
     if (!ph) {
       contatori[e.tag] = (contatori[e.tag] || 0) + 1
-      ph = `[${e.tag}_${contatori[e.tag]}]`
+      ph = segnaposto(e.tag, contatori[e.tag]!)
       visti.set(chiave, ph)
       if (reversibile) mappa[ph] = valore.replace(/\s+/g, ' ')
     }
@@ -517,8 +527,9 @@ export function anonimizza(testo: string, o: Opzioni = {}): Risultato {
 export function ripristina(testo: string, mappa: Record<string, string>): { testo: string; sostituiti: number; mancanti: string[] } {
   let sostituiti = 0
   const usati = new Set<string>()
-  const out = testo.replace(/\[\s*([A-Z_]+?)_(\d+)\s*\]|(?<![\w[])([A-Z][A-Z_]*?)_(\d+)(?![\w\]])/g, (tutto, t1, n1, t2, n2) => {
-    const ph = `[${t1 || t2}_${n1 || n2}]`
+  // l'IA può riscrivere [NOME_COMPLETO_1] come «NOME COMPLETO_1» o «[NOME COMPLETO 1]»: spazi e trattini bassi valgono uguale
+  const out = testo.replace(/\[\s*([A-Z][A-Z_ ]*?)[_ ](\d+)\s*\]|(?<![\w[])([A-Z][A-Z_]*?(?: [A-Z][A-Z_]*?)?)_(\d+)(?![\w\]])/g, (tutto, t1, n1, t2, n2) => {
+    const ph = `[${String(t1 || t2).trim().replace(/ +/g, '_')}_${n1 || n2}]`
     if (!(ph in mappa)) return tutto
     sostituiti++; usati.add(ph)
     return mappa[ph]
@@ -527,7 +538,7 @@ export function ripristina(testo: string, mappa: Record<string, string>): { test
 }
 
 /** Istruzioni da anteporre al testo quando lo si incolla in un assistente di intelligenza artificiale. */
-export const ISTRUZIONI_IA = 'Nel testo che segue i dati personali sono stati sostituiti da segnaposto tra parentesi quadre, come [FULLNAME_1] o [CF_1]. '
+export const ISTRUZIONI_IA = 'Nel testo che segue i dati personali sono stati sostituiti da segnaposto tra parentesi quadre, come [NOME_COMPLETO_1] o [CODICE_FISCALE_1]. '
   + 'Quando rispondi riporta i segnaposto esattamente come sono scritti, senza tradurli, modificarli o inventare i valori: li ripristinerò io sul mio computer.\n\n'
 
 /** Voci note ricavate dall'archivio: clienti, controparti, pratiche e, se richiesto, lo studio. */
@@ -571,7 +582,7 @@ export class Uniformatore {
       let ph = this.chiavi.get(chiave)
       if (!ph) {
         this.contatori[s.tag] = (this.contatori[s.tag] || 0) + 1
-        ph = `[${s.tag}_${this.contatori[s.tag]}]`
+        ph = segnaposto(s.tag, this.contatori[s.tag]!)
         this.chiavi.set(chiave, ph)
         if (s.ph && s.ph in r.mappa) this.mappa[ph] = r.mappa[s.ph]
       }

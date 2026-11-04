@@ -70,7 +70,7 @@ export function ImportWizard({ tipo, onClose }: { tipo: Tipo; onClose: () => voi
         <div className="import-scelta">
           <FileSpreadsheet size={34} />
           <p>Scegli un file <b>CSV</b> o <b>Excel (.xlsx)</b> con l'elenco da importare.</p>
-          <p className="muted small">In Cliens Più: apri l'elenco e usa <i>Esporta lista</i> (XLS o CSV). Se il file è .xls, aprilo in Excel e salvalo come .xlsx o CSV.</p>
+          <p className="muted small">In Cliens Più: apri l'elenco e usa <i>Esporta lista</i> (XLS o CSV). Se il file è .xls, aprilo in Excel e salvalo come .xlsx o CSV. In Cliens Cube l'esportazione dei fascicoli (<i>EXPORT_FASCICOLI.csv</i>) si importa così com'è: le parti dell'intestazione diventano cliente e controparte, il ruolo diventa il numero di RG.</p>
           <Btn variant="primary" onClick={scegli}>Scegli il file…</Btn>
         </div>
       ) : (

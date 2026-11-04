@@ -104,7 +104,7 @@ export default function Impostazioni() {
           <section className="card pad-lg">
             <h2><Palette size={16} /> Aspetto e comportamento</h2>
             <FormGrid>
-              <Field label="Tema"><Segmented value={d.tema} onChange={(v) => up('tema', v)} options={[{ id: 'auto', label: 'Automatico' }, { id: 'chiaro', label: 'Chiaro' }, { id: 'scuro', label: 'Scuro' }]} /></Field>
+              <Field label="Tema"><Segmented value={d.tema} onChange={(v) => { up('tema', v); run(() => api.setSettings({ tema: v })) }} options={[{ id: 'auto', label: 'Automatico' }, { id: 'chiaro', label: 'Chiaro' }, { id: 'scuro', label: 'Scuro' }]} /></Field>
             </FormGrid>
             <label className="check big"><input type="checkbox" checked={d.vista_compatta} onChange={(e) => up('vista_compatta', e.target.checked)} /> <span><b>Vista compatta</b><small>Riduce gli spazi delle liste per mostrare più informazioni.</small></span></label>
             <label className="check big"><input type="checkbox" checked={d.resta_in_background} onChange={(e) => up('resta_in_background', e.target.checked)} /> <span><b>Resta attiva in background alla chiusura della finestra</b><small>Necessario per ricevere gli avvisi anche quando la finestra è chiusa. Per uscire usa il menu dell'icona nella barra di sistema.</small></span></label>

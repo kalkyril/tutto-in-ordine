@@ -2,6 +2,31 @@
 
 Novità di ogni versione di TIO, dalla più recente. Come installare e usare TIO è spiegato nel [README](README.md).
 
+## Versione 1.0.1 — correzioni e nuove voci
+
+Correzioni emerse soprattutto su Windows (verificate anche su Mac) e alcune voci nuove.
+
+- **Impostazioni › Aspetto:** il tema scuro (e il chiaro) si applica appena lo scegli, senza premere «Salva»; anche la barra del titolo di Windows, i menu e le finestre di sistema seguono il tema scelto.
+- **Documenti:**
+  - nuovi modelli «Delega» (per tutti i profili) e «Delega di udienza» (studio legale); chi ha già i modelli li aggiunge con «Aggiungi i predefiniti»;
+  - **«+ Nuovo modello» › Modello personalizzato:** un modello da zero con il nome che scegli, pagina bianca o con l'intestazione dei documenti di vendita;
+  - **Impaginazione:** margini in alto, in basso e ai lati e dimensione del testo, anche nei file Word, OpenDocument e RTF;
+  - **font:** Palace Script MT tra i caratteri pronti, font importati da file (incorporati nel PDF) e **font installati sul computer**, scelti da un elenco con ricerca;
+  - la scelta del modello è un menu a tendina sopra nome e tipo: editor e anteprima usano tutta la larghezza; il pulsante «Usa intestazione, piè di pagina e font dei documenti di vendita» va a capo nelle finestre strette.
+- **Anonimizza:**
+  - segnaposto in italiano: `[NOME_COMPLETO_1]`, `[DATA_1]`, `[CODICE_FISCALE_1]`… (le chiavi salvate con la 1.0.0 si ripristinano ancora); il ripristino accetta anche «NOME COMPLETO_1» scritto dall'IA con lo spazio;
+  - un nome non prende più la riga successiva («MIROLO ALESSANDRO» a capo «Nome …»): i dati evidenziati restano su una riga ed etichette come «Nome», «Cognome», «Residenza» restano in chiaro;
+  - il pulsante «OCR» diventa «Rileggi come scansione», con l'avanzamento e l'esito: riconosce il testo dalle immagini delle pagine dei PDF scansionati.
+- **Pratiche e Cliens:**
+  - importazione dell'esportazione dei fascicoli di **Cliens Cube** (`EXPORT_FASCICOLI.csv`): titolo, cliente e controparte dall'«Intestazione» («PARTE ASSISTITA / CONTROPARTE +N», anche senza spazi o con un lato vuoto), RG dal «Ruolo», autorità dalla «Descrizione ufficio», materia in chiaro (CIV → Civile, VG → Volontaria giurisdizione, GdP → Giudice di pace…), oggetto nelle note; i fascicoli con la stessa intestazione restano pratiche distinte e la stessa società scritta «S.R.L.» o «SRL» è un'anagrafica sola;
+  - importazione dell'elenco delle pratiche di Cliens: riconosce «Cliente/i», «Controparte/i», «Parte assistita», «Codice pratica»…, ricava cliente e controparte dall'oggetto «ROSSI MARIO c/ BIANCHI SRL», salva nelle note le colonne senza un campo e completa i campi vuoti delle pratiche già importate;
+  - **documenti di Cliens:** la cartella in cui scarichi i documenti da Cliens (una sottocartella per pratica, abbinata da sola) si unisce alla cartella locale della pratica in un'unica vista, con le sezioni «In comune con Cliens», «Solo su Cliens» e «Solo sul computer». Un file presente in entrambe è un documento solo; «Sincronizza cartelle» (nella pratica) e «Sincronizza tutte le pratiche» (Impostazioni › Integrazioni) collegano i file nuovi e uniscono i doppioni. TIO legge soltanto: nessun file viene copiato, spostato o cancellato.
+- **Parcelle (studio legale):**
+  - nel menu **Competenza** il gruppo «Fatture avvocati e conti», come su avvocatoandreani.it: fattura avvocati e studi legali, scorporo importi (dal totale, dal netto o dall'imponibile), calcolo della ritenuta d'acconto e compenso a ore, con regime ordinario o forfettario e bollo;
+  - pulsante **Anteprima** in basso a destra nei nuovi documenti (parcella, nota pro forma, preventivo, fattura, nota di credito), con le modifiche non ancora salvate;
+  - **titolo dei documenti** modificabile come nei modelli di Documenti: testo, font, dimensione, grassetto/corsivo e allineamento per nota pro forma, fattura, preventivo e nota di credito.
+- **Dati:** schema 5 con tre colonne nuove (cartella di Cliens della pratica, copia su Cliens e sezione del documento), aggiunte da sole all'apertura; i backup della 1.0.0 si ripristinano come prima.
+
 ## Versione 1.0.0 — prima versione pubblica
 
 Prima uscita di TIO per tutti, gratuita e open source (licenza MIT). Comprende tutto il lavoro delle build interne elencate sotto, fino alla 1.4.0-beta.9, più le correzioni del controllo finale:

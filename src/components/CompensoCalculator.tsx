@@ -8,6 +8,8 @@ import { PRATICANTE_RANGE, RIFERIMENTO_VARIAZIONE, riferimentoPraticante, SCAGLI
 import { decimal, fmtNum, parseNumber } from '../lib/format'
 import { righeProspetto } from '../lib/prospetto'
 import type { VoceParcella } from '../types'
+import { CONTI, eConti, type ContiStato } from '../lib/conti'
+import { ContiAvvocato } from './ContiAvvocato'
 
 /**
  * Form del calcolo compensi: stessa impostazione del prospetto dei parametri ministeriali
@@ -36,6 +38,8 @@ export interface CalcState {
   // aumenti e riduzioni del civile e del penale
   parti?: string; pctParti?: string
   variazioni?: Record<string, { on: boolean; pct: string; importo: string }>
+  // voci «Fatture avvocati» (fattura, scorporo, ritenuta, compenso a ore)
+  conti?: ContiStato
 }
 
 export interface CalcRisultato {
@@ -44,7 +48,8 @@ export interface CalcRisultato {
   totale: ReturnType<typeof calcolaParcella>
   compenso: number
   state: CalcState
-  dettaglio: DettaglioCalcolo
+  /** null per le voci «Fatture avvocati»: tutte le voci sono riportate così come sono */
+  dettaglio: DettaglioCalcolo | null
 }
 
 /** Riga etichetta + controllo del form (definita fuori dal componente: se fosse interna, a ogni lettera digitata i campi verrebbero ricreati e perderebbero il cursore). */
@@ -136,6 +141,7 @@ export function CompensoForm({ initial, extraVoci = [], onResult }: { initial?: 
   useEffect(() => {
     let off = false
     setStruttura(null); setVals(null); setErrore(null)
+    if (eConti(competenza)) return
     api.tariffeStruttura(anno, competenza).then((s: Struttura) => {
       if (off) return
       setStruttura(s)
@@ -230,6 +236,7 @@ export function CompensoForm({ initial, extraVoci = [], onResult }: { initial?: 
   // comunica il risultato al contenitore (solo se cambia davvero)
   const last = useRef('')
   useEffect(() => {
+    if (eConti(competenza)) return // il risultato lo comunica il modulo delle fatture
     const out: CalcRisultato = { voci, aliquote: { sg_perc: aliq.sg, cpa_perc: aliq.cpa, iva_perc: aliq.iva, rit_perc: aliq.rit }, totale: tot, compenso: r.compenso, state, dettaglio }
     const key = JSON.stringify(out)
     if (key !== last.current) { last.current = key; onResult(out) }
@@ -271,6 +278,20 @@ export function CompensoForm({ initial, extraVoci = [], onResult }: { initial?: 
 
   const righePF = useMemo(() => righeProspetto({ ...tot, sg_perc: aliq.sg, cpa_perc: aliq.cpa, iva_perc: aliq.iva, rit_perc: aliq.rit }, dettaglio, extraVoci), [tot, aliq.sg, aliq.cpa, aliq.iva, aliq.rit, dettaglio, extraVoci])
 
+  const rigaCompetenza = (
+    <Riga etichetta="Competenza:">
+      <Select value={competenza} onChange={(e) => cambiaCompetenza(Number(e.target.value))} aria-label="Competenza">
+        {competenze.length ? (['stragiudiziale', 'civile', 'penale'] as Ambito[]).map((am) => (
+          <optgroup key={am} label={am === 'stragiudiziale' ? 'Stragiudiziale' : am === 'civile' ? 'Giudiziale civile' : 'Giudiziale penale'}>
+            {competenze.filter((c) => c.ambito === am).map((c) => <option key={c.cod} value={c.cod} disabled={!c.anni.includes(anno)}>{c.nome}{c.anni.includes(anno) ? '' : ' (solo tabelle 2022)'}</option>)}
+          </optgroup>
+        )) : <><option value={360}>Assistenza stragiudiziale</option><option value={380}>Mediazione e Negoziazione assistita</option></>}
+        <optgroup label="Fatture avvocati e conti">{CONTI.map((c) => <option key={c.cod} value={c.cod}>{c.nome}</option>)}</optgroup>
+      </Select>
+    </Riga>
+  )
+  if (eConti(competenza)) return <ContiAvvocato cod={competenza} competenza={rigaCompetenza} base={{ ...state, conti: init?.conti }} extraVoci={extraVoci} onResult={onResult} />
+
   // L'impostazione ricalca quella del prospetto dei parametri ministeriali (stesse righe, etichette e ordine), con grafica dell'app e calcolo in tempo reale.
   return (
     <div className="calc-grid">
@@ -278,15 +299,7 @@ export function CompensoForm({ initial, extraVoci = [], onResult }: { initial?: 
         <Riga etichetta="Tabelle:">
           <Select value={anno} onChange={(e) => cambiaAnno(Number(e.target.value) as 2022 | 2014)} aria-label="Tabelle"><option value={2022}>2022 · DM 147/2022</option><option value={2014}>2014 · edizione originaria</option></Select>
         </Riga>
-        <Riga etichetta="Competenza:">
-          <Select value={competenza} onChange={(e) => cambiaCompetenza(Number(e.target.value))} aria-label="Competenza">
-            {competenze.length ? (['stragiudiziale', 'civile', 'penale'] as Ambito[]).map((am) => (
-              <optgroup key={am} label={am === 'stragiudiziale' ? 'Stragiudiziale' : am === 'civile' ? 'Giudiziale civile' : 'Giudiziale penale'}>
-                {competenze.filter((c) => c.ambito === am).map((c) => <option key={c.cod} value={c.cod} disabled={!c.anni.includes(anno)}>{c.nome}{c.anni.includes(anno) ? '' : ' (solo tabelle 2022)'}</option>)}
-              </optgroup>
-            )) : <><option value={360}>Assistenza stragiudiziale</option><option value={380}>Mediazione e Negoziazione assistita</option></>}
-          </Select>
-        </Riga>
+        {rigaCompetenza}
         {competenza === 360 && (
           <Riga etichetta="Compenso:">
             <label className="check"><input type="radio" name="tipo-compenso" checked={tipo === 'tabellare'} onChange={() => setTipo('tabellare')} /> Tabellare</label>

@@ -2,15 +2,20 @@
 
 /* ---------- Documenti ---------- */
 .documenti-pagina { max-width: 1500px; }
-.documenti-griglia { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 22px; align-items: start; }
-.documenti-elenco { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-.documenti-elenco .nav-section { padding: 0 10px 4px; }
-.documenti-voce { display: flex; gap: 9px; align-items: center; width: 100%; min-height: 34px; padding: 6px 10px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text); text-align: left; }
-.documenti-voce span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; flex-direction: column; }
-.documenti-voce small { font-size: var(--fs-2xs); font-weight: 400; overflow: hidden; text-overflow: ellipsis; }
-.documenti-voce svg { flex: none; color: var(--muted); }
-.documenti-voce:hover { background: var(--sidebar-hover, var(--surface-2)); }
-.documenti-voce.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; } .documenti-voce.on svg { color: var(--accent); }
+.documenti-lavoro { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+/* scelta del modello sopra nome e tipo: l'editor e l'anteprima usano tutta la larghezza */
+.documenti-scelta { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.documenti-scelta > .field { flex: 0 1 420px; min-width: 220px; }
+.documenti-scelta select { font-weight: 600; }
+.documenti-da-zero { display: grid; gap: 8px; margin-bottom: 14px; }
+.documenti-da-zero h3 { margin: 0; }
+.documenti-da-zero-riga { align-items: flex-end; }
+.documenti-da-zero-riga > .field { flex: 1 1 280px; min-width: 0; }
+.documenti-oppure { margin: 10px 0 0; padding: 12px 0 0; border-top: 1px solid var(--border); }
+.documenti-margini { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; }
+.documenti-margini > .field { flex: 0 1 120px; min-width: 100px; }
+/* pulsanti con etichette lunghe: vanno a capo invece di uscire dal riquadro quando la finestra è stretta */
+.btn.btn-a-capo { white-space: normal; height: auto; min-height: 30px; text-align: left; justify-content: flex-start; max-width: 100%; line-height: 1.3; padding-top: 6px; padding-bottom: 6px; }
 .documenti-editor { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 22px; align-items: start; min-width: 0; }
 .documenti-form { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .documenti-testa { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: flex-end; }
@@ -55,8 +60,8 @@
 .formato input { grid-row: span 2; margin: 0; } .formato span { grid-column: 2; overflow-wrap: anywhere; }
 .formato.on { border-color: var(--accent); background: var(--accent-soft); }
 
-@media (max-width: 1300px) { .documenti-editor { grid-template-columns: 1fr; } .documenti-editor .modello-preview { position: static; } }
-@media (max-width: 860px) { .documenti-griglia { grid-template-columns: 1fr; } .documenti-elenco { position: static; flex-direction: row; flex-wrap: wrap; } .documenti-elenco > div { min-width: 180px; } }
+@media (max-width: 1100px) { .documenti-editor { grid-template-columns: 1fr; } .documenti-editor .modello-preview { position: static; } }
+
 
 /* ---------- Anonimizza ---------- */
 .anonimizza { max-width: 1400px; }
@@ -85,7 +90,8 @@
 .anon-testo { position: relative; max-height: 68vh; min-height: 260px; overflow: auto; padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); }
 .anon-testo pre, .anon-esito { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.75; }
 .anon-modifica { min-height: 420px; max-height: 68vh; font: inherit; line-height: 1.6; resize: vertical; }
-.pii { font: inherit; color: inherit; border: 0; padding: 0 2px; margin: 0; border-radius: 3px; cursor: pointer; background: color-mix(in srgb, var(--f) 20%, transparent); box-shadow: inset 0 -2px 0 var(--f); line-height: inherit; }
+/* un dato evidenziato resta su una riga: va a capo intero, senza spezzarsi (se non è più lungo della riga) */
+.pii { white-space: normal; font: inherit; color: inherit; border: 0; padding: 0 2px; margin: 0; border-radius: 3px; cursor: pointer; background: color-mix(in srgb, var(--f) 20%, transparent); box-shadow: inset 0 -2px 0 var(--f); line-height: inherit; }
 .pii:hover, .pii:focus-visible { background: color-mix(in srgb, var(--f) 34%, transparent); outline: none; }
 .pii.manuale { box-shadow: inset 0 -2px 0 var(--f), 0 0 0 1px var(--f); }
 .anon-pop { position: absolute; z-index: 5; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; min-width: 220px; max-width: min(320px, 90%); padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-lg); }
@@ -147,7 +153,6 @@
 .fattura-xml-esito .avviso { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--text); }
 .fattura-xml-esito .ok { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--text); }
 .fattura-xml-esito code { font-size: .92em; overflow-wrap: anywhere; }
-.documenti-voce.on small { color: var(--text); } /* sul fondo della voce scelta il grigio non raggiunge 4,5:1 */
 
 /* ---------- modelli Word ---------- */
 .campi-word { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }

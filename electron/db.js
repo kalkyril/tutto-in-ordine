@@ -226,6 +226,9 @@ function open(dir, { restoring = false } = {}) {
   const colDoc = db.prepare('PRAGMA table_info(documenti)').all().map((c) => c.name)
   for (const [nome, tipo] of [['percorso', 'TEXT'], ['impronta', 'TEXT'], ['rel', 'TEXT']]) if (!colDoc.includes(nome)) db.exec(`ALTER TABLE documenti ADD COLUMN ${nome} ${tipo}`)
   if (!db.prepare('PRAGMA table_info(pratiche)').all().some((c) => c.name === 'cartella')) db.exec('ALTER TABLE pratiche ADD COLUMN cartella TEXT')
+  // 1.0.1: cartella dei documenti scaricati da Cliens e vista unica (documenti solo su Cliens, solo locali o condivisi)
+  if (!db.prepare('PRAGMA table_info(pratiche)').all().some((c) => c.name === 'cartella_cliens')) db.exec('ALTER TABLE pratiche ADD COLUMN cartella_cliens TEXT')
+  { const c = db.prepare('PRAGMA table_info(documenti)').all().map((x) => x.name); for (const [nome, tipo] of [['percorso_cliens', 'TEXT'], ['origine', 'TEXT']]) if (!c.includes(nome)) db.exec(`ALTER TABLE documenti ADD COLUMN ${nome} ${tipo}`) }
   // calendari: creare in automatico le pratiche riconosciute negli eventi (spento finché l'utente non lo sceglie)
   if (!db.prepare('PRAGMA table_info(calendari)').all().some((c) => c.name === 'crea_pratiche')) db.exec('ALTER TABLE calendari ADD COLUMN crea_pratiche INTEGER NOT NULL DEFAULT 0')
   const ti = db.prepare('PRAGMA table_info(documenti_testo)').all().map((c) => c.name)

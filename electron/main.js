@@ -1,5 +1,5 @@
 'use strict'
-const { app, BrowserWindow, Notification, Tray, Menu, nativeImage, shell, powerMonitor, dialog, screen } = require('electron')
+const { app, BrowserWindow, Notification, Tray, Menu, nativeImage, shell, powerMonitor, dialog, screen, nativeTheme } = require('electron')
 const path = require('node:path')
 const fs = require('node:fs')
 const db = require('./db')
@@ -95,7 +95,7 @@ function createWindow() {
     ...(posizione ? { x: posizione.x, y: posizione.y, width: Math.max(980, posizione.width), height: Math.max(640, posizione.height) } : { width: 1360, height: 860 }),
     minWidth: 980, minHeight: 640,
     title: 'TIO', icon: appIcon(),
-    backgroundColor: '#f6f7f9', show: false,
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#17191f' : '#f6f7f9', show: false,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     trafficLightPosition: { x: 16, y: 18 },
     webPreferences: {
@@ -221,6 +221,12 @@ function runAlertCheck(test = false) {
 }
 
 function applySettings(s) {
+  // tema scelto nelle Impostazioni anche per barra del titolo (Windows), menu e finestre di sistema
+  try {
+    const sorgente = s.tema === 'scuro' ? 'dark' : s.tema === 'chiaro' ? 'light' : 'system'
+    if (nativeTheme.themeSource !== sorgente) nativeTheme.themeSource = sorgente
+    getWindow()?.setBackgroundColor(nativeTheme.shouldUseDarkColors ? '#17191f' : '#f6f7f9')
+  } catch { /* finestra non ancora pronta */ }
   updateBadge() // aggiorna anche il nome mostrato nell'icona di sistema
   if (s.aggiornamenti_controllo === true) controllaAggiornamenti().catch(() => {}) // appena attivato, senza aspettare il prossimo giro
   try {

@@ -71,7 +71,7 @@ function Inizio({ onApri }: { onApri: (d: DocumentoAperto) => void }) {
     try {
       const d = await run(fn)
       if (!d) return
-      if (!d.testo.trim()) { toast(d.stato === 'scansione' ? 'Il PDF sembra una scansione: riaprilo con «Leggi una scansione (OCR)».' : 'Il documento non contiene testo da anonimizzare.', 'err'); return }
+      if (!d.testo.trim()) { toast(d.stato === 'scansione' ? 'Il PDF sembra una scansione: riaprilo con «Leggi una scansione o una foto».' : 'Il documento non contiene testo da anonimizzare.', 'err'); return }
       onApri(d)
     } finally { setLettura(false) }
   }
@@ -84,7 +84,7 @@ function Inizio({ onApri }: { onApri: (d: DocumentoAperto) => void }) {
         <p className="muted">PDF, Word, OpenDocument, RTF, testo, email salvate e immagini. Il file originale non viene modificato.</p>
         <div className="row wrap anon-drop-azioni">
           <Btn variant="primary" disabled={lettura} onClick={() => apri(() => api.anonApri())}><Upload size={15} /> Apri documento…</Btn>
-          <Btn disabled={lettura} onClick={() => apri(() => api.anonApri(true))} title="Riconoscimento del testo per PDF scansionati e fotografie (fino a 20 pagine)"><ScanText size={15} /> Leggi una scansione (OCR)…</Btn>
+          <Btn disabled={lettura} onClick={() => apri(() => api.anonApri(true))} title="Per PDF scansionati e fotografie: TIO riconosce il testo nell’immagine (OCR), sul tuo computer, fino a 20 pagine"><ScanText size={15} /> Leggi una scansione o una foto…</Btn>
         </div>
       </section>
       <section className="card anon-incolla">
@@ -94,7 +94,7 @@ function Inizio({ onApri }: { onApri: (d: DocumentoAperto) => void }) {
       </section>
       <ul className="anon-punti">
         <li><b>Sul tuo computer.</b> Nessun dato viene inviato: il riconoscimento usa regole, codici di controllo e il tuo archivio.</li>
-        <li><b>Reversibile.</b> I dati diventano segnaposto come [FULLNAME_1]: dopo aver usato l’IA rimetti i valori veri con «Ripristina».</li>
+        <li><b>Reversibile.</b> I dati diventano segnaposto in italiano, come [NOME_COMPLETO_1] o [DATA_1]: dopo aver usato l’IA rimetti i valori veri con «Ripristina».</li>
         <li><b>Conosce i tuoi clienti.</b> Nomi, codici e recapiti dell’Anagrafica e dei tuoi lavori vengono riconosciuti in qualsiasi forma.</li>
       </ul>
     </div>
@@ -110,6 +110,7 @@ function Analisi({ s, set, r, conteggi, inAttesa, onChiudi }: { s: Sessione; set
   const [selezione, setSelezione] = useState<{ testo: string; x: number; y: number } | null>(null)
   const [tagNuovo, setTagNuovo] = useState<Tag>('FULLNAME')
   const [modifica, setModifica] = useState(false)
+  const [ocr, setOcr] = useState(false)
   const pdfOriginale = s.tipo === 'pdf' && !!s.sorgente && s.testo === s.originale
   const [formato, setFormato] = useState(s.tipo === 'docx' ? 'docx-originale' : s.tipo === 'pdf' && s.sorgente ? 'pdf-originale' : 'docx')
   useEffect(() => { if (formato === 'pdf-originale' && !pdfOriginale) setFormato('pdf') }, [formato, pdfOriginale])
@@ -173,7 +174,19 @@ function Analisi({ s, set, r, conteggi, inAttesa, onChiudi }: { s: Sessione; set
           <div className="grow anon-nome"><b title={s.nome}>{s.nome}</b><span className="muted small" role="status">{inAttesa ? 'Analisi…' : `${r.entita} dati anonimizzati · ${r.uniche} valori diversi`}</span></div>
           <Segmented value={mostra} onChange={setMostra} options={[{ id: 'evidenziato', label: <Eye size={15} aria-hidden />, title: 'Testo originale con i dati evidenziati' }, { id: 'anonimizzato', label: <EyeOff size={15} aria-hidden />, title: 'Testo anonimizzato' }]} />
           <Btn size="sm" variant="ghost" onClick={() => setModifica((m) => !m)}>{modifica ? 'Fine' : 'Modifica testo'}</Btn>
-          {s.sorgente && s.tipo === 'pdf' && <Btn size="sm" variant="ghost" title="Rilegge il PDF con il riconoscimento del testo" onClick={async () => { const d = await run(() => api.anonRileggi(s.sorgente!)); if (d?.testo) set({ testo: d.testo, originale: d.testo, stato: d.stato, ...(d.id && { sorgente: d.id }) }) }}><ScanText size={14} /> OCR</Btn>}
+          {/* OCR = riconoscimento del testo nelle immagini: serve solo per i PDF scansionati, dove il testo non si può selezionare */}
+          {s.sorgente && s.tipo === 'pdf' && <Btn size="sm" variant="ghost" disabled={ocr} aria-busy={ocr} title="Il PDF è una scansione o mancano delle parti? TIO legge il testo dalle immagini delle pagine (OCR), sul tuo computer. Può richiedere qualche minuto."
+            onClick={async () => {
+              setOcr(true)
+              try {
+                const d = await run(() => api.anonRileggi(s.sorgente!))
+                if (!d) return
+                if (!d.testo?.trim()) { toast('Nessun testo riconosciuto nelle pagine del PDF.', 'err'); return }
+                const prima = s.testo.trim().length
+                set({ testo: d.testo, originale: d.testo, stato: d.stato, ...(d.id && { sorgente: d.id }) })
+                toast(d.testo.trim().length > prima ? 'Testo riconosciuto dalle immagini delle pagine' : 'Riletto: il PDF conteneva già tutto il testo')
+              } finally { setOcr(false) }
+            }}><ScanText size={14} /> {ocr ? 'Riconoscimento…' : 'Rileggi come scansione'}</Btn>}
           <Btn size="sm" variant="ghost" aria-label="Chiudi il documento" title="Chiudi il documento" onClick={onChiudi}><X size={15} /></Btn>
         </div>
         {modifica
@@ -262,7 +275,7 @@ function Ripristino({ mappaSessione, nomeSessione }: { mappaSessione: Record<str
       </section>
       <section className="card">
         <div className="card-head"><h2>2. Risposta da ripristinare</h2></div>
-        <textarea rows={8} value={testo} onChange={(e) => setTesto(e.target.value)} placeholder="Incolla qui la risposta dell’IA o un testo con segnaposto come [FULLNAME_1]…" aria-label="Testo con segnaposto" disabled={!mappa} />
+        <textarea rows={8} value={testo} onChange={(e) => setTesto(e.target.value)} placeholder="Incolla qui la risposta dell’IA o un testo con segnaposto come [NOME_COMPLETO_1]…" aria-label="Testo con segnaposto" disabled={!mappa} />
       </section>
       {out && <section className="card">
         <div className="card-head"><h2>3. Testo con i dati originali</h2><span className="pill">{out.sostituiti} ripristinati</span></div>

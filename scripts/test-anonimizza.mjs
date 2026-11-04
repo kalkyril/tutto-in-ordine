@@ -84,10 +84,19 @@ Per comunicazioni: www.studiobianchi.it o 333 1234567. Modena, 3 marzo 2025.`
   ok('categorie escluse, valori lasciati in chiaro e aggiunte manuali')
 
   // ripristino della risposta dell'IA, con segnaposto riscritti
-  const risposta = `Gentile ${Object.keys(r.mappa).find((k) => r.mappa[k] === 'Mario Rossi')}, il debitore EDIL è ORG_1 e il codice è [ CF_1 ]. [FULLNAME_99] non esiste.`
+  const risposta = `Gentile ${Object.keys(r.mappa).find((k) => r.mappa[k] === 'Mario Rossi')}, il debitore EDIL è SOCIETA_1 e il codice è [ CODICE FISCALE_1 ]. [NOME_COMPLETO_99] non esiste.`
   const back = m.ripristina(risposta, r.mappa)
-  assert.ok(back.testo.includes('Gentile Mario Rossi') && back.testo.includes('Edilnord S.r.l.') && back.testo.includes('RSSMRA85H12B819I') && back.testo.includes('[FULLNAME_99]'))
+  assert.ok(back.testo.includes('Gentile Mario Rossi') && back.testo.includes('Edilnord S.r.l.') && back.testo.includes('RSSMRA85H12B819I') && back.testo.includes('[NOME_COMPLETO_99]'), back.testo)
+  // chiavi salvate con la versione 1.0.0 (segnaposto in inglese): si ripristinano ancora
+  assert.equal(m.ripristina('Gentile [FULLNAME_1], codice CF_1.', { '[FULLNAME_1]': 'Mario Rossi', '[CF_1]': 'RSSMRA85H12B819I' }).testo, 'Gentile Mario Rossi, codice RSSMRA85H12B819I.')
+  assert.ok(Object.keys(r.mappa).every((k) => /^\[(?:NOME_COMPLETO|SOCIETA|CODICE_FISCALE|PARTITA_IVA|IBAN|CARTA_PAGAMENTO|EMAIL|TELEFONO|INDIRIZZO|CAP|CITTA|PROVINCIA|DATA|ORARIO|ETA|IMPORTO|TARGA|DOCUMENTO_IDENTITA|NUMERO_ATTO|DATI_CATASTALI|SITO_WEB|INDIRIZZO_IP)_\d+\]$/.test(k)), Object.keys(r.mappa).join(' '))
   ok('ripristino dei valori originali anche da segnaposto senza parentesi o con spazi')
+
+  // un nome in un modulo non prende l'etichetta della riga dopo: «MIROLO ALESSANDRO» a capo «Nome»
+  const modulo = m.anonimizza('Cognome e nome: MIROLO ALESSANDRO\nNome del padre: Giuseppe\nIl sig. Mario Rossi\nNome utente: mrossi')
+  for (const x of modulo.segmenti.filter((x) => x.tag)) assert.ok(!x.t.includes('\n'), `il dato «${x.t}» va su più righe`)
+  ha(modulo, 'FULLNAME', 'MIROLO ALESSANDRO'); nonHa(modulo, 'Nome del'); nonHa(modulo, 'Nome utente')
+  ok('i nomi restano su una riga e le etichette «Nome», «Cognome» restano in chiaro')
 
   const def = m.anonimizza(atto, { reversibile: false })
   assert.deepEqual(def.mappa, {})

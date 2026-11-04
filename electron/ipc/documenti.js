@@ -109,6 +109,29 @@ module.exports = function registra({ handle, changed, getWindow, scelti, autoriz
     const dir = await scegliCartellaDocumenti('Collega tutti i file di una cartella', 'MNGMNT_TEST_CARTELLA'); if (!dir) return null
     const r = docfile.collegaCartella(praticaId, dir); changed('documenti', 'pratiche'); return r
   })
+  // ---- Cliens: cartella dei documenti scaricati da Cliens, unita a quella locale (sola lettura) ----
+  const cliens = require('../cliens')
+  handle('documenti:cliensCartella', async (praticaId) => {
+    const dir = await scegliCartellaDocumenti('Cartella con i documenti di Cliens per questa pratica', 'MNGMNT_TEST_CARTELLA_CLIENS'); if (!dir) return null
+    const r = cliens.impostaCartella(praticaId, dir); changed('documenti', 'pratiche'); return r
+  })
+  handle('documenti:cliensScollega', (praticaId) => { const r = cliens.impostaCartella(praticaId, null); changed('documenti', 'pratiche'); return r })
+  handle('documenti:cliensSincronizza', (praticaId) => { const r = cliens.sincronizzaPratica(praticaId); changed('documenti', 'pratiche'); return r })
+  handle('documenti:sezioni', (praticaId) => { const p = db.get('pratiche', praticaId); return Object.fromEntries(db.list('documenti', { pratica_id: praticaId }).map((d) => [d.id, cliens.sezione(d, p)])) })
+  handle('documenti:cliensApri', (praticaId) => {
+    const p = db.get('pratiche', praticaId); if (!p?.cartella_cliens) throw new Error('Nessuna cartella di Cliens per questa pratica')
+    if (!process.env.MNGMNT_TEST) shell.openPath(p.cartella_cliens)
+    return p.cartella_cliens
+  })
+  // cartella principale di Cliens (una sottocartella per pratica): abbinamento alle pratiche e sincronizzazione di tutte
+  handle('documenti:cliensRadice', async () => {
+    const dir = await scegliCartellaDocumenti('Cartella principale dei documenti di Cliens (una sottocartella per pratica)', 'MNGMNT_TEST_CARTELLA_CLIENS'); if (!dir) return null
+    db.setSettings({ cartella_cliens: dir }); changed('settings')
+    return { cartella: dir, abbinamenti: cliens.abbinaCartelle(dir) }
+  })
+  handle('documenti:cliensAbbinamenti', () => { const dir = db.getSettings().cartella_cliens; return dir ? { cartella: dir, abbinamenti: cliens.abbinaCartelle(dir) } : null })
+  handle('documenti:cliensTutte', () => { const r = cliens.sincronizzaTutte(db.getSettings().cartella_cliens || null); changed('documenti', 'pratiche'); return r })
+
   handle('documenti:apriCartella', (praticaId) => {
     const p = db.get('pratiche', praticaId); if (!p?.cartella) throw new Error('Nessuna cartella impostata per questa pratica')
     if (!process.env.MNGMNT_TEST) shell.openPath(p.cartella)

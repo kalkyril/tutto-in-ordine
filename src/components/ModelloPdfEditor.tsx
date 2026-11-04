@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { AlignCenter, AlignLeft, AlignRight, ArrowDown, ArrowUp, Bold, ChevronLeft, ChevronRight, ImagePlus, Italic, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { Btn, Field, useFeedback } from './ui'
-import { esempioNotaHtml } from '../lib/print'
+import { esempioNotaHtml, titoloPredefinito } from '../lib/print'
 import { modelloEffettivo, modelloPredefinito, riga } from '../lib/modello'
 import { leggiImmagine } from '../lib/immagine'
-import { FONT_DOCUMENTO, fontValidi, leggiFont } from '../lib/font-documento'
+import { GestioneFont, OpzioniFont } from './SceltaFont'
 import { api } from '../api'
-import type { ModelloPdf, RigaModello, Settings } from '../types'
+import type { ModelloPdf, RigaModello, Settings, StileTitolo, TipoTitolo } from '../types'
 
 type Blocco = 'intestazione' | 'pagamento' | 'footer'
 
@@ -154,12 +154,9 @@ export function RigheEditor({ righe, titolo, opzioniFont, nuova, onChange }: { r
 
 /** Editor visuale di intestazione, coordinate di pagamento e piè di pagina, con anteprima dal vivo della nota pro forma. */
 export function ModelloPdfEditor({ settings, value, onChange }: { settings: Settings; value: ModelloPdf; onChange: (m: ModelloPdf) => void }) {
-  const { toast, confirm } = useFeedback()
-  const fontRef = useRef<HTMLInputElement>(null)
+  const { confirm } = useFeedback()
   const corrente = useRef(value)
   corrente.current = value
-  const [importandoFont, setImportandoFont] = useState(false)
-  const fonts = fontValidi(value.fontPersonali)
   const set = (patch: Partial<ModelloPdf>) => onChange({ ...corrente.current, ...patch })
   const setRighe = (b: Blocco, righe: RigaModello[]) => set({ [b]: righe } as Partial<ModelloPdf>)
   const nuovaRiga = (b: Blocco) => riga('', b === 'pagamento' ? { allineamento: 'sinistra' } : b === 'footer' ? { dimensione: 'piccola' } : {})
@@ -169,20 +166,7 @@ export function ModelloPdfEditor({ settings, value, onChange }: { settings: Sett
   const ripristina = async () => {
     if (await confirm({ title: 'Ripristinare il modello?', text: `Il modello viene ricostruito dai dati ${settings.profilo === 'ditta' ? 'della tua attività (Impostazioni → La tua attività)' : 'dello studio (Impostazioni → Studio)'}. Testi, immagini e font personalizzati verranno rimossi dal modello.`, ok: 'Ripristina' })) onChange(modelloPredefinito(settings))
   }
-  const scegliFont = async (file?: File) => {
-    if (!file || importandoFont) return
-    setImportandoFont(true)
-    try {
-      const font = await leggiFont(file, fonts)
-      set({ fontPersonali: [...fonts, font], fontDocumento: font.id })
-      toast('Font importato e applicato al documento')
-    } catch (error: any) { toast(error.message, 'err') } finally { setImportandoFont(false) }
-  }
-  const rimuoviFont = (id: string) => set({
-    fontPersonali: fonts.filter(f => f.id !== id), fontDocumento: value.fontDocumento === id ? 'arial' : value.fontDocumento,
-    ...Object.fromEntries((['intestazione', 'pagamento', 'footer'] as Blocco[]).map(b => [b, value[b].map(r => r.font === id ? { ...r, font: undefined } : r)])),
-  })
-  const opzioniFont = <>{FONT_DOCUMENTO.map(f => <option key={f.id} value={f.id}>{f.nome}</option>)}{fonts.map(f => <option key={f.id} value={f.id}>{f.nome} · personale</option>)}</>
+  const opzioniFont = <OpzioniFont m={value} />
 
   return (
     <div className="modello">
@@ -191,11 +175,8 @@ export function ModelloPdfEditor({ settings, value, onChange }: { settings: Sett
           <header><h3>Carattere del documento</h3><p className="muted small">Scegli il font della nota. Puoi cambiarlo anche sulle singole righe di testo.</p></header>
           <div className="row wrap modello-font-controlli">
             <Field label="Font del documento"><select aria-label="Font del documento" value={value.fontDocumento || 'arial'} onChange={e => set({ fontDocumento: e.target.value })}>{opzioniFont}</select></Field>
-            <input ref={fontRef} type="file" accept=".ttf,.otf,.woff,.woff2" hidden aria-label="Importa font personale" onChange={e => { scegliFont(e.target.files?.[0]); e.target.value = '' }} />
-            <Btn size="sm" disabled={importandoFont} onClick={() => fontRef.current?.click()}><Plus size={14} /> {importandoFont ? 'Importazione…' : 'Importa font…'}</Btn>
           </div>
-          <p className="muted small modello-aiuto">TTF, OTF, WOFF o WOFF2, fino a 2 MB per file. Usa font la cui licenza consente l’incorporamento nei PDF. I file restano locali.</p>
-          {fonts.length > 0 && <ul className="modello-font-list">{fonts.map(f => <li key={f.id}><span>{f.nome}</span><Btn size="sm" variant="ghost" aria-label={`Rimuovi font ${f.nome}`} onClick={() => rimuoviFont(f.id)}><Trash2 size={14} /> Rimuovi</Btn></li>)}</ul>}
+          <GestioneFont value={value} righe={['intestazione', 'pagamento', 'footer']} onChange={set} />
         </section>
         {(['intestazione', 'pagamento', 'footer'] as Blocco[]).map((b) => (
           <section key={b} className="modello-blocco">
@@ -206,6 +187,7 @@ export function ModelloPdfEditor({ settings, value, onChange }: { settings: Sett
           </section>
         ))}
 
+        <TitoliEditor settings={settings} value={value} opzioniFont={opzioniFont} onChange={(titoli) => set({ titoli })} />
         <section className="modello-blocco">
           <header><h3>Luogo e data</h3></header>
           <div className="row wrap luogo-data">
@@ -219,6 +201,40 @@ export function ModelloPdfEditor({ settings, value, onChange }: { settings: Sett
       <AnteprimaNota html={html} />
     </div>
   )
+}
+
+const TIPI_TITOLO: { tipo: TipoTitolo; nome: (parcella: string) => string }[] = [
+  { tipo: 'proforma', nome: () => 'Nota pro forma' }, { tipo: 'parcella', nome: (p) => p }, { tipo: 'preventivo', nome: () => 'Preventivo' }, { tipo: 'nota_credito', nome: () => 'Nota di credito' },
+]
+/** Titolo di ogni documento di vendita: testo, font, dimensione, stile e allineamento (come le righe dei modelli in Documenti). */
+function TitoliEditor({ settings, value, opzioniFont, onChange }: { settings: Settings; value: ModelloPdf; opzioniFont: ReactNode; onChange: (t: ModelloPdf['titoli']) => void }) {
+  const L = settings.etichette
+  const titoli = value.titoli || {}
+  const stile = (t: TipoTitolo): StileTitolo => ({ ...titoloPredefinito(t, settings, L), ...titoli[t] })
+  const upd = (t: TipoTitolo, patch: Partial<StileTitolo>) => onChange({ ...titoli, [t]: { ...stile(t), ...patch } })
+  const togli = (t: TipoTitolo) => { const x = { ...titoli }; delete x[t]; onChange(x) }
+  return <section className="modello-blocco">
+    <header><div><h3>Titoli dei documenti</h3><p className="muted small">Il titolo in cima a ogni documento: testo, font, dimensione, stile e allineamento.</p></div></header>
+    {TIPI_TITOLO.map(({ tipo, nome }) => {
+      const r = stile(tipo), etichetta = nome(L.parcella)
+      return <div key={tipo} className="riga-ed riga-titolo">
+        <span className="small riga-titolo-nome">{etichetta}</span>
+        <input value={r.testo} onChange={(e) => upd(tipo, { testo: e.target.value })} placeholder={titoloPredefinito(tipo, settings, L).testo} aria-label={`Titolo: ${etichetta}`} />
+        <select value={r.font || ''} onChange={(e) => upd(tipo, { font: e.target.value || undefined })} aria-label={`Font del titolo: ${etichetta}`} title="«Font» usa quello del documento"><option value="">Font</option>{opzioniFont}</select>
+        <select value={r.dimensione} onChange={(e) => upd(tipo, { dimensione: Number(e.target.value) })} aria-label={`Dimensione del titolo: ${etichetta}`}>{[12, 14, 16, 18, 20, 22, 24, 28, 32, 36].map((n) => <option key={n} value={n}>{n} pt</option>)}</select>
+        <div className="tool-group">
+          <button type="button" className={`tool ${r.grassetto ? 'on' : ''}`} onClick={() => upd(tipo, { grassetto: !r.grassetto })} aria-pressed={r.grassetto} title="Grassetto"><Bold size={14} /></button>
+          <button type="button" className={`tool ${r.corsivo ? 'on' : ''}`} onClick={() => upd(tipo, { corsivo: !r.corsivo })} aria-pressed={r.corsivo} title="Corsivo"><Italic size={14} /></button>
+        </div>
+        <div className="tool-group">
+          {([['sinistra', AlignLeft], ['centro', AlignCenter], ['destra', AlignRight]] as const).map(([a, Icon]) => (
+            <button key={a} type="button" className={`tool ${r.allineamento === a ? 'on' : ''}`} onClick={() => upd(tipo, { allineamento: a })} aria-pressed={r.allineamento === a} title={`Allinea a ${a}`}><Icon size={14} /></button>
+          ))}
+        </div>
+        <div className="tool-group"><button type="button" className="tool" disabled={!titoli[tipo]} onClick={() => togli(tipo)} title="Torna al titolo predefinito" aria-label={`Titolo predefinito: ${etichetta}`}><RotateCcw size={14} /></button></div>
+      </div>
+    })}
+  </section>
 }
 
 /** Valore da mostrare nell'editor: modello personalizzato o predefinito. */

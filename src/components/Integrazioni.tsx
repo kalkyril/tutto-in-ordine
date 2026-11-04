@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { AlertTriangle, CalendarDays, CheckCircle2, Download, FileSpreadsheet, FolderInput, Lock, Pencil, Plus, RefreshCw, Trash2, Users2, Wallet, FolderKanban, FileUp } from 'lucide-react'
-import { api } from '../api'
+import { AlertTriangle, CalendarDays, CheckCircle2, Download, FileSpreadsheet, FolderInput, Lock, Pencil, Plus, RefreshCw, Trash2, Users2, Wallet, FolderKanban, FileUp, Cloud, FolderSync } from 'lucide-react'
+import { api, type AbbinamentiCliens } from '../api'
 import { PraticheDaCalendarioModal } from './PraticheDaCalendario'
 import { useData } from '../store'
 import { Btn, ColorPicker, Field, FormGrid, Input, Modal, Select, useAction, useFeedback } from './ui'
@@ -167,6 +167,7 @@ export function ImportPanel() {
             </div>
           </div>
         ))}
+        <CartellaCliens />
         <div className="import-card">
           <FolderInput size={22} className="import-ico" />
           <h3>Documenti da una cartella</h3><p className="muted small">Ogni sottocartella diventa (o si collega a) una pratica e i suoi file vengono collegati ai documenti (restano nella cartella: nessuna copia). I file originali restano dove sono.</p>
@@ -178,3 +179,39 @@ export function ImportPanel() {
     </section>
   )
 }
+
+/** Documenti di Cliens: la cartella in cui si scaricano (una sottocartella per pratica), abbinata alle pratiche e sincronizzata a mano. */
+function CartellaCliens() {
+  const { settings } = useData()
+  const run = useAction()
+  const { toast } = useFeedback()
+  const [abb, setAbb] = useState<AbbinamentiCliens | null>(null)
+  const [lavoro, setLavoro] = useState(false)
+  const mostra = async () => { const r = await run(() => api.cliensAbbinamenti()); if (r) setAbb(r) }
+  const scegli = async () => { const r = await run(() => api.cliensRadice()); if (r) setAbb(r) }
+  const sincronizza = async () => {
+    setLavoro(true)
+    try {
+      const r = await run(() => api.cliensTutte())
+      if (r) { toast(`${r.pratiche} pratiche sincronizzate${r.collegate ? ` · ${r.collegate} cartelle di Cliens collegate` : ''} · ${r.nuovi} file nuovi · ${r.condivisi} in comune${r.uniti ? ` · ${r.uniti} doppioni uniti` : ''}`); if (r.errori.length) toast(`${r.errori.length} pratiche non sincronizzate: ${r.errori[0].pratica} – ${r.errori[0].motivo}`, 'err') }
+      if (settings.cartella_cliens) mostra()
+    } finally { setLavoro(false) }
+  }
+  const trovate = abb?.abbinamenti.filter((a) => a.pratica).length ?? 0
+  return <div className="import-card">
+    <Cloud size={22} className="import-ico" />
+    <h3>Documenti di Cliens</h3>
+    <p className="muted small">Scegli la cartella in cui scarichi i documenti da Cliens (una sottocartella per pratica): TIO abbina ogni sottocartella alla sua pratica e, a ogni sincronizzazione, mostra in un’unica vista i file di Cliens e quelli del computer. Un file presente in entrambe compare una sola volta. TIO legge soltanto: non modifica nulla.</p>
+    {settings.cartella_cliens && <p className="small"><b>Cartella:</b> <span className="muted" title={settings.cartella_cliens}>{settings.cartella_cliens}</span></p>}
+    <div className="row wrap">
+      <Btn size="sm" variant="primary" onClick={scegli}>{settings.cartella_cliens ? 'Cambia cartella…' : 'Scegli la cartella…'}</Btn>
+      {settings.cartella_cliens && <Btn size="sm" disabled={lavoro} aria-busy={lavoro} onClick={sincronizza}><FolderSync size={14} /> {lavoro ? 'Sincronizzazione…' : 'Sincronizza tutte le pratiche'}</Btn>}
+      {settings.cartella_cliens && !abb && <Btn size="sm" variant="ghost" onClick={mostra}>Mostra abbinamenti</Btn>}
+    </div>
+    {abb && <div className="cliens-abbinamenti">
+      <p className="small muted">{abb.abbinamenti.length} sottocartelle · {trovate} abbinate a una pratica{abb.abbinamenti.length - trovate ? ` · ${abb.abbinamenti.length - trovate} senza pratica (importa prima le pratiche da Cliens, o collegala dalla scheda Documenti della pratica)` : ''}</p>
+      <ul>{abb.abbinamenti.slice(0, 200).map((a) => <li key={a.percorso} className="small"><span>{a.nome}</span><span className={a.pratica ? '' : 'muted'}>{a.pratica ? `→ ${[a.pratica.numero, a.pratica.titolo].filter(Boolean).join(' · ')}${a.pratica.giaCollegata ? ' ✓' : ''}` : 'nessuna pratica'}</span></li>)}</ul>
+    </div>}
+  </div>
+}
+

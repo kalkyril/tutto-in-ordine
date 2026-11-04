@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Download, FileCode2, LayoutTemplate, Plus, Trash2, Undo2 } from 'lucide-react'
+import { Download, Eye, FileCode2, LayoutTemplate, Plus, Trash2, Undo2 } from 'lucide-react'
 import { api } from '../api'
 import { useData } from '../store'
 import { Btn, Field, FormGrid, Input, Modal, Segmented, Select, Textarea, useAction, useFeedback } from './ui'
 import { PraticaSelect } from './forms'
-import { ModelloPdfEditor } from './ModelloPdfEditor'
+import { AnteprimaNota, ModelloPdfEditor } from './ModelloPdfEditor'
 import { FatturaElettronicaModal } from './FatturaElettronica'
 import { modelloEffettivo } from '../lib/modello'
 import { CompensoForm, type CalcRisultato, type CalcState } from './CompensoCalculator'
@@ -113,6 +113,9 @@ export function ParcellaEditor({ parcella, preset, onClose }: { parcella?: Parce
     const r = await run(() => api.printPdf(html(s), nomeFile(s.numero), f.pratica_id), f.pratica_id ? 'PDF salvato nella cartella della pratica' : undefined)
     if (r) onClose()
   }
+  // anteprima del documento così come è ora, senza salvarlo
+  const [anteprima, setAnteprima] = useState<string | null>(null)
+  const apriAnteprima = () => setAnteprima(html({ ...(parcella || {}), ...f, numero: numero || f.numero || '—', data: f.data || todayStr() } as Parcella))
   // fattura elettronica: prima si salva, così il file nasce dai dati confermati
   const [xml, setXml] = useState<Parcella | null>(null)
   const fatturaXml = async () => { const s = await save(); if (s) setXml(s) }
@@ -158,10 +161,11 @@ export function ParcellaEditor({ parcella, preset, onClose }: { parcella?: Parce
       footer={<>
         {parcella && <Btn variant="danger" onClick={del} aria-label="Elimina il documento" title="Elimina il documento" style={{ marginRight: 'auto' }}><Trash2 size={15} /></Btn>}
         <Btn variant="ghost" onClick={onClose}>Chiudi</Btn>
-        {f.tipo === 'proforma' && <Btn variant="ghost" onClick={() => setModello(modelloEffettivo(settings))} title="Modifica intestazione, coordinate di pagamento e piè di pagina del PDF"><LayoutTemplate size={15} /> Intestazione e piè di pagina</Btn>}
+        <Btn variant="ghost" onClick={() => setModello(modelloEffettivo(settings))} title={f.tipo === 'proforma' ? 'Modifica titolo, intestazione, coordinate di pagamento e piè di pagina del PDF' : 'Modifica titolo, font, dimensione e allineamento del titolo del documento'}><LayoutTemplate size={15} /> {f.tipo === 'proforma' ? 'Intestazione e piè di pagina, titolo' : 'Titolo e font'}</Btn>
         <Btn disabled={needsReview} onClick={pdf} title={f.pratica_id ? 'Si apre nella cartella locale della pratica; il PDF compare anche tra i documenti della pratica (nessuna seconda copia)' : 'Scegli la cartella del computer in cui salvare il PDF'}><Download size={15} /> {f.pratica_id ? 'Salva PDF nella cartella della pratica…' : 'Salva PDF…'}</Btn>
         {f.tipo === 'parcella' && parcella && (parcella.stato === 'emessa' || parcella.stato === 'pagata') && <Btn variant="ghost" onClick={notaCredito} title="Storna per intero questa fattura con una nota di credito (TD04)"><Undo2 size={15} /> Nota di credito</Btn>}
         {(f.tipo === 'parcella' || f.tipo === 'nota_credito') && <Btn disabled={needsReview} onClick={fatturaXml} title="File XML FatturaPA da caricare sul tuo canale verso lo SdI (TIO non lo invia)"><FileCode2 size={15} /> Fattura elettronica</Btn>}
+        <Btn onClick={apriAnteprima} title="Mostra il documento come sarà nel PDF, senza salvarlo"><Eye size={15} /> Anteprima</Btn>
         <Btn variant="primary" onClick={async () => { if (await save()) onClose() }}>Salva</Btn>
       </>}>
       {importazione && <section className="card pad" aria-label="Verifica dei dati importati">
@@ -243,8 +247,12 @@ export function ParcellaEditor({ parcella, preset, onClose }: { parcella?: Parce
       )}
       </div>
       {xml && <FatturaElettronicaModal parcella={xml} onClose={() => setXml(null)} />}
+      {anteprima && <Modal title={`Anteprima · ${nomeDoc(f.tipo, L.parcella)} ${numero}`} subtitle="Il documento com’è adesso: le modifiche non ancora salvate sono comprese" width={760} onClose={() => setAnteprima(null)} protectChanges={false}
+        footer={<><Btn variant="ghost" onClick={() => setAnteprima(null)}>Chiudi</Btn><Btn disabled={needsReview} onClick={() => { setAnteprima(null); pdf() }}><Download size={15} /> {f.pratica_id ? 'Salva PDF nella pratica' : 'Salva PDF…'}</Btn></>}>
+        <div className="anteprima-documento"><AnteprimaNota html={anteprima} etichetta={nomeDoc(f.tipo, L.parcella).toLowerCase()} /></div>
+      </Modal>}
       {modello && (
-        <Modal title="Intestazione e piè di pagina" subtitle="Valgono per tutte le note pro forma" width={1060} onClose={() => setModello(null)}
+        <Modal title="Aspetto dei documenti" subtitle="Il titolo vale per ogni tipo di documento; intestazione, coordinate di pagamento e piè di pagina per le note pro forma" width={1060} onClose={() => setModello(null)}
           footer={<><Btn variant="ghost" onClick={() => setModello(null)}>Annulla</Btn><Btn variant="primary" onClick={async () => { if (await run(() => api.setSettings({ modello_pdf: modello }), 'Modello salvato')) setModello(null) }}>Salva modello</Btn></>}>
           <ModelloPdfEditor settings={settings} value={modello} onChange={setModello} />
         </Modal>

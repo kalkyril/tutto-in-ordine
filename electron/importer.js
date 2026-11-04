@@ -29,17 +29,18 @@ const CAMPI = {
     { k: 'note', et: 'Note', sin: ['note', 'annotazioni', 'osservazioni'] },
   ],
   pratiche: [
-    { k: 'titolo', et: 'Oggetto / Titolo', obbl: true, sin: ['oggetto', 'titolo', 'descrizione', 'pratica', 'denominazione fascicolo', 'causa', 'nome fascicolo', 'oggetto pratica', 'oggetto fascicolo', 'descrizione pratica'] },
-    { k: 'numero', et: 'Numero pratica', sin: ['numero', 'n pratica', 'n fascicolo', 'numero fascicolo', 'numero pratica', 'fascicolo', 'protocollo', 'codice', 'rif', 'num pratica', 'n'] },
-    { k: 'cliente', et: 'Cliente', sin: ['cliente', 'assistito', 'committente', 'parte assistita', 'mandante'] },
-    { k: 'controparte', et: 'Controparte', sin: ['controparte', 'avversario', 'parte avversa', 'convenuto', 'resistente'] },
-    { k: 'tipo', et: 'Tipologia / Materia', sin: ['tipo', 'materia', 'tipologia', 'area', 'ramo', 'tipo pratica', 'tipologia pratica'] },
+    // sinonimi anche delle esportazioni di Cliens (Cube e Più): plurali, «Cliente/i», «Parte assistita», «Controparti»…
+    { k: 'titolo', et: 'Oggetto / Titolo', obbl: true, sin: ['intestazione', 'intestazione fascicolo', 'oggetto', 'titolo', 'descrizione', 'pratica', 'denominazione fascicolo', 'causa', 'nome fascicolo', 'oggetto pratica', 'oggetto fascicolo', 'descrizione pratica', 'nome pratica', 'denominazione pratica', 'oggetto della pratica', 'descrizione fascicolo', 'titolo pratica'] },
+    { k: 'numero', et: 'Numero pratica', sin: ['numero', 'n pratica', 'n fascicolo', 'numero fascicolo', 'numero pratica', 'fascicolo', 'protocollo', 'codice', 'rif', 'num pratica', 'n', 'codice pratica', 'cod pratica', 'id pratica', 'numero interno', 'n interno', 'riferimento interno', 'n pratica interno', 'codice fascicolo'] },
+    { k: 'cliente', et: 'Cliente', sin: ['cliente', 'assistito', 'committente', 'parte assistita', 'mandante', 'clienti', 'cliente i', 'assistiti', 'parti assistite', 'committenti', 'nominativo cliente', 'cliente principale', 'nostro cliente', 'nostri clienti', 'parte', 'parti', 'intestatario pratica', 'denominazione cliente', 'ragione sociale cliente'] },
+    { k: 'controparte', et: 'Controparte', sin: ['controparte', 'avversario', 'parte avversa', 'convenuto', 'resistente', 'controparti', 'controparte i', 'parte avversaria', 'parti avverse', 'parti avversarie', 'avversari', 'convenuti', 'resistenti', 'altra parte', 'altre parti', 'controparte principale', 'nominativo controparte', 'denominazione controparte'] },
+    { k: 'tipo', et: 'Tipologia / Materia', sin: ['tipo', 'materia', 'tipologia', 'area', 'ramo', 'tipo pratica', 'tipologia pratica', 'settore', 'categoria pratica', 'materia pratica'] },
     { k: 'stato', et: 'Stato', sin: ['stato', 'status', 'situazione', 'stato pratica'] },
-    { k: 'autorita', et: 'Autorità giudiziaria / Ente', sin: ['autorita', 'autorita giudiziaria', 'ufficio giudiziario', 'tribunale', 'organo giudicante', 'sede giudiziaria', 'ufficio', 'giudice ufficio'] },
-    { k: 'rg', et: 'N. RG', sin: ['r g', 'rg', 'n r g', 'nrg', 'numero ruolo', 'n ruolo', 'ruolo generale', 'ruolo', 'numero rg', 'n rg'] },
-    { k: 'giudice', et: 'Giudice / Sezione', sin: ['giudice', 'magistrato', 'sezione', 'giudice sezione'] },
+    { k: 'autorita', et: 'Autorità giudiziaria / Ente', sin: ['descrizione ufficio', 'autorita', 'autorita giudiziaria', 'ufficio giudiziario', 'tribunale', 'organo giudicante', 'sede giudiziaria', 'ufficio', 'giudice ufficio', 'foro', 'autorita adita', 'organo', 'sede'] },
+    { k: 'rg', et: 'N. RG', sin: ['r g', 'rg', 'n r g', 'nrg', 'numero ruolo', 'n ruolo', 'ruolo generale', 'ruolo', 'numero rg', 'n rg', 'numero r g', 'r g n', 'numero di ruolo', 'n r g n r', 'rgnr', 'n rgnr'] },
+    { k: 'giudice', et: 'Giudice / Sezione', sin: ['giudice', 'magistrato', 'sezione', 'giudice sezione', 'giudice istruttore', 'g i', 'pm', 'pubblico ministero'] },
     { k: 'valore', et: 'Valore', sin: ['valore', 'valore causa', 'valore della causa', 'valore pratica', 'importo'] },
-    { k: 'data_apertura', et: 'Data apertura', sin: ['data apertura', 'aperto il', 'data', 'data inizio', 'data incarico', 'apertura', 'data conferimento'] },
+    { k: 'data_apertura', et: 'Data apertura', sin: ['data apertura', 'aperto il', 'data', 'data inizio', 'data incarico', 'apertura', 'data conferimento', 'data apertura pratica', 'data creazione', 'creata il', 'data inserimento', 'aperta il'] },
     { k: 'descrizione', et: 'Note / Descrizione', sin: ['note', 'annotazioni', 'descrizione estesa', 'dettagli', 'osservazioni'] },
   ],
   scadenze: [
@@ -111,6 +112,7 @@ function parseNumero(v) {
 const vero = (v) => /^(si|sì|s|x|1|true|vero|yes|y|fatto|fatta|evasa|evaso|completata|completato|chiusa|chiuso|pagata|pagato|incassata|incassato)$/i.test(String(v ?? '').trim())
 const nomeProprio = (s) => String(s ?? '').trim().replace(/\s+/g, ' ')
 const normCF = (s) => String(s ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+const normDen = (s) => norm(s).replace(/\bs (r) (l)\b|\bs (p) (a)\b|\bs (n) (c)\b|\bs (a) (s)\b/g, (x) => x.replace(/ /g, ''))
 const SOCIETA = /\b(s\s?r\s?l|s\s?p\s?a|s\s?n\s?c|s\s?a\s?s|s\s?c|societa|ditta|studio|associati|onlus|ente|comune|condominio|fondazione|associazione|cooperativa|consorzio|banca|assicurazioni|unipersonale)\b/i
 
 function statoPratica(testo, stati) {
@@ -138,6 +140,51 @@ function ruolo(testo, predefinito) {
   return predefinito || 'cliente'
 }
 
+// ---------------- parti e colonne aggiuntive (esportazioni di Cliens) ----------------
+// codici della colonna «Materia» di Cliens Cube
+const MATERIE_CLIENS = { CIV: 'Civile', VG: 'Volontaria giurisdizione', GDP: 'Giudice di pace', MOBI: 'Esecuzione mobiliare', IMMO: 'Esecuzione immobiliare', LAV: 'Lavoro', CONC: 'Procedure concorsuali', MIN: 'Minori', PREF: 'Prefettura', PEN: 'Penale', PREV: 'Previdenza', FAM: 'Famiglia', AMM: 'Amministrativo', TRIB: 'Tributario' }
+const materia = (v) => MATERIE_CLIENS[String(v || '').trim().toUpperCase()] || String(v || '').trim()
+// coda descrittiva dopo un trattino («… - decreto ingiuntivo»): si toglie solo se è una descrizione, non parte di un nome in maiuscolo
+const DESCRIZIONE = /^(?:[a-zà-ÿ]|(?:decreto|ricorso|causa|opposizione|appello|sfratto|esecuzione|separazione|divorzio|precetto|pignoramento|istanza)\b)/i
+const togliCoda = (t) => { const m = t.match(/\s+[-–—:]\s+/); if (!m) return t; const coda = t.slice(m.index + m[0].length); return /^[a-zà-ÿ]/.test(coda) || (DESCRIZIONE.test(coda) && /[a-zà-ÿ]/.test(coda)) ? t.slice(0, m.index) : t }
+const PROCEDURE = /^(?:ricorso|causa|pratica|giudizio|procedimento|opposizione|appello|decreto ingiuntivo|di|del|della)\s+/i
+/** Una parte dell'intestazione: «ROSSI MARIO +2» → nome «ROSSI MARIO» e 2 parti in più non nominate. */
+function parte(x) {
+  let t = togliCoda(String(x || '')).replace(/^[\s.,;:\-–]+|[\s,;:]+$/g, '').trim()
+  let altri = 0
+  const piu = t.match(/\s*\+\s*(\d{1,3})\s*$/); if (piu) { altri = +piu[1]; t = t.slice(0, piu.index).trim() }
+  t = t.replace(PROCEDURE, '').trim()
+  return /[A-Za-zÀ-ÿ]{2}/.test(t) ? { nome: t, altri } : { nome: '', altri }
+}
+/**
+ * Cliente e controparte dall'oggetto o dall'intestazione del fascicolo: «Rossi Mario c/ Bianchi Srl», «Rossi contro Bianchi»,
+ * «ROSSI MARIO +1 / BIANCHI SRL» (Cliens Cube: prima la parte assistita, «+N» = altre N parti), anche con un lato vuoto.
+ */
+function partiDalTitolo(titolo) {
+  const t = String(titolo || '').replace(/\s+/g, ' ').trim()
+  let m = t.match(/^(.*?)\s+(?:c\/|c\.|contro|vs\.?|v\.)\s+(.*)$/i)
+  // barra tra le parti, ma non quella dei numeri («1234/2024», «3546-1/2025»)
+  if (!m && /\//.test(t) && !/\d\s*\/\s*\d/.test(t)) m = t.match(/^(.*?)\s*\/\s*(.*)$/)
+  if (!m) return null
+  const a = parte(m[1]), b = parte(m[2])
+  if (!a.nome && !b.nome) return null
+  return { cliente: a.nome, controparte: b.nome, altriClienti: a.altri, altreControparti: b.altri }
+}
+/** Intestazione senza controparte («AMMINISTRAZIONE DI SOSTEGNO ROSSI ANNA», «BIANCHI SRL»): il nome del cliente. */
+function clienteDaIntestazione(t) {
+  const PROC = '(?:amministrazione di sostegno|amm\\.? di sostegno|ads|tutela|curatela|eredit[aà]|successione)'
+  const p = parte(String(t || '').replace(new RegExp(`^${PROC}\\s+(?:di\\s+|del\\s+|della\\s+)?`, 'i'), '').replace(new RegExp(`\\s+[-–]?\\s*${PROC}$`, 'i'), ''))
+  return p.nome ? p : null
+}
+/** Più nomi nella stessa cella, separati da punto e virgola, a capo, « e » tra nomi completi o barra. */
+const dividiNomi = (v) => String(v || '').split(/\s*(?:;|\n|\||\s\/\s)\s*/).map(nomeProprio).filter(Boolean).slice(0, 20)
+/** Colonne del file non associate a nessun campo: «Intestazione: valore», da conservare nelle note. */
+function colonneExtra(intestazioni, riga, mappatura, opzioni = {}, escluse = new Set()) {
+  if (opzioni.colonneExtra === false || !Array.isArray(intestazioni)) return []
+  const usate = new Set([...escluse, ...Object.values(mappatura).filter((x) => x !== undefined && x !== null).map(Number)])
+  return intestazioni.map((h, i) => [String(h || '').trim(), String(riga[i] ?? '').trim(), i]).filter(([h, v, i]) => h && v && !usate.has(i) && v.length <= 2000).map(([h, v]) => `${h}: ${v}`)
+}
+
 // ---------------- importazione ----------------
 /**
  * Elabora (e, se `scrivi`, salva) le righe di una tabella.
@@ -163,9 +210,9 @@ function elabora(tipo, tabella, mappatura, opzioni = {}, scrivi = false) {
     // indici dei dati esistenti per riconoscere i doppioni
     const anag = db.list('anagrafica')
     const perCF = new Map(), perIva = new Map(), perMail = new Map(), perNome = new Map()
-    const indicizza = (a) => { if (normCF(a.codice_fiscale)) perCF.set(normCF(a.codice_fiscale), a); if (normCF(a.partita_iva)) perIva.set(normCF(a.partita_iva), a); if (a.email) perMail.set(a.email.toLowerCase(), a); perNome.set(norm(a.denominazione), a) }
+    const indicizza = (a) => { if (normCF(a.codice_fiscale)) perCF.set(normCF(a.codice_fiscale), a); if (normCF(a.partita_iva)) perIva.set(normCF(a.partita_iva), a); if (a.email) perMail.set(a.email.toLowerCase(), a); perNome.set(normDen(a.denominazione), a) }
     anag.forEach(indicizza)
-    const trovaAnag = (d) => (normCF(d.codice_fiscale) && perCF.get(normCF(d.codice_fiscale))) || (normCF(d.partita_iva) && perIva.get(normCF(d.partita_iva))) || (d.email && perMail.get(d.email.toLowerCase())) || perNome.get(norm(d.denominazione)) || null
+    const trovaAnag = (d) => (normCF(d.codice_fiscale) && perCF.get(normCF(d.codice_fiscale))) || (normCF(d.partita_iva) && perIva.get(normCF(d.partita_iva))) || (d.email && perMail.get(d.email.toLowerCase())) || perNome.get(normDen(d.denominazione)) || null
     let fittizio = -1
     const creaAnag = (dati, n) => {
       const r = scrivi ? db.save('anagrafica', dati) : { ...dati, id: fittizio-- }
@@ -173,13 +220,28 @@ function elabora(tipo, tabella, mappatura, opzioni = {}, scrivi = false) {
     }
     const clientePerNome = (nome, ruoloCrea, n) => {
       const nm = nomeProprio(nome); if (!nm) return null
-      const e = perNome.get(norm(nm)); if (e) return e
+      const e = perNome.get(normDen(nm)); if (e) return e
       if (opzioni.creaClienti === false) { avviso(n, `"${nm}" non è in anagrafica: collegamento non creato`); return null }
       return creaAnag({ denominazione: nm, ruolo: ruoloCrea, tipo: SOCIETA.test(norm(nm)) ? 'azienda' : 'persona' }, n)
     }
     const pratiche = db.list('pratiche')
     const praticaPerNumero = new Map(pratiche.filter((p) => p.numero).map((p) => [norm(p.numero), p]))
     const praticaPerTitolo = new Map(pratiche.map((p) => [norm(p.titolo), p]))
+    // senza numero, una pratica si riconosce da titolo, RG, autorità e materia; righe identiche sono fascicoli distinti
+    const chiavePr = (x) => [norm(x.titolo), norm(x.rg), norm(x.autorita), norm(x.tipo)].join('|')
+    const perChiave = new Map(); for (const p of [...pratiche].sort((x, y) => x.id - y.id)) { const k = chiavePr(p); (perChiave.get(k) || perChiave.set(k, []).get(k)).push(p) }
+    const prese = new Set()
+    const prendi = (lista) => { const p = (lista || []).find((x) => !prese.has(x.id)); if (p) prese.add(p.id); return p || null }
+    // colonne con lo stesso valore in ogni riga («Ufficio PCT», il responsabile unico): non dicono nulla della singola pratica
+    // quasi costanti (al più il 5% delle righe, o una, con un valore diverso): si annota solo il valore diverso, per esempio «Tipo ufficio: Curia»
+    const costanti = new Map()
+    if (tipo === 'pratiche' && tabella.righe.length > 5) (tabella.intestazioni || []).forEach((_, i) => {
+      const v = tabella.righe.map((r) => String(r[i] ?? '').trim()).filter(Boolean); if (!v.length) return
+      const conta = new Map(); for (const x of v) conta.set(x, (conta.get(x) || 0) + 1)
+      const [dominante, quante] = [...conta].sort((a, b) => b[1] - a[1])[0]
+      if (v.length - quante <= Math.max(1, Math.floor(v.length * 0.05))) costanti.set(i, dominante)
+    })
+    const daIntestazione = norm(tabella.intestazioni?.[mappatura.titolo] || '').startsWith('intestazione')
     const trovaPratica = (rif) => { const k = norm(rif); return k ? praticaPerNumero.get(k) || praticaPerTitolo.get(k) || null : null }
 
     tabella.righe.forEach((riga, i) => {
@@ -200,23 +262,54 @@ function elabora(tipo, tabella, mappatura, opzioni = {}, scrivi = false) {
           if (scrivi) indicizza(db.save('anagrafica', dati)); else indicizza({ ...dati, id: fittizio-- })
           esito.creati++; nota(n, 'nuovo', dati)
         } else if (tipo === 'pratiche') {
-          const titolo = nomeProprio(get(riga, 'titolo'))
+          // senza intestazione si usa l'oggetto (colonna non associata) o il numero di ruolo
+          let titolo = nomeProprio(get(riga, 'titolo'))
+          const dalTitolo = !!titolo // cliente e controparte si ricavano solo dal titolo vero, non da quello di riserva
+          if (!titolo) {
+            const associate = new Set(Object.values(mappatura).filter((x) => x !== undefined && x !== null).map(Number))
+            const io = (tabella.intestazioni || []).findIndex((h, i) => !associate.has(i) && /^(?:oggetto|descrizione)\b/.test(norm(h)) && String(riga[i] ?? '').trim())
+            titolo = io >= 0 ? nomeProprio(riga[io]) : get(riga, 'rg') ? `Fascicolo R.G. ${get(riga, 'rg')}` : ''
+          }
           if (!titolo) return err(n, 'Oggetto/titolo mancante')
           const numero = nomeProprio(get(riga, 'numero')) || null
           let apertura = null
           if (get(riga, 'data_apertura')) { const d = parseData(get(riga, 'data_apertura')); if (!d) avviso(n, `Data di apertura non riconosciuta: "${get(riga, 'data_apertura')}"`); else apertura = d.data }
           const valore = get(riga, 'valore') ? parseNumero(get(riga, 'valore')) : null
           if (Number.isNaN(valore)) avviso(n, `Valore non riconosciuto: "${get(riga, 'valore')}"`)
-          const cli = clientePerNome(get(riga, 'cliente'), 'cliente', n), ctr = clientePerNome(get(riga, 'controparte'), 'controparte', n)
-          const esistente = (numero && praticaPerNumero.get(norm(numero))) || (!numero && praticaPerTitolo.get(norm(titolo))) || null
-          const dati = { numero, titolo, cliente_id: cli?.id ?? null, controparte_id: ctr?.id ?? null, tipo: get(riga, 'tipo') || null, stato: statoPratica(get(riga, 'stato'), impostazioni.stati_pratica), autorita: get(riga, 'autorita') || null, giudice: get(riga, 'giudice') || null, rg: get(riga, 'rg') || null, valore: Number.isFinite(valore) ? valore : null, data_apertura: apertura, descrizione: get(riga, 'descrizione') || null }
+          // più nomi nella stessa cella («Rossi Mario; Bianchi Luigi»): il primo è collegato, tutti restano nelle note
+          let nomeCli = get(riga, 'cliente'), nomeCtr = get(riga, 'controparte')
+          // senza colonne dedicate, come nelle esportazioni di Cliens: «ROSSI MARIO c/ BIANCHI SRL» nell'oggetto
+          let piuCli = 0, piuCtr = 0
+          if (dalTitolo && (!nomeCli || !nomeCtr)) {
+            const dt = partiDalTitolo(titolo)
+            if (dt) { if (!nomeCli) { nomeCli = dt.cliente; piuCli = dt.altriClienti } if (!nomeCtr) { nomeCtr = dt.controparte; piuCtr = dt.altreControparti } }
+            else if (!nomeCli && daIntestazione) { const c = clienteDaIntestazione(titolo); if (c) { nomeCli = c.nome; piuCli = c.altri } }
+          }
+          const [cli1, ...altriCli] = dividiNomi(nomeCli), [ctr1, ...altriCtr] = dividiNomi(nomeCtr)
+          const cli = clientePerNome(cli1, 'cliente', n), ctr = clientePerNome(ctr1, 'controparte', n)
+          for (const x of altriCli) clientePerNome(x, 'cliente', n)
+          for (const x of altriCtr) clientePerNome(x, 'controparte', n)
+          // «importa tutto»: le colonne non associate a un campo finiscono nelle note della pratica, così non si perde nulla
+          const extra = colonneExtra(tabella.intestazioni, riga, mappatura, opzioni, new Set([...costanti].filter(([i, v]) => String(riga[i] ?? '').trim() === v || !String(riga[i] ?? '').trim()).map(([i]) => i)))
+          const altre = [altriCli.length && `Altri clienti: ${altriCli.join('; ')}`, altriCtr.length && `Altre controparti: ${altriCtr.join('; ')}`, piuCli && `Altre parti assistite: ${piuCli} (non nominate nel file)`, piuCtr && `Altre controparti: ${piuCtr} (non nominate nel file)`].filter(Boolean)
+          const tipoPr = materia(get(riga, 'tipo')) || null
+          const chiave = chiavePr({ titolo, rg: get(riga, 'rg'), autorita: get(riga, 'autorita'), tipo: tipoPr })
+          // senza numero: stessa chiave; altrimenti una pratica con lo stesso titolo e senza RG (importata prima o creata a mano)
+          const esistente = numero ? praticaPerNumero.get(norm(numero)) || null
+            : prendi(perChiave.get(chiave)) || prendi((praticaPerTitolo.has(norm(titolo)) ? [praticaPerTitolo.get(norm(titolo))] : []).filter((p) => !p.rg || norm(p.rg) === norm(get(riga, 'rg'))))
+          const dati = { numero, titolo, cliente_id: cli?.id ?? null, controparte_id: ctr?.id ?? null, tipo: tipoPr, stato: statoPratica(get(riga, 'stato'), impostazioni.stati_pratica), autorita: get(riga, 'autorita') || null, giudice: get(riga, 'giudice') || null, rg: get(riga, 'rg') || null, valore: Number.isFinite(valore) ? valore : null, data_apertura: apertura, descrizione: get(riga, 'descrizione') || null }
+          const note = [dati.descrizione, ...altre, ...extra].filter(Boolean).join('\n')
+          dati.descrizione = note || null
           if (esistente) {
+            // senza «aggiorna» si completano soltanto i campi vuoti (cliente, controparte, RG…), senza cambiare quelli già scritti
+            if (!opzioni.aggiorna) { const patch = {}; for (const [k, v] of Object.entries(dati)) if (v !== null && v !== '' && k !== 'numero' && k !== 'stato' && (esistente[k] === null || esistente[k] === undefined || esistente[k] === '')) patch[k] = v; if (Object.keys(patch).length) { if (scrivi) db.save('pratiche', { id: esistente.id, ...patch }); Object.assign(esistente, patch); esito.aggiornati++; return nota(n, 'aggiornato', dati, 'completati i campi vuoti') } }
             if (opzioni.aggiorna) { const patch = {}; for (const [k, v] of Object.entries(dati)) if (v !== null && v !== '' && esistente[k] !== v && k !== 'numero') patch[k] = v; if (Object.keys(patch).length) { if (scrivi) db.save('pratiche', { id: esistente.id, ...patch }); Object.assign(esistente, patch); esito.aggiornati++; return nota(n, 'aggiornato', dati) } }
             esito.esistenti++; return nota(n, 'esistente', dati, 'già presente')
           }
           const colori = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899']
           const salvata = scrivi ? db.save('pratiche', { ...dati, numero: numero || db.nextPraticaNumero(), colore: colori[Math.floor(Math.random() * colori.length)] }) : { ...dati, id: fittizio-- }
           if (salvata.numero) praticaPerNumero.set(norm(salvata.numero), salvata); praticaPerTitolo.set(norm(titolo), salvata)
+          prese.add(salvata.id); (perChiave.get(chiave) || perChiave.set(chiave, []).get(chiave)).push(salvata)
           esito.creati++; nota(n, 'nuovo', dati)
         } else if (tipo === 'scadenze') {
           const titolo = nomeProprio(get(riga, 'titolo')); if (!titolo) return err(n, 'Titolo mancante')
@@ -329,4 +422,4 @@ function importaCartella(dir, scelte = {}, opzioni = {}) {
   return esito
 }
 
-module.exports = { CAMPI, TIPI, proponiMappatura, proponi, anteprima, importa, elabora, parseData, parseNumero, parseOra, modelloCsv, anteprimaCartella, importaCartella, statoPratica }
+module.exports = { partiDalTitolo, clienteDaIntestazione, materia, dividiNomi, colonneExtra, CAMPI, TIPI, proponiMappatura, proponi, anteprima, importa, elabora, parseData, parseNumero, parseOra, modelloCsv, anteprimaCartella, importaCartella, statoPratica }
