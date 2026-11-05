@@ -172,9 +172,12 @@ function attach({ getWindow, db, runAlertCheck }) {
         '2025/001;Consulenza contrattuale Eta;Eta Srl;;Stragiudiziale;Aperto;;;;15/01/2025'].join('\n'), 'latin1')
       const hCsv = hash(csv); process.env.MNGMNT_TEST_IMPORT_FILE = csv
       await js(`[...document.querySelectorAll('.import-card')].find(c=>c.querySelector('h3').textContent==='Pratiche').querySelector('button').click()`); await sleep(500)
-      await clickText('.modal button', 'Scegli il file'); await sleep(1500)
+      await clickText('.modal button', 'Scegli il file')
+      // si aspetta che file, colonne e anteprima siano tutti sullo schermo (prima: pausa fissa di 1,5 s, instabile su Windows)
+      const importPronto = async () => { const x = await text(); return x.includes('fascicoli-cliens.csv') && /3\s*nuov/i.test(x) && (await js(`[...document.querySelectorAll('.modal .mappa select')].filter(s=>s.value!=='-1').length`)) >= 9 }
+      const pronto = await attendi(importPronto, { tempo: 10000 }); await sleep(150)
       t = await text()
-      check('importazione: colonne riconosciute da sole (Oggetto, Assistito, Ufficio giudiziario…) e anteprima con i nuovi elementi', t.includes('fascicoli-cliens.csv') && /3\s*nuov/i.test(t) && (await js(`[...document.querySelectorAll('.modal .mappa select')].filter(s=>s.value!=='-1').length`)) >= 9, /3\s*nuov/i.test(t) ? '' : JSON.stringify(t.slice(t.indexOf('ANTEPRIMA'), t.indexOf('ANTEPRIMA') + 200)))
+      check('importazione: colonne riconosciute da sole (Oggetto, Assistito, Ufficio giudiziario…) e anteprima con i nuovi elementi', pronto && t.includes('fascicoli-cliens.csv') && /3\s*nuov/i.test(t), /3\s*nuov/i.test(t) ? '' : JSON.stringify(t.slice(t.indexOf('ANTEPRIMA'), t.indexOf('ANTEPRIMA') + 200)))
       await shot('c07-importazione-anteprima')
       await clickText('.modal .btn-primary', 'Importa 3 elementi'); await sleep(1500)
       check('importazione: completata (3 pratiche, clienti creati in rubrica)', (await text()).includes('Importazione completata') && db.list('pratiche').filter((p) => /^2024\/01|2025\/001/.test(p.numero)).length === 3 && db.list('anagrafica').some((a) => a.denominazione === 'Delta Spa'))
