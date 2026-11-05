@@ -16,7 +16,6 @@ function attach({ getWindow, db }) {
   const out = process.env.SMOKE_OUT || path.join(os.tmpdir(), 'mngmnt-documenti'); fs.mkdirSync(out, { recursive: true })
   const shot = async (n) => { await sleep(350); for (let i = 0; i < 3; i++) { try { fs.writeFileSync(path.join(out, n + '.png'), (await wc.capturePage()).toPNG()); return } catch { await sleep(500) } } }
   const text = () => js('document.body.innerText')
-  const attendi = async (cond, ms = 8000) => { for (let t = 0; t < ms; t += 250) { if (await cond()) return true; await sleep(250) } return false }
   const scrivi = (p, c) => { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, c); return p }
   const interni = () => { const d = path.join(db.getDataDir(), 'documenti'); return fs.existsSync(d) ? fs.readdirSync(d, { recursive: true }).filter((x) => fs.statSync(path.join(d, x)).isFile()) : [] }
 

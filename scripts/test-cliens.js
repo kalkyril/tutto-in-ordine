@@ -16,6 +16,7 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'tio-cliens-'))
 const scrivi = (rel, contenuto) => { const f = path.join(tmp, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, contenuto); return f }
 const impronta = (f) => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex') + ':' + fs.statSync(f).mtimeMs
 
+;(async () => {
 try {
   db.open(path.join(tmp, 'dati'))
 
@@ -71,6 +72,24 @@ try {
   assert.equal(rc.creati, 0); assert.equal(db.list('pratiche').length, prima2 + 10)
   ok('Cliens Cube: parti dall’intestazione («+N»), RG dal ruolo, materia e ufficio; oggetto nelle note; riimportazione senza doppioni')
 
+  // chi è il cliente: la seconda parte per tutte, oppure riga per riga (solo anteprima: nulla viene scritto)
+  {
+    const righeParti = (o) => imp.anteprima('pratiche', cube, pc.mappatura, o).parti
+    const base = righeParti({}), kappa = base.find((x) => x.titolo === 'KAPPA / LAMBDA')
+    assert.ok(base.length >= 7 && kappa && kappa.prima === 'KAPPA' && kappa.seconda === 'LAMBDA' && !kappa.invertita)
+    assert.ok(righeParti({ cliente: 'seconda' }).every((x) => x.invertita))
+    const unaSola = righeParti({ invertite: [kappa.riga] })
+    assert.ok(unaSola.find((x) => x.riga === kappa.riga).invertita && unaSola.filter((x) => x.invertita).length === 1)
+    assert.equal(db.list('pratiche').length, prima2 + 10)
+    // in un archivio nuovo l'inversione arriva fino alla pratica salvata
+    const dir2 = path.join(tmp, 'inversione'); db.close(); db.open(dir2)
+    imp.importa('pratiche', cube, pc.mappatura, { invertite: [kappa.riga] })
+    const k = db.list('pratiche').find((x) => x.titolo === 'KAPPA / LAMBDA'), mu = db.list('pratiche').find((x) => x.titolo === 'MU / NU')
+    assert.equal(nome(k.cliente_id), 'LAMBDA'); assert.equal(nome(k.controparte_id), 'KAPPA'); assert.equal(nome(mu.cliente_id), 'MU')
+    db.close(); db.open(path.join(tmp, 'dati'))
+  }
+  ok('Cliens Cube: il cliente può essere la seconda parte, per tutte le pratiche o riga per riga')
+
   // una pratica importata prima senza cliente si completa alla riimportazione, senza doppioni
   db.save('pratiche', { id: pr('2024/015').id, cliente_id: null })
   const r2 = imp.importa('pratiche', csv, p.mappatura, {})
@@ -93,7 +112,7 @@ try {
   assert.equal(ab.find((a) => a.nome === '2024-015 Risarcimento danni')?.pratica?.id, id)
   ok('la cartella principale di Cliens abbina le sottocartelle alle pratiche per numero o titolo')
 
-  const s1 = cliens.impostaCartella(id, cartellaCliens)
+  const s1 = await cliens.impostaCartella(id, cartellaCliens)
   const docs = () => db.list('documenti', { pratica_id: id })
   const sez = () => Object.fromEntries(docs().map((d) => [d.nome, cliens.sezione(d, db.get('pratiche', id))]))
   assert.deepEqual(sez(), { 'Citazione.pdf': 'condivisa', 'Verbale udienza.pdf': 'cliens', 'Appunti.docx': 'locale' }, JSON.stringify(sez()))
@@ -103,29 +122,46 @@ try {
   ok('un file in entrambe le cartelle è un documento solo («In comune»), si apre dalla copia locale; i temporanei sono ignorati')
 
   // nuova sincronizzazione: nessun doppione; un documento collegato prima al file di Cliens si unisce al gemello locale
-  const s2 = cliens.sincronizzaPratica(id)
+  const s2 = await cliens.sincronizzaPratica(id)
   assert.equal(s2.nuovi, 0); assert.equal(docs().length, 3)
   const fNuovo = scrivi('Cliens/2024-015 Risarcimento danni/Memoria.pdf', 'memoria')
   db.save('documenti', { pratica_id: id, nome: 'Memoria.pdf', file: '', percorso: fNuovo, impronta: require('../electron/docfile').impronta(fNuovo), dimensione: 7 })
   scrivi('Locale/Rossi/Memoria.pdf', 'memoria')
-  const s3 = cliens.sincronizzaPratica(id)
+  const s3 = await cliens.sincronizzaPratica(id)
   assert.equal(docs().filter((d) => d.nome === 'Memoria.pdf').length, 1, JSON.stringify(docs().map((d) => d.nome)))
   assert.equal(sez()['Memoria.pdf'], 'condivisa'); assert.ok(s3.uniti >= 1)
   ok('sincronizzazioni ripetute senza doppioni; i doppioni già presenti vengono uniti')
 
   // un file tolto da Cliens: il documento resta, come solo locale
   fs.rmSync(fCit)
-  const s4 = cliens.sincronizzaPratica(id)
+  const s4 = await cliens.sincronizzaPratica(id)
   assert.equal(s4.toltiDaCliens, 1); assert.equal(sez()['Citazione.pdf'], 'locale')
   assert.equal(impronta(fSoloCliens), originali[1])
   ok('file tolto da Cliens: il documento torna «solo sul computer»; i file di Cliens non vengono modificati')
 
-  const tutte = cliens.sincronizzaTutte(radiceCliens)
+  // impronte ricordate: i file di Cliens non cambiati non si rileggono
+  const dbi = db.getDb()
+  const ricordate = () => dbi.prepare('SELECT count(*) n FROM impronte').get().n
+  assert.ok(ricordate() >= 2)
+  dbi.prepare("UPDATE impronte SET impronta = 'finta' WHERE percorso = ?").run(path.resolve(fSoloCliens))
+  await cliens.sincronizzaPratica(id)
+  assert.equal(dbi.prepare('SELECT impronta FROM impronte WHERE percorso = ?').get(path.resolve(fSoloCliens)).impronta, 'finta', 'file non cambiato: impronta riusata senza rileggerlo')
+  fs.writeFileSync(fSoloCliens, 'verbale corretto'); const t = new Date(Date.now() + 5000); fs.utimesSync(fSoloCliens, t, t)
+  await cliens.sincronizzaPratica(id)
+  assert.match(dbi.prepare('SELECT impronta FROM impronte WHERE percorso = ?').get(path.resolve(fSoloCliens)).impronta, /-sha256-/, 'file modificato: impronta ricalcolata')
+  fs.rmSync(fSoloCliens); await cliens.sincronizzaPratica(id)
+  assert.equal(dbi.prepare('SELECT count(*) n FROM impronte WHERE percorso = ?').get(path.resolve(fSoloCliens)).n, 0, 'file tolto: impronta dimenticata')
+  ok('impronte dei file di Cliens ricordate: si rileggono solo i file nuovi o modificati')
+
+  const avanzamenti = []
+  const tutte = await cliens.sincronizzaTutte(radiceCliens, { avanza: (x) => avanzamenti.push(x) })
+  assert.ok(avanzamenti.length >= 1 && avanzamenti.some((x) => x.pratica), 'avanzamento segnalato durante la sincronizzazione')
   assert.ok(tutte.pratiche >= 1 && !tutte.errori.length, JSON.stringify(tutte))
-  cliens.impostaCartella(id, null)
+  await cliens.impostaCartella(id, null)
   assert.ok(!docs().some((d) => d.origine === 'condivisa'))
   ok('sincronizzazione di tutte le pratiche e scollegamento della cartella di Cliens')
 } finally {
   db.close(); fs.rmSync(tmp, { recursive: true, force: true })
 }
 console.log(`\n${n} prove superate`)
+})().catch((e) => { console.error(e); process.exit(1) })

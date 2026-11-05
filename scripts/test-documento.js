@@ -86,7 +86,7 @@ try {
     try {
       for (const f of ['docx', 'odt']) for (const col of [1, 2]) {
         const z = leggiZip(genera(f, { ...doc, colonne: col, allineamento: 'giustificato' }))
-        for (const n of z.nomi.filter((x) => /\.(xml|rels)$/.test(x))) { const p = path.join(tmp, n.replace(/[\/\[\]]/g, '_')); fs.writeFileSync(p, z.leggi(n)); execFileSync('xmllint', ['--noout', p], { stdio: 'pipe' }) }
+        for (const n of z.nomi.filter((x) => /\.(xml|rels)$/.test(x))) { const p = path.join(tmp, n.replace(/[/[\]]/g, '_')); fs.writeFileSync(p, z.leggi(n)); execFileSync('xmllint', ['--noout', p], { stdio: 'pipe' }) }
       }
     } finally { fs.rmSync(tmp, { recursive: true, force: true }) }
     ok('xmllint: tutte le parti XML di Word e OpenDocument sono ben formate')

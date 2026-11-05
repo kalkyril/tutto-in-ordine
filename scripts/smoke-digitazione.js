@@ -92,7 +92,7 @@ function attach({ getWindow, db }) {
       await digita('spesa › descrizione', { label: 'Descrizione' }, 'contributo')
       await chiudiModale()
       await clickText('.tabs button', 'Documenti'); await sleep(300)
-      const doc = db.save('documenti', { pratica_id: pr.id, nome: 'atto.txt', file: `${pr.id}/atto.txt`, dimensione: 1 }); wc.send('data-changed', ['documenti']); await sleep(500)
+      db.save('documenti', { pratica_id: pr.id, nome: 'atto.txt', file: `${pr.id}/atto.txt`, dimensione: 1 }); wc.send('data-changed', ['documenti']); await sleep(500)
       await js(`document.querySelector('.icon-btn[title="Rinomina"]').click()`); await sleep(400)
       await digita('rinomina documento › nome file', { label: 'Nome' }, 'nuovo')
       await chiudiModale()

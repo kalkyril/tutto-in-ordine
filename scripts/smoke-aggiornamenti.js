@@ -36,7 +36,8 @@ function attach({ getWindow, db }) {
   shell.openExternal = async (u) => { aperti.push(u) } // nessun browser vero durante la prova
   delete process.env.MNGMNT_TEST_REPO
   // notifiche solo nell'app: niente avvisi del sistema sul computer di chi esegue la prova
-  db.setSettings({ onboarding_fatto: true, studio: { nome: 'Studio Prova' }, notifiche_desktop: false })
+  // ultimo controllo «adesso»: il controllo automatico (acceso per tutti) non parte finché la prova non lo sposta indietro
+  db.setSettings({ onboarding_fatto: true, studio: { nome: 'Studio Prova' }, notifiche_desktop: false, aggiornamenti_ultimo: new Date().toISOString() })
   const vaiAggiornamenti = async () => {
     await clickText('.nav-item', 'Impostazioni'); await sleep(400)
     await clickText('.tabs button', 'Backup e sicurezza'); await sleep(500)
@@ -46,24 +47,20 @@ function attach({ getWindow, db }) {
     try {
       wc.setBackgroundThrottling(false)
       await sleep(3500) // oltre il primo giro dei controlli periodici (2,5 s dopo l'avvio)
-      check('spento di default e nessuna richiesta di rete all\'avvio', db.getSettings().aggiornamenti_controllo !== true && chiamate.length === 0, JSON.stringify(chiamate))
+      check('acceso per tutti dalla 1.0.1 (una volta sola) e, senza progetto GitHub, nessuna richiesta di rete', db.getSettings().aggiornamenti_controllo === true && db.getSettings().aggiornamenti_attivato_101 === true && chiamate.length === 0, JSON.stringify(chiamate))
 
       await vaiAggiornamenti()
       check('senza indirizzo GitHub nel progetto le Impostazioni spiegano che arriverà con la pubblicazione', /Sarà disponibile quando TIO verrà pubblicato su GitHub/.test(await testo()) && !/Controlla ora/.test(await testo()))
 
       process.env.MNGMNT_TEST_REPO = 'studio/tio'
       await js('location.reload()'); await sleep(1500)
-      check('con l\'indirizzo GitHub TIO chiede una volta se avvisare delle nuove versioni', /Vuoi sapere quando esce una nuova versione\?/.test(await testo()) && chiamate.length === 0)
-      await shot('aggiornamenti-0-domanda')
-      await clickText('.modal button', 'Non ora'); await sleep(700)
-      check('«Non ora»: risposta ricordata, controllo spento, nessuna richiesta', db.getSettings().aggiornamenti_chiesto === true && db.getSettings().aggiornamenti_controllo !== true && chiamate.length === 0)
-      await js('location.reload()'); await sleep(1500)
-      check('la domanda non torna dopo una risposta', !/Vuoi sapere quando esce una nuova versione\?/.test(await testo()))
+      check('nessuna domanda all\'avvio: il controllo è già attivo', !/Vuoi sapere quando esce una nuova versione\?/.test(await testo()) && chiamate.length === 0)
+      await shot('aggiornamenti-0-avvio')
       await vaiAggiornamenti()
       const interruttore = `[...document.querySelectorAll('.settings-toggle-row')].find(r => r.innerText.includes('Controlla gli aggiornamenti ogni giorno'))?.querySelector('input')`
-      check('interruttore presente e spento', await js(`${interruttore}?.checked === false`))
-      check('ancora nessuna richiesta prima di una scelta dell\'utente', chiamate.length === 0)
-      await mostraGruppo(); await shot('aggiornamenti-1-spento')
+      check('interruttore presente e acceso', await js(`${interruttore}?.checked === true`))
+      check('nessuna richiesta prima del giorno dopo l\'ultimo controllo', chiamate.length === 0)
+      await mostraGruppo(); await shot('aggiornamenti-1-acceso')
 
       const notificheAvanti = db.getDb().prepare('SELECT COUNT(*) c FROM notifiche').get().c
       await clickText('.settings-row button', 'Controlla ora'); await sleep(900)
@@ -78,7 +75,13 @@ function attach({ getWindow, db }) {
 
       await js(`${interruttore}.click()`); await sleep(300)
       await clickText('.azioni-salvataggio .btn-primary', 'Salva'); await sleep(900)
-      check('attivato e salvato; subito dopo un controllo riuscito nessuna nuova richiesta', db.getSettings().aggiornamenti_controllo === true && chiamate.length === 1, String(chiamate.length))
+      check('si può spegnere: scelta salvata e nessuna richiesta', db.getSettings().aggiornamenti_controllo === false && chiamate.length === 1, String(chiamate.length))
+      await js(`window.mngmnt.invoke('settings:set', { aggiornamenti_ultimo: '${new Date(Date.now() - 2 * 86400000).toISOString()}' })`); await sleep(1200)
+      check('spento: nemmeno dopo un giorno parte il controllo automatico', chiamate.length === 1, String(chiamate.length))
+      await js(`window.mngmnt.invoke('settings:set', { aggiornamenti_ultimo: '${new Date().toISOString()}' })`); await sleep(500)
+      await js(`${interruttore}.click()`); await sleep(300)
+      await clickText('.azioni-salvataggio .btn-primary', 'Salva'); await sleep(900)
+      check('riacceso e salvato; subito dopo un controllo riuscito nessuna nuova richiesta', db.getSettings().aggiornamenti_controllo === true && chiamate.length === 1, String(chiamate.length))
 
       // controllo automatico del giorno dopo: esce una versione ancora più recente
       ultima = 'v9.9.10'

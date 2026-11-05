@@ -19,6 +19,8 @@
 *.sqlite3
 *.sqlite3-wal
 *.sqlite3-shm
+# eccezione: archivio di prova della 1.0.0 con dati inventati (scripts/test-archivi-vecchi.js)
+!scripts/fixtures/archivio-1.0.0/mngmnt.db
 blocco.json
 /documenti/
 /dati-locali/

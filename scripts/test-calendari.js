@@ -43,7 +43,7 @@ const occ = (testo) => ical.occorrenze(testo, ...FINESTRA)
   ok('iCal: fusi orari (UTC, IANA, nomi di Outlook, ora fluttante), giorni interi, durata, annullati — convertiti nell\'ora locale')
 }
 {
-  const r = occ(ICS(EV('UID:t1', 'DTSTART:20261020T090000', 'SUMMARY:Udienza civile\\, sez. II\\nAula 3\; piano 2', 'DESCRIPTION:riga uno\\nriga due con \\\\ barra', 'LOCATION:Tribunale di Modena',
+  const r = occ(ICS(EV('UID:t1', 'DTSTART:20261020T090000', 'SUMMARY:Udienza civile\\, sez. II\\nAula 3; piano 2', 'DESCRIPTION:riga uno\\nriga due con \\\\ barra', 'LOCATION:Tribunale di Modena',
     'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Promemoria', 'TRIGGER:-PT15M', 'END:VALARM')))
   assert.equal(r[0].titolo, 'Udienza civile, sez. II\nAula 3; piano 2'); assert.equal(r[0].descrizione, 'riga uno\nriga due con \\ barra'); assert.equal(r[0].luogo, 'Tribunale di Modena')
   const lungo = ['BEGIN:VCALENDAR', 'BEGIN:VEVENT', 'UID:f1', 'DTSTART:20261020T090000', 'SUMMARY:Titolo molto lun', ' go ripiegato su più righe', '\tcon tabulazione', 'END:VEVENT', 'END:VCALENDAR'].join('\n')

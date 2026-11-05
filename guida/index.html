@@ -204,7 +204,7 @@
 
 <h3 id="aggiornare">Aggiornare</h3>
 <p>Scarica la nuova versione e installala <strong>sopra</strong> quella che hai, senza disinstallare: archivio, impostazioni e backup restano. Prima conviene fare un backup (<span class="percorso">Impostazioni › Backup e sicurezza</span>).</p>
-<p>Se hai attivato <span class="percorso">Impostazioni › Backup e sicurezza › Aggiornamenti › Controlla gli aggiornamenti ogni giorno</span>, TIO chiede a GitHub soltanto il numero dell’ultima versione. Quando ne esce una nuova compare un piccolo riquadro <strong>«Aggiornamento x.y.z»</strong> accanto a «Cerca nell’archivio…»: porta alla sezione Aggiornamenti, con il pulsante per aprire la pagina di download. TIO non scarica e non installa nulla da solo.</p>
+<p>Una volta al giorno TIO chiede a GitHub soltanto il numero dell’ultima versione (dalla 1.0.1 il controllo è acceso per tutti; si spegne da <span class="percorso">Impostazioni › Backup e sicurezza › Aggiornamenti › Controlla gli aggiornamenti ogni giorno</span>). Quando ne esce una nuova compare un piccolo riquadro <strong>«Aggiornamento x.y.z»</strong> accanto a «Cerca nell’archivio…»: porta alla sezione Aggiornamenti, con il pulsante per aprire la pagina di download. TIO non scarica e non installa nulla da solo: l’aggiornamento è manuale, scarichi il file e lo installi sopra la versione che hai.</p>
 
 <h3 id="disinstallare">Disinstallare</h3>
 <ul>
@@ -324,8 +324,8 @@
   <li><strong>In comune con Cliens</strong>: lo stesso file è nella cartella di Cliens e in quella della pratica; compare una volta sola e si apre dalla copia sul computer;</li>
   <li><strong>Solo su Cliens</strong> e <strong>Solo sul computer</strong>: i file presenti in una sola delle due cartelle.</li>
 </ul>
-<p><strong>Sincronizza cartelle</strong> (nella pratica) e <strong>Sincronizza tutte le pratiche</strong> (nelle Integrazioni) collegano i file nuovi delle due cartelle e uniscono gli eventuali doppioni. TIO legge soltanto: non copia, non sposta e non cancella nulla, né su Cliens né sul computer.</p>
-<p>L’esportazione dei fascicoli di Cliens Cube (<code>EXPORT_FASCICOLI.csv</code>) e l’elenco delle pratiche di Cliens Più (XLS o CSV) si importano da <span class="percorso">Impostazioni › Integrazioni › Importa i dati esistenti</span>: TIO riconosce cliente, controparte (anche dall’oggetto «ROSSI MARIO c/ BIANCHI SRL»), autorità, RG e giudice, conserva nelle note le colonne senza un campo e, riimportando, completa i campi vuoti senza creare doppioni.</p>
+<p><strong>Sincronizza cartelle</strong> (nella pratica) e <strong>Sincronizza tutte le pratiche</strong> (nelle Integrazioni) collegano i file nuovi delle due cartelle e uniscono gli eventuali doppioni. TIO legge soltanto: non copia, non sposta e non cancella nulla, né su Cliens né sul computer. Con cartelle grandi la finestra resta utilizzabile: in alto compare l’avanzamento, e le sincronizzazioni successive rileggono solo i file nuovi o modificati.</p>
+<p>L’esportazione dei fascicoli di Cliens Cube (<code>EXPORT_FASCICOLI.csv</code>) e l’elenco delle pratiche di Cliens Più (XLS o CSV) si importano da <span class="percorso">Impostazioni › Integrazioni › Importa i dati esistenti</span>: TIO riconosce cliente, controparte (anche dall’oggetto «ROSSI MARIO c/ BIANCHI SRL»), autorità, RG e giudice, conserva nelle note le colonne senza un campo e, riimportando, completa i campi vuoti senza creare doppioni. Quando cliente e controparte vengono dall’intestazione, prima di importare scegli <strong>chi è il cliente</strong>: la prima parte (di regola), la seconda (se assisti il convenuto) oppure <em>Decido riga per riga</em>, con l’elenco delle pratiche e una casella «Inverti» per ciascuna.</p>
 
 <h3 id="attivita-spese">Attività, ore e spese</h3>
 <p>In <strong>Attività e spese</strong> registri le ore lavorate (data, durata, descrizione, tariffa oraria) e le spese anticipate (con o senza IVA), anche con un allegato. Quando prepari un documento contabile dal lavoro, ore e spese non ancora fatturate si possono importare come voci; se elimini il documento tornano «da fatturare».</p>
@@ -723,7 +723,7 @@
 <p>L’archivio è un database sul tuo computer. TIO non ha server, account, pubblicità né statistiche d’uso. Escono dati solo quando lo chiedi tu:</p>
 <ul>
   <li>per leggere un <strong>calendario collegato</strong> (la richiesta va al servizio del calendario);</li>
-  <li>per il <strong>controllo facoltativo degli aggiornamenti</strong> (GitHub riceve solo la richiesta del numero di versione e vede l’indirizzo IP);</li>
+  <li>per il <strong>controllo degli aggiornamenti</strong>, se non lo spegni (GitHub riceve solo la richiesta del numero di versione e vede l’indirizzo IP);</li>
   <li>quando apri un <strong>link</strong> o un collegamento nel browser.</li>
 </ul>
 <p>L’anonimizzazione, l’OCR, la ricerca nei documenti, i PDF e la fattura elettronica funzionano interamente sul computer. Il testo completo è nel file <code>PRIVACY.md</code> del progetto.</p>

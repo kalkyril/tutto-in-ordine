@@ -13,12 +13,18 @@ module.exports = function registra({ handle, changed, getWindow, scelti, autoriz
   const daTest = (nome) => (process.env.MNGMNT_TEST && process.env[nome] !== undefined ? process.env[nome].split('|').filter(Boolean) : null) // solo per le prove automatiche
   const verificaAttivita = (praticaId, oraId) => { if (oraId) { const o = db.get('ore', oraId); if (!o || o.pratica_id !== Number(praticaId)) throw new Error('Attività non trovata in questa pratica') } }
   /** Collega i file alla pratica: restano dove sono, l'app ne ricorda il percorso (nessuna copia). */
-  function collegaFile(praticaId, paths, categoria, oraId) {
+  // avanzamento delle operazioni lunghe (sincronizzazioni, cartelle intere) mostrato nella finestra
+  const avanza = (operazione) => (info) => { const w = getWindow(); if (w && !w.isDestroyed()) w.webContents.send('avanzamento', { operazione, ...info }) }
+  const fine = (operazione) => avanza(operazione)({ fine: true })
+  // una sola operazione lunga per volta sullo stesso oggetto: un secondo clic attende la prima invece di rifarla
+  const inCorso = new Map()
+  const unaVolta = (chiave, fn) => { if (inCorso.has(chiave)) return inCorso.get(chiave); const pr = (async () => { try { return await fn() } finally { inCorso.delete(chiave); fine(chiave.split(':')[0]) } })(); inCorso.set(chiave, pr); return pr }
+  async function collegaFile(praticaId, paths, categoria, oraId) {
     verificaAttivita(praticaId, oraId)
     const aggiunti = []
     for (const src of paths) {
       try {
-        if (fs.statSync(src).isDirectory() && !oraId) aggiunti.push(...docfile.collegaCartella(praticaId, src).documenti) // cartella trascinata: si collegano tutti i suoi file
+        if (fs.statSync(src).isDirectory() && !oraId) aggiunti.push(...(await unaVolta(`cartella:${praticaId}:${src}`, () => docfile.collegaCartella(praticaId, src, { avanza: avanza('cartella') }))).documenti) // cartella trascinata: si collegano tutti i suoi file
         else aggiunti.push(docfile.collega(praticaId, src, { categoria: categoria || null, oraId: oraId || null }))
       } catch { /* non è un file o non è leggibile: saltato */ }
     }
@@ -76,11 +82,11 @@ module.exports = function registra({ handle, changed, getWindow, scelti, autoriz
   handle('documenti:stato', (praticaId) => docfile.stato(praticaId || null))
   // candidati proposti all'utente nell'ultimo controllo: solo questi percorsi si possono scegliere dall'interfaccia
   const candidati = new Map()
-  const rapporto = (praticaId, radici) => {
-    const r = docfile.sincronizza({ praticaId: praticaId || null, radici })
+  const rapporto = (praticaId, radici) => unaVolta(`sincronizza:${praticaId || 'tutte'}:${radici.join('|')}`, async () => {
+    const r = await docfile.sincronizza({ praticaId: praticaId || null, radici, avanza: avanza('sincronizza') })
     candidati.clear(); for (const a of r.ambigui) candidati.set(a.id, new Set(a.candidati))
     changed('documenti'); return r
-  }
+  })
   handle('documenti:sincronizza', (praticaId) => rapporto(praticaId, []))
   handle('documenti:sincronizzaIn', async (praticaId) => {
     const dir = await scegliCartellaDocumenti('Cerca i file spostati in questa cartella', 'MNGMNT_TEST_CARTELLA'); if (!dir) return null
@@ -103,20 +109,20 @@ module.exports = function registra({ handle, changed, getWindow, scelti, autoriz
   }
   handle('documenti:cartellaPratica', async (praticaId) => {
     const dir = await scegliCartellaDocumenti('Cartella dei documenti di questa pratica', 'MNGMNT_TEST_CARTELLA'); if (!dir) return null
-    const r = docfile.impostaCartella(praticaId, dir); changed('documenti', 'pratiche'); return r
+    const r = await docfile.impostaCartella(praticaId, dir); changed('documenti', 'pratiche'); return r
   })
   handle('documenti:collegaCartella', async (praticaId) => {
     const dir = await scegliCartellaDocumenti('Collega tutti i file di una cartella', 'MNGMNT_TEST_CARTELLA'); if (!dir) return null
-    const r = docfile.collegaCartella(praticaId, dir); changed('documenti', 'pratiche'); return r
+    const r = await unaVolta(`cartella:${praticaId}:${dir}`, () => docfile.collegaCartella(praticaId, dir, { avanza: avanza('cartella') })); changed('documenti', 'pratiche'); return r
   })
   // ---- Cliens: cartella dei documenti scaricati da Cliens, unita a quella locale (sola lettura) ----
   const cliens = require('../cliens')
   handle('documenti:cliensCartella', async (praticaId) => {
     const dir = await scegliCartellaDocumenti('Cartella con i documenti di Cliens per questa pratica', 'MNGMNT_TEST_CARTELLA_CLIENS'); if (!dir) return null
-    const r = cliens.impostaCartella(praticaId, dir); changed('documenti', 'pratiche'); return r
+    const r = await unaVolta(`cliens:${praticaId}`, () => cliens.impostaCartella(praticaId, dir, { avanza: avanza('cliens') })); changed('documenti', 'pratiche'); return r
   })
-  handle('documenti:cliensScollega', (praticaId) => { const r = cliens.impostaCartella(praticaId, null); changed('documenti', 'pratiche'); return r })
-  handle('documenti:cliensSincronizza', (praticaId) => { const r = cliens.sincronizzaPratica(praticaId); changed('documenti', 'pratiche'); return r })
+  handle('documenti:cliensScollega', async (praticaId) => { const r = await cliens.impostaCartella(praticaId, null); changed('documenti', 'pratiche'); return r })
+  handle('documenti:cliensSincronizza', async (praticaId) => { const r = await unaVolta(`cliens:${praticaId}`, () => cliens.sincronizzaPratica(praticaId, { avanza: avanza('cliens') })); changed('documenti', 'pratiche'); return r })
   handle('documenti:sezioni', (praticaId) => { const p = db.get('pratiche', praticaId); return Object.fromEntries(db.list('documenti', { pratica_id: praticaId }).map((d) => [d.id, cliens.sezione(d, p)])) })
   handle('documenti:cliensApri', (praticaId) => {
     const p = db.get('pratiche', praticaId); if (!p?.cartella_cliens) throw new Error('Nessuna cartella di Cliens per questa pratica')
@@ -130,7 +136,7 @@ module.exports = function registra({ handle, changed, getWindow, scelti, autoriz
     return { cartella: dir, abbinamenti: cliens.abbinaCartelle(dir) }
   })
   handle('documenti:cliensAbbinamenti', () => { const dir = db.getSettings().cartella_cliens; return dir ? { cartella: dir, abbinamenti: cliens.abbinaCartelle(dir) } : null })
-  handle('documenti:cliensTutte', () => { const r = cliens.sincronizzaTutte(db.getSettings().cartella_cliens || null); changed('documenti', 'pratiche'); return r })
+  handle('documenti:cliensTutte', async () => { const r = await unaVolta('cliens:tutte', () => cliens.sincronizzaTutte(db.getSettings().cartella_cliens || null, { avanza: avanza('cliens') })); changed('documenti', 'pratiche'); return r })
 
   handle('documenti:apriCartella', (praticaId) => {
     const p = db.get('pratiche', praticaId); if (!p?.cartella) throw new Error('Nessuna cartella impostata per questa pratica')

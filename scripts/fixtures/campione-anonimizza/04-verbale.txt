@@ -1,0 +1,11 @@
+VERBALE DI ASSEMBLEA
+
+In data {{DATE|10 ottobre 2026}} presso la sede di {{ORG|Ortofrutta Emiliana Soc. Coop.}} in {{STREET|via del Lavoro 8}}, {{ZIPCODE|42122}} {{CITY|Reggio Emilia}}, sono presenti:
+- {{FULLNAME|Giovanni Zanetti}}, presidente;
+- {{FULLNAME|Laura Bertolini}}, segretaria;
+- {{FULLNAME|Stefano Corradi}}, socio.
+
+Il presidente informa che il bilancio chiude con un utile di {{AMOUNT|€ 42.310,55}}.
+La segretaria ricorda che i documenti sono disponibili all'indirizzo {{EMAIL|segreteria@ortofrutta-esempio.it}}.
+
+Letto, confermato e sottoscritto.

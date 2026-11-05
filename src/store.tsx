@@ -30,9 +30,9 @@ const TABLES: Record<string, string> = {
 export function mergeSettings(s: Record<string, any>): Settings {
   return {
     ...DEFAULT_SETTINGS, ...s,
-    studio: { ...DEFAULT_SETTINGS.studio, ...(s.studio || {}) },
-    aliquote: { ...DEFAULT_SETTINGS.aliquote, ...(s.aliquote || {}) },
-    etichette: { ...DEFAULT_SETTINGS.etichette, ...(s.etichette || {}) },
+    studio: { ...DEFAULT_SETTINGS.studio, ...s.studio },
+    aliquote: { ...DEFAULT_SETTINGS.aliquote, ...s.aliquote },
+    etichette: { ...DEFAULT_SETTINGS.etichette, ...s.etichette },
     stati_pratica: (s.stati_pratica || DEFAULT_SETTINGS.stati_pratica).map((state: Settings['stati_pratica'][number]) => ({ ...state, _nomePrecedente: state.nome })),
   }
 }

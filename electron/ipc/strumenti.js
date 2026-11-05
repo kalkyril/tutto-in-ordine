@@ -110,7 +110,7 @@ module.exports = function registra({ handle, changed, getWindow, autorizza }) {
         modificate[parte] = x.replace(/>([^<]+)</g, (m, t) => '>' + docx.esc(docx.sostituisciTesto(docx.unesc(t), regole).testo) + '<')
       }
       // commenti, revisioni e testo nascosto restano nel file: si avvisa chi salva
-      const residui = w.nomi.some((n) => /^word\/comments/.test(n)) || /<w:del\b|<w:vanish\/>/.test(w.testo('word/document.xml') || '')
+      const residui = w.nomi.some((n) => n.startsWith('word/comments')) || /<w:del\b|<w:vanish\/>/.test(w.testo('word/document.xml') || '')
       return { buf: docx.salva(w, modificate), ext: 'docx', sostituzioni: totale, residui }
     }
     if (formato === 'pdf-originale') {

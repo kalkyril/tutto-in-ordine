@@ -6,7 +6,6 @@ const path = require('node:path')
 const db = require('./db')
 const docfile = require('./docfile')
 const { leggiTabella } = require('./tabelle')
-const crypto = require('node:crypto')
 const { safeName } = require('./files')
 
 const norm = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
@@ -89,7 +88,7 @@ function parseData(v) {
   let m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{1,2}):(\d{2}))?/)
   let a, me, g, h = null, mi = null
   if (m) { a = +m[1]; me = +m[2]; g = +m[3]; if (m[4] !== undefined) { h = +m[4]; mi = +m[5] } }
-  else if ((m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}|\d{2})(?!\d)(?:\s+(\d{1,2})[:.](\d{2}))?/))) { g = +m[1]; me = +m[2]; a = +m[3]; if (a < 100) a += a < 70 ? 2000 : 1900; if (m[4] !== undefined) { h = +m[4]; mi = +m[5] } }
+  else if ((m = s.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4}|\d{2})(?!\d)(?:\s+(\d{1,2})[:.](\d{2}))?/))) { g = +m[1]; me = +m[2]; a = +m[3]; if (a < 100) a += a < 70 ? 2000 : 1900; if (m[4] !== undefined) { h = +m[4]; mi = +m[5] } }
   else if ((m = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/))) { a = +m[1]; me = +m[2]; g = +m[3] }
   else return null
   const d = new Date(a, me - 1, g)
@@ -102,7 +101,7 @@ function parseOra(v) {
 }
 function parseNumero(v) {
   let s = String(v ?? '').replace(/[€\s ]/g, '').replace(/^\+/, ''); if (!s || s === '-') return null
-  const neg = /^-/.test(s) || /^\(.*\)$/.test(s); s = s.replace(/[()-]/g, '')
+  const neg = s.startsWith('-') || /^\(.*\)$/.test(s); s = s.replace(/[()-]/g, '')
   if (!/^[\d.,]+$/.test(s)) return NaN
   if (s.includes(',') && s.includes('.')) s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '')
   else if (s.includes(',')) s = s.replace(',', '.')
@@ -202,6 +201,8 @@ function elabora(tipo, tabella, mappatura, opzioni = {}, scrivi = false) {
   const impostazioni = db.getSettings()
   const esito = { totale: tabella.righe.length, creati: 0, aggiornati: 0, esistenti: 0, errori: [], avvisi: [], campione: [], creatiClienti: 0 }
   const ESEMPI = 12
+  esito.parti = [] // righe in cui cliente e controparte vengono dall'intestazione («A c/ B»): l'utente può invertirle
+  const invertite = new Set((Array.isArray(opzioni.invertite) ? opzioni.invertite : []).map(Number))
   const nota = (n, stato, dati, msg) => { if (esito.campione.length < ESEMPI) esito.campione.push({ riga: n, stato, dati, messaggio: msg || '' }) }
   const err = (n, msg) => { if (esito.errori.length < 500) esito.errori.push({ riga: n, motivo: msg }); nota(n, 'errore', {}, msg) }
   const avviso = (n, msg) => { if (esito.avvisi.length < 200) esito.avvisi.push({ riga: n, motivo: msg }) }
@@ -281,7 +282,11 @@ function elabora(tipo, tabella, mappatura, opzioni = {}, scrivi = false) {
           // senza colonne dedicate, come nelle esportazioni di Cliens: «ROSSI MARIO c/ BIANCHI SRL» nell'oggetto
           let piuCli = 0, piuCtr = 0
           if (dalTitolo && (!nomeCli || !nomeCtr)) {
-            const dt = partiDalTitolo(titolo)
+            const dt0 = partiDalTitolo(titolo)
+            // chi è il cliente: di regola la prima parte dell'intestazione; l'utente può scegliere la seconda, o riga per riga
+            const inverti = dt0 && ((opzioni.cliente === 'seconda') !== invertite.has(n))
+            const dt = dt0 && inverti ? { cliente: dt0.controparte, controparte: dt0.cliente, altriClienti: dt0.altreControparti, altreControparti: dt0.altriClienti } : dt0
+            if (dt0 && esito.parti.length < 5000) esito.parti.push({ riga: n, titolo, prima: dt0.cliente, seconda: dt0.controparte, invertita: !!inverti })
             if (dt) { if (!nomeCli) { nomeCli = dt.cliente; piuCli = dt.altriClienti } if (!nomeCtr) { nomeCtr = dt.controparte; piuCtr = dt.altreControparti } }
             else if (!nomeCli && daIntestazione) { const c = clienteDaIntestazione(titolo); if (c) { nomeCli = c.nome; piuCli = c.altri } }
           }
@@ -374,7 +379,6 @@ function modelloCsv(tipo) {
 }
 
 // ---------------- cartelle di documenti ----------------
-const sha = (f) => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex')
 // nome senza il suffisso " (2)" aggiunto quando due file hanno lo stesso nome: serve a riconoscere un file già importato
 const baseNome = (nome) => nome.replace(/ \(\d+\)(?=\.[^.]*$|$)/, '')
 const IGNORATI = /^(\.DS_Store|Thumbs\.db|desktop\.ini|~\$.*|.*\.tmp|\..*)$/i
@@ -405,7 +409,7 @@ function anteprimaCartella(dir) {
 }
 
 /** Collega i file delle sottocartelle alle pratiche (nessuna copia: restano nella cartella d'origine, mai spostati né modificati). scelte: { nomeCartella: idPratica | 'nuova' | 'salta' }. */
-function importaCartella(dir, scelte = {}, opzioni = {}) {
+async function importaCartella(dir, scelte = {}, opzioni = {}) {
   const esito = { pratiche: 0, createPratiche: 0, collegati: 0, saltati: 0, errori: [] }
   const ant = anteprimaCartella(dir)
   for (const c of ant.cartelle) {
@@ -415,7 +419,7 @@ function importaCartella(dir, scelte = {}, opzioni = {}) {
     if (scelta === 'nuova') { const p = db.save('pratiche', { numero: db.nextPraticaNumero(), titolo: c.nome, stato: db.getSettings().stati_pratica?.[0]?.nome || 'Aperta', colore: '#3b82f6' }); praticaId = p.id; esito.createPratiche++ }
     esito.pratiche++
     try {
-      const r = docfile.collegaCartella(praticaId, path.join(dir, c.nome))
+      const r = await docfile.collegaCartella(praticaId, path.join(dir, c.nome), { avanza: opzioni.avanza })
       esito.collegati += r.collegati; esito.saltati += r.gia
     } catch (e) { esito.errori.push({ file: c.nome, motivo: e.message }) }
   }

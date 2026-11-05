@@ -137,7 +137,7 @@ TIO include una guida completa in 22 capitoli, dall’installazione al glossario
 
 Scarica la nuova versione e installala **sopra** quella che hai, senza disinstallare: pratiche, impostazioni e backup restano. Prima conviene fare un backup.
 
-TIO chiede una volta, dopo il primo avvio, se vuoi essere avvisato delle nuove versioni; puoi cambiare idea in *Impostazioni › Backup e sicurezza › Aggiornamenti*. Il controllo chiede a GitHub soltanto il numero dell’ultima versione, non invia dati dell’archivio e non scarica nulla da solo. Quando c’è una versione nuova compare il riquadro «Aggiornamento» accanto a «Cerca nell’archivio…».
+Dalla versione 1.0.1 TIO controlla una volta al giorno se c’è una versione nuova e, quando c’è, mostra il riquadro **«Aggiornamento»** accanto a «Cerca nell’archivio…». Il controllo chiede a GitHub soltanto il numero dell’ultima versione e non invia dati dell’archivio. L’aggiornamento resta **manuale**: TIO non scarica e non installa nulla da solo, apre la pagina di download e la nuova versione la installi tu. Il controllo si spegne in *Impostazioni › Backup e sicurezza › Aggiornamenti*. Chi usa ancora la 1.0.0 e non aveva attivato il controllo trova la 1.0.1 sul [sito](https://kalkyril.github.io/tutto-in-ordine/) o nelle [Release](https://github.com/kalkyril/tutto-in-ordine/releases).
 
 Per disinstallare: sul Mac trascina TIO da Applicazioni nel Cestino; su Windows *Impostazioni › App › App installate › TIO › Disinstalla*. I tuoi dati restano: per eliminarli del tutto, dopo aver salvato ciò che ti serve, cancella anche queste cartelle (l’archivio si apre da *Impostazioni › Backup e sicurezza › Apri cartella dati*).
 
@@ -208,13 +208,13 @@ TIO non scrive mai in altri programmi e non chiede mai le tue password.
 
 ## Privacy e sicurezza
 
-L’archivio è un database sul tuo computer; TIO non ha server, account, pubblicità né statistiche d’uso. Escono dati solo quando lo chiedi tu (calendari collegati, controllo facoltativo degli aggiornamenti, link che apri): tutto è descritto in [PRIVACY.md](PRIVACY.md).
+L’archivio è un database sul tuo computer; TIO non ha server, account, pubblicità né statistiche d’uso. Escono dati solo per i calendari che colleghi, per il controllo degli aggiornamenti (acceso di default, si può spegnere) e per i link che apri: tutto è descritto in [PRIVACY.md](PRIVACY.md).
 
 L’archivio **non è cifrato**: il blocco con password impedisce l’uso dell’app, non la lettura del file. Proteggi il computer con la cifratura del disco (FileVault sul Mac, BitLocker o *Crittografia dispositivo* su Windows) e un account con password. Per le vulnerabilità vedi [SECURITY.md](SECURITY.md).
 
 ## Avvertenze
 
-I calcoli di compensi, termini e importi fiscali sono un aiuto operativo: verificali sul caso concreto e con il tuo commercialista. TIO non trasmette fatture al Sistema di Interscambio e non fa la conservazione a norma; magazzino e DDT sono fuori dall’ambito di questa versione. È pensato per una persona su un computer e non sincronizza i dati tra dispositivi.
+I calcoli di compensi, termini e importi fiscali sono un aiuto operativo: verificali sul caso concreto e con il tuo commercialista. TIO non trasmette fatture al Sistema di Interscambio e non fa la conservazione a norma; magazzino e DDT sono fuori dall’ambito di questa versione. È pensato per **una persona su un computer** e non sincronizza i dati tra dispositivi: è una scelta voluta, per ora. Tenere l’archivio solo sul proprio computer, senza server né account, rende TIO semplice da usare e da proteggere. Un archivio condiviso fra più persone dello stesso studio, o fra più computer, sarà valutato in futuro.
 
 ## Segnalare un problema
 

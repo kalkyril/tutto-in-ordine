@@ -1,6 +1,6 @@
 'use strict'
-// Controllo FACOLTATIVO degli aggiornamenti, spento finché l'utente non lo attiva: TIO glielo chiede una volta (App.tsx),
-// poi si cambia da Impostazioni › Backup e sicurezza › Aggiornamenti.
+// Controllo degli aggiornamenti, acceso per tutti dalla 1.0.1 (prima andava attivato): una volta al giorno, e si può spegnere
+// da Impostazioni › Backup e sicurezza › Aggiornamenti. L'aggiornamento resta manuale.
 // Unica operazione di rete: una richiesta GET a api.github.com per leggere il numero dell'ultima versione pubblicata del progetto
 // (nessun dato dell'archivio, nessun identificativo, nessun cookie). TIO non scarica e non installa nulla da solo:
 // se c'è una versione nuova lo dice e apre la pagina di download nel browser, dove l'utente sceglie.
@@ -20,7 +20,7 @@ function progetto(repository) {
 
 /** Progetto configurato per questa copia di TIO (nei test si può indicare con MNGMNT_TEST_REPO). */
 function progettoConfigurato() {
-  if (process.env.MNGMNT_TEST && process.env.MNGMNT_TEST_REPO) return progetto(process.env.MNGMNT_TEST_REPO)
+  if (process.env.MNGMNT_TEST) return process.env.MNGMNT_TEST_REPO ? progetto(process.env.MNGMNT_TEST_REPO) : null // le prove non chiedono mai al GitHub vero
   try { return progetto(require('../package.json').repository) } catch { return null }
 }
 
@@ -119,12 +119,12 @@ let ultimoTentativo = 0
 let inCorso = null
 
 /**
- * Controllo con le regole delle impostazioni. Automatico: solo se attivato, al massimo una volta al giorno (dopo un errore ogni 6 ore).
+ * Controllo con le regole delle impostazioni. Automatico: se non è stato spento, al massimo una volta al giorno (dopo un errore ogni 6 ore).
  * Manuale («Controlla ora»): subito, anche se il controllo automatico è spento, e gli errori arrivano all'interfaccia.
  * `salva` scrive nelle impostazioni, `avvisa` mostra la notifica di una versione nuova (una volta per versione).
  */
 async function controlla({ settings, versione, prog = progettoConfigurato(), salva, avvisa, manuale = false, adesso = Date.now() }) {
-  if (!manuale && settings.aggiornamenti_controllo !== true) return null
+  if (!manuale && settings.aggiornamenti_controllo === false) return null
   if (!prog) { if (manuale) throw new Error('Il controllo sarà disponibile quando TIO verrà pubblicato su GitHub'); return null }
   if (!manuale) {
     const ultimo = Date.parse(settings.aggiornamenti_ultimo || '')

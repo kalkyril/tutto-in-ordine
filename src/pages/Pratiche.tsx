@@ -38,6 +38,7 @@ export default function Pratiche() {
   // ordinamento cliccando le intestazioni dell'elenco (ha la precedenza sul menu «Ordina»); selezione multipla per le azioni di gruppo
   const [col, setCol] = useState<{ k: string; dir: 1 | -1 } | null>(null)
   const [sel, setSel] = useState<Set<number>>(new Set())
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `clock` ricalcola i ritardi al passare del tempo
   const stats = useMemo(() => praticaStats(scadenze, todos), [scadenze, todos, clock])
   const chiuse = useMemo(() => new Set(settings.stati_pratica.filter((s) => s.chiusa).map((s) => s.nome)), [settings.stati_pratica])
 

@@ -3,7 +3,6 @@
 // Tabelle normative incluse: nessuna chiamata a servizi privati o cache di provenienza esterna.
 const fs = require('node:fs')
 const path = require('node:path')
-const db = require('./db')
 const PAGE = 'https://www.gazzettaufficiale.it/eli/id/2022/10/08/22G00157/sg'
 
 let bundled = null
@@ -88,7 +87,6 @@ function vociIncluse(anno, competenza, scaglione) {
   return t.scaglioni.find((s) => s.id === scaglione) || null
 }
 
-function cacheKey(a) { return `${a.anno}:${a.competenza}:${a.scaglione}:${a.valore || 0}` }
 
 async function valori({ anno, competenza, scaglione, valore = 0 }) {
   anno = Number(anno); competenza = Number(competenza); scaglione = Number(scaglione); valore = Math.max(0, Math.round(Number(valore) || 0))

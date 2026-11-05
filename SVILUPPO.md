@@ -59,8 +59,17 @@ npm run test:sito         # browser isolato, risposte GitHub simulate, desktop/t
 npm run test:packaged     # dopo la build: eseguibili in release/mac*, oppure release/win-unpacked
 npm run test:canali       # ogni canale usato dall'interfaccia ha il suo gestore ed è consentito dal preload
 npm run test:licenses     # integrità di avvisi, sorgenti e binari nativi
+npm run lint              # oxlint: errori di correttezza e regole di React sugli hook (anche dentro npm test)
+npm run test:archivi      # archivio vero della 1.0.0 aperto con Node e con il Node di Electron (node:sqlite è sperimentale)
+npm run test:campione     # richiamo e precisione di Anonimizza sul campione annotato in scripts/fixtures/campione-anonimizza
+node scripts/misura-anonimizza.mjs <cartella> [--dettagli]   # la stessa misura su documenti propri annotati (fuori dal progetto)
+node scripts/misura-import.js <file.csv>                     # importazione di un file vero in un archivio temporaneo: stampa solo numeri
 sh scripts/run-all-smoke.sh [cartella]   # tutti gli scenari nell'app vera, in sequenza
 ```
+
+Il lint usa [oxlint](https://oxc.rs) e non ESLint perché `typescript-eslint` non supporta ancora TypeScript 7: le regole sono quelle di ESLint (stessi nomi e stessi commenti `eslint-disable`). Ogni eccezione a `react-hooks/exhaustive-deps` porta il motivo nel commento.
+
+Ogni scenario ha un tempo massimo (`MNGMNT_TEST_MAX_MIN`, predefinito 15 minuti): allo scadere l'app si chiude da sola e, se è bloccata del tutto, la chiude `run-smoke.sh` due minuti dopo. Per i controlli che dipendono da un aggiornamento della pagina si usa `attendi()` di `scripts/lib/attesa.js` (aspetta la condizione) invece di una pausa fissa.
 
 `run-all-smoke.sh` compila una volta, riesegue una volta uno scenario fallito e lo segnala INSTABILE se al secondo tentativo passa (con `STRICT=1` l'instabilità vale come errore); se il computer è molto carico lo scrive all'inizio. `sh scripts/run-smoke-carico.sh <cartella> <scenari…>` esegue gli scenari con il computer sotto carico. Un singolo scenario: `sh scripts/run-smoke.sh <cartella> <scenario>`.
 
@@ -83,7 +92,7 @@ sh scripts/run-all-smoke.sh [cartella]   # tutti gli scenari nell'app vera, in s
 | `smoke-backup-accessibility` | backup, ripristino e accessibilità delle Impostazioni |
 | `smoke-modello-layout` | editor del modello PDF |
 | `smoke-security` | confini di sicurezza dell'interfaccia |
-| `smoke-aggiornamenti` | controllo facoltativo degli aggiornamenti (GitHub simulato) |
+| `smoke-aggiornamenti` | controllo degli aggiornamenti, acceso per tutti e disattivabile (GitHub simulato) |
 | `smoke-profilo-ditta` | nel profilo ditta Agenda, Panoramica, stampa e scheda della pratica non parlano di udienze |
 | `smoke-axe` | rapporto dettagliato di accessibilità (diagnostico, senza riga RISULTATO) |
 

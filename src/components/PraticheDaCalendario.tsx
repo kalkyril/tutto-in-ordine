@@ -27,6 +27,7 @@ export function PraticheDaCalendarioModal({ calendarioId, onClose }: { calendari
       setScelte(Object.fromEntries(r.pratiche.map((p) => [p.chiave, p.stato !== 'scartata'])))
       setAutomatico(r.calendario.crea_pratiche || r.primaVolta) // la prima volta proposto acceso, poi resta la scelta fatta
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- si carica una volta per calendario; onClose e run non devono ricaricare
   }, [calendarioId])
 
   const scelteN = dati ? dati.pratiche.filter((p) => scelte[p.chiave]).length : 0

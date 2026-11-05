@@ -8,8 +8,8 @@ const app = { getPath: (nome) => ({ home: 'C:\\Users\\avvocato', documents: 'C:\
 const mac = { getPath: (nome) => ({ home: '/Users/avvocato', documents: '/Users/avvocato/Documents' })[nome] }
 
 assert.equal(c.basePredefinita(app, 'win32'), 'C:\\Users\\avvocato')
-assert.ok(!/Documents/.test(c.backupPredefinito(app, 'win32')) && /TIO Backup$/.test(c.backupPredefinito(app, 'win32')))
-assert.ok(!/Documents/.test(c.documentiPredefiniti(app, 'win32')) && /TIO$/.test(c.documentiPredefiniti(app, 'win32')))
+assert.ok(!/Documents/.test(c.backupPredefinito(app, 'win32')) && c.backupPredefinito(app, 'win32').endsWith('TIO Backup'))
+assert.ok(!/Documents/.test(c.documentiPredefiniti(app, 'win32')) && c.documentiPredefiniti(app, 'win32').endsWith('TIO'))
 ok('Windows: backup e documenti creati da TIO nella cartella utente, mai in Documenti')
 
 assert.equal(c.backupPredefinito(mac, 'darwin'), require('node:path').join('/Users/avvocato/Documents', 'TIO Backup'))

@@ -10,6 +10,7 @@ import { nomeAttivita } from '../lib/brand'
 import { useBlocco } from './LockGate'
 import { scorciatoia, type Azione } from '../lib/azioni'
 import { useClock } from '../lib/clock'
+import { Avanzamento } from './Avanzamento'
 
 export function Sidebar() {
   const { route, go } = useNav()
@@ -75,6 +76,7 @@ export function Topbar({ onSearch, sidebarVisible, onToggleSidebar }: { onSearch
         {pratica ? <><button className="context-link" onClick={() => go('pratiche')}>{labels.pratiche}</button><ChevronRight size={13} aria-hidden="true" /><span title={pratica.titolo}>{pratica.numero || pratica.titolo}</span></> : <span>{labels[route.page]}</span>}
       </div>
       <div className="spacer" />
+      <Avanzamento />
       {nuova && <button className="update-pill" aria-label={`Aggiornamento disponibile: TIO ${nuova.versione}`} onClick={() => go({ page: 'impostazioni', tab: 'backup' })} title={`È disponibile TIO ${nuova.versione}: apri Impostazioni › Backup e sicurezza › Aggiornamenti per scaricarla (prima fai un backup)`}>
         <Download size={14} aria-hidden="true" /><span>Aggiornamento <b>{nuova.versione}</b></span>
       </button>}

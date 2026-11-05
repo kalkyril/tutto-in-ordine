@@ -1,0 +1,49 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "react",
+    "unicorn",
+    "typescript",
+    "oxc"
+  ],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2024": true
+  },
+  "ignorePatterns": [
+    "dist/**",
+    "release/**",
+    "node_modules/**",
+    "scripts/fixtures/**",
+    "electron/data/**"
+  ],
+  "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "react/set-state-in-effect": "off",
+    "react/refs": "off",
+    "react/immutability": "off",
+    "react/purity": "off",
+    "react/preserve-manual-memoization": "off",
+    "no-control-regex": "off",
+    "no-unused-vars": [
+      "error",
+      {
+        "ignoreRestSiblings": true,
+        "args": "none",
+        "caughtErrors": "none"
+      }
+    ],
+    "no-unused-expressions": [
+      "error",
+      {
+        "allowTernary": true,
+        "allowShortCircuit": true
+      }
+    ]
+  }
+}

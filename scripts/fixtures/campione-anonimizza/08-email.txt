@@ -1,0 +1,12 @@
+Da: {{FULLNAME|Martina Gualdi}} <{{EMAIL|martina.gualdi@posta-esempio.it}}>
+Oggetto: documenti per la successione di mio padre
+
+Buongiorno avvocato,
+le invio i documenti che mi aveva chiesto. Mio padre, {{FULLNAME|Ermes Gualdi}}, è mancato il {{DATE|3 agosto 2026}} a {{CITY|Sassuolo}}; abitava in {{STREET|via Radici in Piano 18}}.
+Il conto era presso la banca con IBAN {{IBAN|IT42L1234512345123456789012}}.
+Mio fratello {{FULLNAME|Davide}} non è ancora d'accordo sulla divisione della casa di {{CITY|Fiorano Modenese}}.
+
+Mi può richiamare al {{TELEPHONENUM|335 9876543}}?
+
+Grazie,
+{{FULLNAME|Martina}}

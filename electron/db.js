@@ -2,6 +2,7 @@
 // Livello dati: SQLite locale tramite il modulo integrato node:sqlite (nessun modulo nativo da compilare).
 const { DatabaseSync } = require('node:sqlite')
 const fs = require('node:fs')
+const crypto = require('node:crypto')
 const path = require('node:path')
 
 const validation = require('./validation')
@@ -241,6 +242,12 @@ function open(dir, { restoring = false } = {}) {
   if (!pc.includes('storno_di')) db.exec('ALTER TABLE parcelle ADD COLUMN storno_di INTEGER REFERENCES parcelle(id) ON DELETE SET NULL')
   // modelli Word dell'utente (sezione Documenti): il file .docx intero, così entra nei backup dell'archivio
   db.exec('CREATE TABLE IF NOT EXISTS modelli_word (id TEXT PRIMARY KEY, nome TEXT NOT NULL, dati BLOB NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime(\'now\',\'localtime\')))')
+  // 1.0.1: immagini e font dei modelli (logo, immagine del piè di pagina, font personali) salvati una volta sola;
+  // nelle impostazioni resta un riferimento «tio-risorsa:<sha256>», così i modelli che li condividono non li duplicano
+  db.exec('CREATE TABLE IF NOT EXISTS risorse (id TEXT PRIMARY KEY, dati TEXT NOT NULL)')
+  // 1.0.1: impronte già calcolate dei file delle cartelle sincronizzate (percorso, dimensione e data di modifica):
+  // alla sincronizzazione successiva si rilegge solo ciò che è cambiato
+  db.exec('CREATE TABLE IF NOT EXISTS impronte (percorso TEXT PRIMARY KEY, byte INTEGER NOT NULL, mtime REAL NOT NULL, impronta TEXT NOT NULL)')
   const prCols = db.prepare('PRAGMA table_info(pratiche)').all().map(c => c.name)
   for (const [name, type] of [['budget_ore', 'REAL'], ['budget_importo', 'REAL'], ['consegna', 'TEXT']]) if (!prCols.includes(name)) db.exec(`ALTER TABLE pratiche ADD COLUMN ${name} ${type}`)
   db.exec(`CREATE TABLE IF NOT EXISTS pagamenti (
@@ -264,6 +271,13 @@ function open(dir, { restoring = false } = {}) {
   db.exec('COMMIT')
   } catch (error) { db.exec('ROLLBACK'); throw error }
   for (const k of Object.keys(colCache)) delete colCache[k]
+  // 1.0.1: logo e font già incorporati nelle impostazioni passano nella tabella delle risorse (una copia sola)
+  try {
+    const daSpostare = {}
+    for (const r of db.prepare("SELECT key, value FROM settings WHERE value LIKE '%\"data:%' AND length(value) > ?").all(MIN_RISORSA)) { try { daSpostare[r.key] = JSON.parse(r.value) } catch { /* valore non JSON: resta com'è */ } }
+    if (Object.keys(daSpostare).length) setSettings(daSpostare)
+    pulisciRisorse()
+  } catch (error) { console.error('Risorse dei modelli non spostate:', error.message) }
   return db
 }
 
@@ -451,9 +465,57 @@ function getSettings() {
   return out
 }
 
+// Immagini e font incorporati (data URL) si salvano una volta sola nella tabella `risorse`, indicizzati per impronta:
+// nelle impostazioni resta «tio-risorsa:<sha256>». Il renderer li richiede con risorse() e li rimette al loro posto.
+const RIFERIMENTO = 'tio-risorsa:'
+const MIN_RISORSA = 512
+const RE_RIFERIMENTO = /tio-risorsa:([0-9a-f]{64})/g
+function separaRisorse(v, nuove) {
+  if (typeof v === 'string') {
+    if (v.length < MIN_RISORSA || !v.startsWith('data:')) return v
+    const id = crypto.createHash('sha256').update(v).digest('hex')
+    nuove.set(id, v); return RIFERIMENTO + id
+  }
+  if (Array.isArray(v)) return v.map((x) => separaRisorse(x, nuove))
+  if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, separaRisorse(x, nuove)]))
+  return v
+}
+/** Contenuto delle risorse richieste (solo identificativi validi). */
+function risorse(ids) {
+  const out = {}
+  const st = db.prepare('SELECT dati FROM risorse WHERE id = ?')
+  for (const id of new Set((Array.isArray(ids) ? ids : []).map(String))) {
+    if (!/^[0-9a-f]{64}$/.test(id)) continue
+    const r = st.get(id); if (r) out[id] = r.dati
+  }
+  return out
+}
+/** Impostazioni con le risorse rimesse al loro posto (per chi ha bisogno dei dati veri, es. esportazioni del processo principale). */
+function espandiRisorse(v, mappa = null) {
+  if (typeof v === 'string') { if (!v.startsWith(RIFERIMENTO)) return v; const id = v.slice(RIFERIMENTO.length); if (!mappa) mappa = risorse([id]); return mappa[id] ?? null }
+  if (Array.isArray(v)) return v.map((x) => espandiRisorse(x, mappa))
+  if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, espandiRisorse(x, mappa)]))
+  return v
+}
+/**
+ * Toglie le risorse che nessuna impostazione usa più (logo sostituito, font rimosso, modello eliminato).
+ * Solo all'apertura dell'archivio: durante il lavoro una finestra può avere un modello non ancora salvato che usa ancora
+ * una risorsa appena tolta da un altro modello.
+ */
+function pulisciRisorse() {
+  const usate = new Set()
+  for (const r of db.prepare('SELECT value FROM settings').all()) for (const m of String(r.value).matchAll(RE_RIFERIMENTO)) usate.add(m[1])
+  const del = db.prepare('DELETE FROM risorse WHERE id = ?')
+  for (const r of db.prepare('SELECT id FROM risorse').all()) if (!usate.has(r.id)) del.run(r.id)
+}
+
 function setSettings(obj) {
   const st = db.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+  const nuove = new Map()
+  obj = separaRisorse(obj, nuove)
   transaction(() => {
+    const ins = db.prepare('INSERT OR IGNORE INTO risorse(id, dati) VALUES(?, ?)')
+    for (const [id, dati] of nuove) ins.run(id, dati)
     if (obj.stati_pratica && Array.isArray(obj.stati_pratica)) {
       const old = getSettings().stati_pratica || [], next = obj.stati_pratica
       const names = next.map((state) => String(state.nome || '').trim())
@@ -617,7 +679,7 @@ function openForBackup(dir) {
 module.exports = { openForBackup,
   getRecoveryResult: () => recoveryResult,
   open, close, isolaArchivioDanneggiato, verificaIntegrita, getDb, getDataDir, list, get, save, remove, transaction, localNow,
-  getSettings, setSettings, nextPraticaNumero, nextParcellaNumero,
+  getSettings, setSettings, risorse, espandiRisorse, nextPraticaNumero, nextParcellaNumero,
   getParcella, saveParcella, reorderTodos, searchAll, TABLES, ripristina, senzaCronologia, scriviCronologia,
 }
 

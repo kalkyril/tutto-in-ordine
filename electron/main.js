@@ -14,6 +14,9 @@ const { isAppUrl, denyUnusedPermissions } = require('./web-policy')
 
 const isDev = !!process.env.MNGMNT_DEV
 const isTest = !!process.env.MNGMNT_TEST
+// nelle prove il Portachiavi di macOS è simulato: quello vero può aprire una finestra di sistema (per esempio dopo
+// la reinstallazione di Electron) che blocca il processo principale finché qualcuno non risponde
+if (isTest && process.platform === 'darwin') app.commandLine.appendSwitch('use-mock-keychain')
 
 app.setName('TIO')
 app.setAppUserModelId('it.tio.app')
@@ -148,7 +151,21 @@ function createWindow() {
   else win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'))
 }
 
-/** Controllo facoltativo degli aggiornamenti (electron/aggiornamenti.js): `manuale` per «Controlla ora», altrimenti solo se attivato. */
+/**
+ * 1.0.1: il controllo degli aggiornamenti si accende per tutti, anche per chi nella 1.0.0 aveva risposto «Non ora»,
+ * così ogni copia vede l'icona della versione nuova. Una volta sola; poi vale la scelta nelle Impostazioni.
+ * Un avviso nel campanello lo spiega e dice come spegnerlo.
+ */
+function attivaControlloAggiornamenti() {
+  try {
+    const s = db.getSettings()
+    if (s.aggiornamenti_attivato_101) return
+    db.setSettings({ aggiornamenti_controllo: true, aggiornamenti_attivato_101: true })
+    if (s.onboarding_fatto && require('./aggiornamenti').progettoConfigurato()) alerts.pushNotifiche([{ titolo: 'TIO ora ti avvisa delle nuove versioni', corpo: 'Una volta al giorno chiede a GitHub il numero dell’ultima versione; l’aggiornamento resta manuale. Si spegne da Impostazioni › Backup e sicurezza › Aggiornamenti.', tipo: 'aggiornamento', rif_tipo: 'aggiornamento' }])
+  } catch (error) { console.error('Controllo aggiornamenti non attivato:', error.message) }
+}
+
+/** Controllo degli aggiornamenti (electron/aggiornamenti.js): `manuale` per «Controlla ora», altrimenti solo se attivato. */
 function controllaAggiornamenti(manuale = false) {
   if (!db.getDb()) return Promise.resolve(null)
   return require('./aggiornamenti').controlla({
@@ -228,7 +245,7 @@ function applySettings(s) {
     getWindow()?.setBackgroundColor(nativeTheme.shouldUseDarkColors ? '#17191f' : '#f6f7f9')
   } catch { /* finestra non ancora pronta */ }
   updateBadge() // aggiorna anche il nome mostrato nell'icona di sistema
-  if (s.aggiornamenti_controllo === true) controllaAggiornamenti().catch(() => {}) // appena attivato, senza aspettare il prossimo giro
+  if (s.aggiornamenti_controllo !== false) controllaAggiornamenti().catch(() => {}) // appena attivato, senza aspettare il prossimo giro
   try {
     if (!isTest && process.platform !== 'linux' && app.getLoginItemSettings().openAtLogin !== !!s.avvia_al_login) {
       app.setLoginItemSettings({ openAtLogin: !!s.avvia_al_login, openAsHidden: true })
@@ -243,7 +260,7 @@ function buildMenu() {
   let L = {}
   try { L = db.getSettings().etichette || {} } catch { /* archivio non ancora pronto: nomi predefiniti */ }
   const minuscolo = (t, predefinito) => String(t || predefinito).toLowerCase()
-  const nuovoLavoro = () => { const n = minuscolo(L.pratica, 'pratica'); return `${/[oe]$/.test(n) && !/ione$/.test(n) ? 'Nuovo' : 'Nuova'} ${n}` }
+  const nuovoLavoro = () => { const n = minuscolo(L.pratica, 'pratica'); return `${/[oe]$/.test(n) && !n.endsWith('ione') ? 'Nuovo' : 'Nuova'} ${n}` }
   let avvocato = true
   try { avvocato = db.getSettings().profilo !== 'ditta' } catch { /* predefinito */ }
   const comando = (id) => () => send('menu', id)
@@ -384,6 +401,7 @@ app.whenReady().then(() => {
   docfile.init({ documenti: require('./cartelle-utente').basePredefinita(app) }) // Documenti; su Windows la cartella utente
   buildMenu()
   ipc.register({ getWindow, notifyChanged, onSettings: applySettings, runAlertCheck, controllaAggiornamenti })
+  attivaControlloAggiornamenti()
   applySettings(db.getSettings())
   createWindow()
   createTray()
@@ -402,7 +420,7 @@ app.whenReady().then(() => {
     }
     try { runAlertCheck() } catch (e) { console.error('Controllo avvisi fallito:', e) }
     doctext.indicizzaPendentiAsync(4).then((updated) => { if (updated) notifyChanged(['documenti']) }).catch(() => {})
-    controllaAggiornamenti().catch(() => {}) // spento di default: senza il consenso nelle Impostazioni non fa nulla
+    controllaAggiornamenti().catch(() => {}) // una volta al giorno, se non è stato spento nelle Impostazioni
     backup.autoBackupAsync(db.getSettings(), isTest ? null : require('./cartelle-utente').backupPredefinito(app), { passwordProvider: () => db.getSettings().backup_cifrato === true ? require('./backup-key').password() : '' }).then((updated) => { if (updated) notifyChanged(['settings']) }).catch((error) => console.error('Backup automatico fallito:', error.message))
   }
   setTimeout(tick, 2500)
@@ -417,7 +435,8 @@ app.whenReady().then(() => {
     require('../scripts/' + (process.env.MNGMNT_TEST_SCENARIO || 'smoke-hooks')).attach({ getWindow, db, runAlertCheck })
     // uno scenario bloccato (finestra di sistema inattesa, attesa senza fine) fallisce invece di tenere occupato il computer per ore
     const minuti = Number(process.env.MNGMNT_TEST_MAX_MIN) || 15
-    setTimeout(() => { console.log(`ERRORE: scenario ${process.env.MNGMNT_TEST_SCENARIO || 'smoke-hooks'} fermo oltre ${minuti} minuti`); app.exit(3) }, minuti * 60 * 1000).unref()
+    // senza unref(): nel processo principale di Electron un timer «unref» può non svegliare mai il ciclo degli eventi
+    setTimeout(() => { console.log(`ERRORE: scenario ${process.env.MNGMNT_TEST_SCENARIO || 'smoke-hooks'} fermo oltre ${minuti} minuti`); app.exit(3) }, minuti * 60 * 1000)
   }
 })
 

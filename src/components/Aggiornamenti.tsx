@@ -44,7 +44,7 @@ export function AggiornamentiImpostazioni({ d, up, versione, disponibile }: { d:
 
   return (
     <SettingsGroup title="Aggiornamenti" footer="La richiesta a GitHub contiene solo il nome del programma e la versione in uso; GitHub vede l’indirizzo IP della connessione.">
-      <SettingsToggle title="Controlla gli aggiornamenti ogni giorno" description="TIO chiede a GitHub il numero dell’ultima versione pubblicata. Non invia dati dell’archivio e non scarica né installa nulla da solo." checked={d.aggiornamenti_controllo === true} onChange={(v) => up('aggiornamenti_controllo', v)} />
+      <SettingsToggle title="Controlla gli aggiornamenti ogni giorno" description="Acceso per tutti: TIO chiede a GitHub il numero dell’ultima versione pubblicata e, se ce n’è una nuova, mostra «Aggiornamento» in alto. Non invia dati dell’archivio e non scarica né installa nulla da solo: l’aggiornamento lo scarichi e lo installi tu." checked={d.aggiornamenti_controllo !== false} onChange={(v) => up('aggiornamenti_controllo', v)} />
       <SettingsRow title={stato} description={dettaglio}>
         {nuova && <Btn variant="primary" onClick={() => run(() => api.openExternal(nuova.pagina))}><Download size={15} /> Apri la pagina di download</Btn>}
         <Btn onClick={controllaOra} disabled={inCorso}><RefreshCw size={15} /> {inCorso ? 'Controllo…' : 'Controlla ora'}</Btn>

@@ -196,3 +196,8 @@
   .sidebar .brand { min-height: 64px; }
   .sidebar .nav-list { gap: 10px; }
 }
+
+/* importazione: scelta del cliente fra le parti dell'intestazione */
+.import-parti { margin-top: 10px; }
+.import-parti-elenco { max-height: 280px; overflow: auto; margin-top: 8px; border: 1px solid var(--border); border-radius: 8px; }
+.import-parti-elenco thead th { position: sticky; top: 0; background: var(--surface); }

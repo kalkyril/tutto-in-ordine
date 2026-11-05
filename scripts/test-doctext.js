@@ -33,7 +33,7 @@ db.open(path.join(tmp, 'dati'))
 const pr = db.save('pratiche', { numero: '2026/001', titolo: 'Causa', colore: '#123456' })
 const dir = path.join(db.getDataDir(), 'documenti', String(pr.id)); fs.mkdirSync(dir, { recursive: true })
 const agg = (nome, buf) => { fs.writeFileSync(path.join(dir, nome), buf); return db.save('documenti', { pratica_id: pr.id, nome, file: `${pr.id}/${nome}`, dimensione: buf.length }) }
-const d1 = agg('Citazione.docx', docxBuf), d2 = agg('guasto.docx', Buffer.from('non zip')), d3 = agg('Scansione.pdf', Buffer.from('%PDF')), d4 = agg('Email PEC.eml', Buffer.from(eml)), d5 = agg('Tabella.xlsx', xlsxBuf)
+const d1 = agg('Citazione.docx', docxBuf); agg('guasto.docx', Buffer.from('non zip')); agg('Scansione.pdf', Buffer.from('%PDF')); const d4 = agg('Email PEC.eml', Buffer.from(eml)), d5 = agg('Tabella.xlsx', xlsxBuf)
 assert.equal(dt.indicizzaPendenti(), 5); assert.equal(dt.indicizzaPendenti(), 0)
 const trova = (q) => dt.cercaNeiDocumenti(q)
 assert.deepEqual(trova('zanzibar').map((h) => h.id), [d1.id]); assert.match(trova('zanzibar')[0].sub, /…?.*Zanzibar S\.r\.l\./i); assert.equal(trova('zanzibar')[0].color, '#123456'); assert.equal(trova('zanzibar')[0].pratica_id, pr.id)

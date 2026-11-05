@@ -34,23 +34,39 @@ function impronta(file) {
     return `${size}-sha256-${h.digest('hex')}`
   } finally { fs.closeSync(fd) }
 }
-function stessoContenuto(d, file) {
+/** Come impronta(), ma senza bloccare il processo principale: la finestra resta reattiva anche con file grandi o in rete. */
+async function improntaAsync(file) {
+  const fh = await fs.promises.open(file, 'r')
+  try {
+    const { size } = await fh.stat(), h = crypto.createHash('sha256'), buffer = Buffer.alloc(1024 * 1024)
+    for (;;) { const { bytesRead } = await fh.read(buffer, 0, buffer.length, null); if (!bytesRead) break; h.update(buffer.subarray(0, bytesRead)) }
+    return `${size}-sha256-${h.digest('hex')}`
+  } finally { await fh.close() }
+}
+async function stessoContenuto(d, file) {
   if (!d.impronta || !/-sha256-[a-f0-9]{64}$/.test(d.impronta)) return false
-  try { return impronta(file) === d.impronta } catch { return false }
+  try { return (await improntaAsync(file)) === d.impronta } catch { return false }
+}
+/** Lascia lavorare il resto dell'app (richieste della finestra, timer) durante le operazioni lunghe. */
+const respira = () => new Promise((r) => setImmediate(r))
+/** Avanzamento al più ogni 150 ms, per non intasare la finestra di messaggi. */
+function avanzamento(cb) {
+  let ultimo = 0
+  return (info, forza = false) => { if (!cb) return; const t = Date.now(); if (forza || t - ultimo > 150) { ultimo = t; try { cb(info) } catch { /* finestra chiusa */ } } }
 }
 
 const dentro = (figlio, padre) => { const r = path.relative(padre, figlio); return !!r && !r.startsWith('..') && !path.isAbsolute(r) }
 const relativoA = (file, cartella) => (cartella && dentro(file, cartella) ? path.relative(cartella, file) : null)
 
 /** Collega un file esistente alla pratica (senza copiarlo). Se è già collegato restituisce il documento esistente. */
-function collega(praticaId, src, { categoria = null, oraId = null } = {}) {
+function collega(praticaId, src, { categoria = null, oraId = null, impronta: imp = null } = {}) {
   const pratica = db.get('pratiche', praticaId); if (!pratica) throw new Error('Pratica non trovata')
   const assoluto = path.resolve(src)
   const st = fs.lstatSync(assoluto)
   if (st.isSymbolicLink() ? !isFile(assoluto) : !st.isFile()) throw new Error('Non è un file')
   const gia = db.list('documenti', { pratica_id: praticaId }).find((d) => d.percorso === assoluto && (d.ora_id || null) === (oraId || null))
   if (gia) return gia
-  return db.save('documenti', { pratica_id: praticaId, nome: path.basename(assoluto), file: '', percorso: assoluto, impronta: impronta(assoluto), rel: relativoA(assoluto, pratica.cartella), dimensione: fs.statSync(assoluto).size, categoria, ora_id: oraId })
+  return db.save('documenti', { pratica_id: praticaId, nome: path.basename(assoluto), file: '', percorso: assoluto, impronta: imp || impronta(assoluto), rel: relativoA(assoluto, pratica.cartella), dimensione: fs.statSync(assoluto).size, categoria, ora_id: oraId })
 }
 
 /** Collega un documento al file indicato dall'utente (percorso cambiato a mano). */
@@ -123,6 +139,28 @@ function percorri(radici, { maxVoci = 250000, maxProf = 10, maxMs = 60000 } = {}
   return { file, incompleto, voci }
 }
 
+/** Come percorri(), ma con letture asincrone e pause: non blocca la finestra durante la scansione di cartelle grandi o in rete. */
+async function percorriAsync(radici, { maxVoci = 250000, maxProf = 10, maxMs = 60000, avanza = null } = {}) {
+  const t0 = Date.now(), file = []; let voci = 0, incompleto = false
+  const visti = new Set()
+  const vai = async (dir, prof) => {
+    if (incompleto) return
+    let reali; try { reali = await fs.promises.realpath(dir) } catch { return }
+    if (visti.has(reali)) return; visti.add(reali)
+    let elenco; try { elenco = await fs.promises.readdir(dir, { withFileTypes: true }) } catch { return }
+    for (const e of elenco) {
+      if (++voci > maxVoci || Date.now() - t0 > maxMs) { incompleto = true; return }
+      const p = path.join(dir, e.name)
+      if (e.isSymbolicLink()) continue
+      if (e.isDirectory()) { if (prof < maxProf && !SALTA.test(e.name)) await vai(p, prof + 1) }
+      else if (e.isFile() && !/^(\..*|Thumbs\.db|desktop\.ini)$/i.test(e.name)) { try { const st = await fs.promises.stat(p); file.push({ percorso: p, nome: e.name, byte: st.size, mtime: st.mtimeMs }) } catch { /* illeggibile */ } }
+      if (voci % 200 === 0) { avanza?.({ fase: 'cerco', fatti: file.length }); await respira() }
+    }
+  }
+  for (const r of radici) if (isDir(r)) await vai(r, 0)
+  return { file, incompleto, voci }
+}
+
 const suffissoComune = (a, b) => { const x = a.split(path.sep).reverse(), y = b.split(path.sep).reverse(); let n = 0; while (n < x.length && n < y.length && x[n].toLowerCase() === y[n].toLowerCase()) n++; return n }
 // cartelle ancora esistenti sopra il file (fino a 3 livelli), escluse la radice del disco e la cartella personale: lì si cerca il file spostato
 const ancestriEsistenti = (p, livelli = 3) => {
@@ -137,46 +175,54 @@ const ancestriEsistenti = (p, livelli = 3) => {
  * 1) cartella della pratica + percorso relativo; 2) stessa cartella spostata come un blocco; 3) ricerca nelle cartelle indicate
  * (impostazioni, cartella della pratica, cartella più vicina ancora esistente) per nome e dimensione, o per impronta se rinominato.
  */
-function sincronizza({ praticaId = null, radici = [], maxMs = 60000 } = {}) {
+async function sincronizza({ praticaId = null, radici = [], maxMs = 60000, avanza: cb = null } = {}) {
+  const avanza = avanzamento(cb)
   const docs = db.list('documenti', praticaId ? { pratica_id: praticaId } : {}).filter((d) => d.percorso)
   const rep = { controllati: docs.length, ok: 0, ritrovati: [], mancanti: [], ambigui: [], incompleto: false }
   // Migra le vecchie impronte parziali solo quando l'originale è ancora disponibile.
-  for (const d of docs) if (isFile(d.percorso) && !/-sha256-[a-f0-9]{64}$/.test(d.impronta || '')) { try { d.impronta = impronta(d.percorso); db.save('documenti', { id: d.id, impronta: d.impronta }) } catch { /* file illeggibile */ } }
+  let i = 0
+  for (const d of docs) {
+    avanza({ fase: 'controllo', fatti: ++i, totale: docs.length })
+    if (isFile(d.percorso) && !/-sha256-[a-f0-9]{64}$/.test(d.impronta || '')) { try { d.impronta = await improntaAsync(d.percorso); db.save('documenti', { id: d.id, impronta: d.impronta }) } catch { /* file illeggibile */ } }
+    if (i % 100 === 0) await respira()
+  }
   let mancanti = docs.filter((d) => !isFile(d.percorso)); rep.ok = docs.length - mancanti.length
   if (!mancanti.length) return rep
-  const stessoFile = stessoContenuto
-  const applica = (d, nuovo, come) => {
+  const applica = async (d, nuovo, come) => {
     const pratica = db.get('pratiche', d.pratica_id)
-    db.save('documenti', { id: d.id, percorso: nuovo, rel: relativoA(nuovo, pratica?.cartella), ...(d.impronta ? {} : { impronta: impronta(nuovo) }) })
+    db.save('documenti', { id: d.id, percorso: nuovo, rel: relativoA(nuovo, pratica?.cartella), ...(d.impronta ? {} : { impronta: await improntaAsync(nuovo) }) })
     rep.ritrovati.push({ id: d.id, nome: d.nome, da: d.percorso, a: nuovo, come })
     mancanti = mancanti.filter((x) => x.id !== d.id)
     daA.set(path.dirname(d.percorso), path.dirname(nuovo))
   }
   const daA = new Map() // cartella di origine → nuova cartella (spostata come un blocco)
-  const passoRapido = () => {
-    for (const d of [...mancanti]) {
+  const passoRapido = async () => {
+    for (const d of mancanti.slice()) { // copia: applica() toglie gli elementi ritrovati
       const pratica = db.get('pratiche', d.pratica_id)
-      if (pratica?.cartella && d.rel) { const c = path.join(pratica.cartella, d.rel); if (isFile(c) && stessoFile(d, c)) { applica(d, c, 'cartella della pratica'); continue } }
+      if (pratica?.cartella && d.rel) { const c = path.join(pratica.cartella, d.rel); if (isFile(c) && await stessoContenuto(d, c)) { await applica(d, c, 'cartella della pratica'); continue } }
       const chiavi = [...daA.keys()].filter((k) => d.percorso === k || d.percorso.startsWith(k + path.sep)).sort((a, b) => b.length - a.length)
-      for (const k of chiavi) { const c = path.join(daA.get(k), path.relative(k, d.percorso)); if (isFile(c) && stessoFile(d, c)) { applica(d, c, 'cartella spostata'); break } }
+      for (const k of chiavi) { const c = path.join(daA.get(k), path.relative(k, d.percorso)); if (isFile(c) && await stessoContenuto(d, c)) { await applica(d, c, 'cartella spostata'); break } }
     }
   }
-  passoRapido(); passoRapido()
+  await passoRapido(); await passoRapido()
   if (mancanti.length) {
     const rad = new Set(radici.filter(Boolean))
     for (const r of db.getSettings().cartelle_ricerca || []) rad.add(r)
     for (const d of mancanti) { const p = db.get('pratiche', d.pratica_id); if (p?.cartella) rad.add(p.cartella); for (const a of ancestriEsistenti(d.percorso)) rad.add(a) }
     // radici annidate: basta la più esterna
     const lista = [...rad].filter(isDir).map((r) => path.resolve(r)); const esterne = lista.filter((r) => !lista.some((o) => o !== r && dentro(r, o)))
-    const { file, incompleto } = percorri(esterne, { maxMs }); rep.incompleto = incompleto
+    const { file, incompleto } = await percorriAsync(esterne, { maxMs, avanza }); rep.incompleto = incompleto
     const perNome = new Map(); for (const f of file) { const k = f.nome.toLowerCase(); (perNome.get(k) || perNome.set(k, []).get(k)).push(f) }
     const perDim = new Map(); for (const f of file) (perDim.get(f.byte) || perDim.set(f.byte, []).get(f.byte)).push(f)
-    for (const d of [...mancanti]) {
+    const filtra = async (lista, d) => { const out = []; for (const f of lista) if (await stessoContenuto(d, f.percorso)) out.push(f); return out }
+    let j = 0; const daCercare = mancanti.length
+    for (const d of mancanti.slice()) { // copia: applica() toglie gli elementi ritrovati
+      avanza({ fase: 'confronto', fatti: ++j, totale: daCercare })
       let cand = (perNome.get(d.nome.toLowerCase()) || []).filter((f) => d.dimensione == null || f.byte === d.dimensione)
       let come = 'stesso nome e dimensione'
-      cand = cand.filter((f) => stessoContenuto(d, f.percorso)); if (cand.length) come = 'stesso contenuto'
+      cand = await filtra(cand, d); if (cand.length) come = 'stesso contenuto'
       if (!cand.length && d.impronta && d.dimensione != null) { // rinominato: stessa dimensione e stesso contenuto
-        const sim = (perDim.get(d.dimensione) || []).filter((f) => { return stessoContenuto(d, f.percorso) })
+        const sim = await filtra(perDim.get(d.dimensione) || [], d)
         if (sim.length) { cand = sim; come = 'file rinominato' }
       }
       if (!cand.length) continue
@@ -185,16 +231,16 @@ function sincronizza({ praticaId = null, radici = [], maxMs = 60000 } = {}) {
         if (ord[0].s === ord[1].s) { rep.ambigui.push({ id: d.id, nome: d.nome, percorso: d.percorso, candidati: cand.slice(0, 5).map((f) => f.percorso) }); mancanti = mancanti.filter((x) => x.id !== d.id); continue }
         cand = [ord[0].f]
       }
-      applica(d, cand[0].percorso, come)
+      await applica(d, cand[0].percorso, come)
     }
-    passoRapido()
+    await passoRapido()
   }
   rep.mancanti = mancanti.map((d) => ({ id: d.id, nome: d.nome, percorso: d.percorso, pratica_id: d.pratica_id }))
   return rep
 }
 
 /** Cambia la cartella della pratica (spostata): ricalcola i percorsi dei documenti dal percorso relativo. */
-function impostaCartella(praticaId, nuova) {
+async function impostaCartella(praticaId, nuova) {
   const p = db.get('pratiche', praticaId); if (!p) throw new Error('Pratica non trovata')
   const cartella = nuova ? path.resolve(nuova) : null
   if (cartella && !isDir(cartella)) throw new Error('La cartella non esiste')
@@ -203,29 +249,32 @@ function impostaCartella(praticaId, nuova) {
   if (cartella) for (const d of db.list('documenti', { pratica_id: praticaId })) {
     if (!d.percorso || !d.rel) continue
     const c = path.join(cartella, d.rel)
-    if (isFile(c) && c !== d.percorso && stessoContenuto(d, c)) { db.save('documenti', { id: d.id, percorso: c }); aggiornati++ }
+    if (isFile(c) && c !== d.percorso && await stessoContenuto(d, c)) { db.save('documenti', { id: d.id, percorso: c }); aggiornati++ }
   }
   return { cartella, aggiornati }
 }
 
 /** Collega tutti i file di una cartella (sottocartelle comprese) alla pratica. */
-function collegaCartella(praticaId, dir, { maxFile = 5000 } = {}) {
+async function collegaCartella(praticaId, dir, { maxFile = 5000, avanza: cb = null } = {}) {
+  const avanza = avanzamento(cb)
   const p = db.get('pratiche', praticaId); if (!p) throw new Error('Pratica non trovata')
   const radice = path.resolve(dir); if (!isDir(radice)) throw new Error('La cartella non esiste')
   if (!p.cartella) db.save('pratiche', { id: praticaId, cartella: radice })
-  const { file, incompleto } = percorri([radice], { maxVoci: maxFile * 4, maxMs: 30000 })
+  const { file, incompleto } = await percorriAsync([radice], { maxVoci: maxFile * 4, maxMs: 30000, avanza })
   let collegati = 0, gia = 0; const nuovi = []
   const finale = () => { if (collegati) db.scriviCronologia(praticaId, 'documenti', null, 'creato', collegati === 1 ? `Documento «${nuovi[0].nome}»` : `${collegati} documenti collegati dalla cartella`) }
   const esistenti = new Set(db.list('documenti', { pratica_id: praticaId }).filter((d) => d.percorso && !d.ora_id).map((d) => d.percorso))
-  for (const f of file.slice(0, maxFile)) {
+  const daFare = file.slice(0, maxFile); let i = 0
+  for (const f of daFare) {
+    avanza({ fase: 'collego', fatti: ++i, totale: daFare.length })
     if (/^(~\$.*|.*\.tmp)$/i.test(f.nome)) continue
     const ass = path.resolve(f.percorso)
     if (esistenti.has(ass)) { gia++; continue }
     const sub = path.dirname(path.relative(radice, f.percorso))
-    try { nuovi.push(db.senzaCronologia(() => collega(praticaId, ass, { categoria: sub && sub !== '.' ? sub : null }))); esistenti.add(ass); collegati++ } catch { /* file illeggibile: saltato */ }
+    try { const imp = await improntaAsync(ass); nuovi.push(db.senzaCronologia(() => collega(praticaId, ass, { categoria: sub && sub !== '.' ? sub : null, impronta: imp }))); esistenti.add(ass); collegati++ } catch { /* file illeggibile: saltato */ }
   }
   finale()
   return { collegati, gia, incompleto: incompleto || file.length > maxFile, documenti: nuovi }
 }
 
-module.exports = { init, risolvi, esiste, impronta, collega, ricollega, stato, sincronizza, impostaCartella, collegaCartella, cartellaPer, salvaGenerato, baseGenerati, percorri }
+module.exports = { init, risolvi, esiste, impronta, improntaAsync, percorriAsync, avanzamento, respira, collega, ricollega, stato, sincronizza, impostaCartella, collegaCartella, cartellaPer, salvaGenerato, baseGenerati, percorri }

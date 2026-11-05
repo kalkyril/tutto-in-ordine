@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, CheckCircle2, FileSpreadsheet } from 'lucide-react'
 import { api } from '../api'
-import { Btn, Modal, Select, useAction } from './ui'
+import { Btn, Input, Modal, Select, useAction } from './ui'
 
 type Tipo = 'anagrafica' | 'pratiche' | 'scadenze' | 'parcelle'
 const NOMI: Record<Tipo, string> = { anagrafica: 'clienti e controparti', pratiche: 'pratiche', scadenze: 'udienze e scadenze', parcelle: 'parcelle e fatture' }
 interface Proposta { intestazioni: string[]; righe: number; esempio: string[][]; mappatura: Record<string, number>; campi: { k: string; et: string; obbl: boolean }[]; foglio?: string; delimitatore?: string }
-interface Esito { totale: number; creati: number; aggiornati: number; esistenti: number; errori: { riga: number; motivo: string }[]; avvisi: { riga: number; motivo: string }[]; campione: { riga: number; stato: string; dati: Record<string, any>; messaggio: string }[]; creatiClienti: number }
+interface Parti { riga: number; titolo: string; prima: string; seconda: string; invertita: boolean }
+interface Esito { parti?: Parti[]; totale: number; creati: number; aggiornati: number; esistenti: number; errori: { riga: number; motivo: string }[]; avvisi: { riga: number; motivo: string }[]; campione: { riga: number; stato: string; dati: Record<string, any>; messaggio: string }[]; creatiClienti: number }
 
 const breve = (d: Record<string, any>) => Object.values(d).filter((v) => v !== null && v !== '' && v !== undefined).slice(0, 3).map(String).join(' · ')
 
@@ -16,7 +17,8 @@ export function ImportWizard({ tipo, onClose }: { tipo: Tipo; onClose: () => voi
   const [file, setFile] = useState<{ percorso: string; nome: string } | null>(null)
   const [prop, setProp] = useState<Proposta | null>(null)
   const [map, setMap] = useState<Record<string, number>>({})
-  const [opz, setOpz] = useState({ aggiorna: false, creaClienti: true, ruoloPredefinito: 'cliente' })
+  const [opz, setOpz] = useState<{ aggiorna: boolean; creaClienti: boolean; ruoloPredefinito: string; cliente: 'prima' | 'seconda'; invertite: number[] }>({ aggiorna: false, creaClienti: true, ruoloPredefinito: 'cliente', cliente: 'prima', invertite: [] })
+  const [rigaPerRiga, setRigaPerRiga] = useState(false)
   const [ant, setAnt] = useState<Esito | null>(null)
   const [erroreAnt, setErroreAnt] = useState<string | null>(null)
   const [fatto, setFatto] = useState<Esito | null>(null)
@@ -93,6 +95,9 @@ export function ImportWizard({ tipo, onClose }: { tipo: Tipo; onClose: () => voi
           {tipo === 'anagrafica' && map.ruolo === undefined && <label className="check" style={{ marginTop: 8 }}>Ruolo dei contatti importati: <select value={opz.ruoloPredefinito} onChange={(e) => setOpz({ ...opz, ruoloPredefinito: e.target.value })} style={{ width: 'auto' }} aria-label="Ruolo predefinito"><option value="cliente">Cliente</option><option value="controparte">Controparte</option><option value="altro">Altro</option></select></label>}
           <label className="check" style={{ marginTop: 6 }}><input type="checkbox" checked={opz.aggiorna} onChange={(e) => setOpz({ ...opz, aggiorna: e.target.checked })} /> Aggiorna anche i dati già presenti (solo i campi compilati nel file; non cancella nulla)</label>
 
+          {tipo === 'pratiche' && !!ant?.parti?.length && <ScegliCliente parti={ant.parti} cliente={opz.cliente} rigaPerRiga={rigaPerRiga} invertite={opz.invertite}
+            onCliente={(c) => setOpz({ ...opz, cliente: c, invertite: [] })} onRigaPerRiga={setRigaPerRiga} onInverti={(riga, si) => setOpz({ ...opz, invertite: si ? [...opz.invertite, riga] : opz.invertite.filter((x) => x !== riga) })} />}
+
           <h3 className="sub-title">2. Anteprima</h3>
           {erroreAnt && <div className="prova err"><AlertTriangle size={15} /><div><b>{erroreAnt}</b></div></div>}
           {ant && (
@@ -116,5 +121,37 @@ export function ImportWizard({ tipo, onClose }: { tipo: Tipo; onClose: () => voi
         </>
       )}
     </Modal>
+  )
+}
+
+/** Cliente e controparte ricavati dall'intestazione («ROSSI MARIO c/ BIANCHI SRL»): di regola il cliente è la prima parte,
+ *  ma nelle pratiche in cui lo studio assiste il convenuto è la seconda. Si sceglie per tutte o riga per riga. */
+function ScegliCliente({ parti, cliente, rigaPerRiga, invertite, onCliente, onRigaPerRiga, onInverti }: {
+  parti: Parti[]; cliente: 'prima' | 'seconda'; rigaPerRiga: boolean; invertite: number[]
+  onCliente: (c: 'prima' | 'seconda') => void; onRigaPerRiga: (v: boolean) => void; onInverti: (riga: number, si: boolean) => void
+}) {
+  const [filtro, setFiltro] = useState('')
+  const visibili = useMemo(() => { const f = filtro.trim().toLowerCase(); return (f ? parti.filter((p) => p.titolo.toLowerCase().includes(f)) : parti).slice(0, 300) }, [parti, filtro])
+  return (
+    <div className="import-parti">
+      <h3 className="sub-title">Chi è il cliente?</h3>
+      <p className="muted small">In {parti.length} pratiche cliente e controparte vengono dall'intestazione (per esempio «{parti[0].prima} c/ {parti[0].seconda}»).</p>
+      <Select aria-label="Chi è il cliente" value={rigaPerRiga ? 'riga' : cliente} onChange={(e) => { const v = e.target.value; if (v === 'riga') onRigaPerRiga(true); else { onRigaPerRiga(false); onCliente(v as 'prima' | 'seconda') } }} style={{ maxWidth: 420 }}>
+        <option value="prima">Il cliente è la prima parte (prima di «c/»)</option>
+        <option value="seconda">Il cliente è la seconda parte (dopo «c/»)</option>
+        <option value="riga">Decido riga per riga</option>
+      </Select>
+      {rigaPerRiga && <>
+        <Input style={{ marginTop: 8, maxWidth: 420 }} placeholder="Cerca nell'intestazione…" value={filtro} onChange={(e) => setFiltro(e.target.value)} aria-label="Cerca fra le pratiche da controllare" />
+        <div className="import-parti-elenco">
+          <table className="table compact"><thead><tr><th>Riga</th><th>Cliente</th><th>Controparte</th><th>Inverti</th></tr></thead><tbody>
+            {visibili.map((p) => { const inv = p.invertita; return (
+              <tr key={p.riga}><td className="muted small nowrap">{p.riga}</td><td><b>{inv ? p.seconda : p.prima}</b></td><td>{inv ? p.prima : p.seconda}</td>
+                <td><label className="check"><input type="checkbox" checked={invertite.includes(p.riga)} onChange={(e) => onInverti(p.riga, e.target.checked)} aria-label={`Inverti cliente e controparte alla riga ${p.riga}`} /></label></td></tr>) })}
+          </tbody></table>
+          {visibili.length === 300 && <p className="muted small">Sono mostrate le prime 300: usa la ricerca per trovare le altre.</p>}
+        </div>
+      </>}
+    </div>
   )
 }

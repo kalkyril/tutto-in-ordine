@@ -104,7 +104,7 @@ export function ParcellaEditor({ parcella, preset, onClose }: { parcella?: Parce
     if ((f.stato === 'emessa' || f.stato === 'pagata') && !(await confermaAccessori('Emetti senza accessori'))) return undefined
     return salva()
   }
-  const nomeFile = (numero: string) => `${nomeDoc(f.tipo, L.parcella).replace(/ /g, '-')}-${numero.replace(/[\/ ]/g, '-')}`
+  const nomeFile = (numero: string) => `${nomeDoc(f.tipo, L.parcella).replace(/ /g, '-')}-${numero.replace(/[/ ]/g, '-')}`
   const html = (s: Parcella) => parcellaHtml({ ...s, ...aliquote, ...tot } as Parcella, vociFinali, cliente, settings, L, f.pratica_id ? praticaById.get(f.pratica_id)?.titolo : undefined)
   // con una pratica la finestra di salvataggio si apre nella cartella locale della pratica e il PDF resta collegato ai suoi documenti
   const pdf = async () => {
@@ -115,7 +115,7 @@ export function ParcellaEditor({ parcella, preset, onClose }: { parcella?: Parce
   }
   // anteprima del documento così come è ora, senza salvarlo
   const [anteprima, setAnteprima] = useState<string | null>(null)
-  const apriAnteprima = () => setAnteprima(html({ ...(parcella || {}), ...f, numero: numero || f.numero || '—', data: f.data || todayStr() } as Parcella))
+  const apriAnteprima = () => setAnteprima(html({ ...parcella, ...f, numero: numero || f.numero || '—', data: f.data || todayStr() } as Parcella))
   // fattura elettronica: prima si salva, così il file nasce dai dati confermati
   const [xml, setXml] = useState<Parcella | null>(null)
   const fatturaXml = async () => { const s = await save(); if (s) setXml(s) }

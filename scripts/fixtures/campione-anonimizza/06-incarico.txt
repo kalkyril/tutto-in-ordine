@@ -1,0 +1,9 @@
+CONFERIMENTO DI INCARICO PROFESSIONALE
+
+Tra il sig. {{FULLNAME|Roberto Ghelfi}}, residente in {{STREET|via Roma 7}}, {{ZIPCODE|44121}} {{CITY|Ferrara}}, di seguito «cliente», e lo Studio Legale {{ORG|Ferri & Associati}}, con sede in {{STREET|piazza Trento Trieste 2}}, {{ZIPCODE|44121}} {{CITY|Ferrara}}, di seguito «professionista», si conviene quanto segue.
+
+1. Oggetto: assistenza nella controversia con il condominio di {{STREET|via Bologna 112}}.
+2. Compenso: {{AMOUNT|€ 2.500,00}} oltre accessori di legge.
+3. Il cliente fornisce copia della carta d'identità n. {{ID_DOC|CA12345BC}}.
+
+Il cliente ______________________          Il professionista ______________________

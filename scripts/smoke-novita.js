@@ -58,7 +58,7 @@ function attach({ getWindow, db }) {
       check('udienza completata', db.get('scadenze', ud.id).completata === 1)
       check('esito annotato nel diario della pratica', db.list('note', { pratica_id: pA.id }).some((x) => /Rinvio per precisazione/.test(x.testo)))
       const nuova = db.list('scadenze', { pratica_id: pA.id }).find((x) => x.id !== ud.id)
-      check('prossima udienza creata con la data scelta, stessa pratica e luogo', nuova && nuova.tipo === 'udienza' && nuova.data_ora.startsWith(ymd(prossima)) && /rinvio$/.test(nuova.titolo) && nuova.luogo === 'Aula 4')
+      check('prossima udienza creata con la data scelta, stessa pratica e luogo', nuova && nuova.tipo === 'udienza' && nuova.data_ora.startsWith(ymd(prossima)) && nuova.titolo.endsWith('rinvio') && nuova.luogo === 'Aula 4')
       check('attività creata', db.list('todos', { pratica_id: pA.id }).some((x) => x.titolo === 'Preparare memoria di replica'))
 
       // ---------- attività svolte con allegati e ore impiegate ----------
@@ -115,7 +115,7 @@ function attach({ getWindow, db }) {
       await clickText('.nav-item', 'Parcelle'); await sleep(700)
       await clickText('button', 'Prima nota'); await sleep(900)
       const csv = fs.readdirSync(out).find((f) => /^Prima-nota-\d+\.csv$/.test(f))
-      check('prima nota CSV salvata', csv && /^\uFEFFNumero;Data;Tipo/.test(fs.readFileSync(path.join(out, csv), 'utf8')), csv)
+      check('prima nota CSV salvata', csv && fs.readFileSync(path.join(out, csv), 'utf8').startsWith('\uFEFFNumero;Data;Tipo'), csv)
       await clickText('.segmented button', 'Da incassare'); await sleep(400)
       const tS = await text(); check('"Da incassare": parcella emessa con sollecito', /Prepara email/.test(tS) && tS.includes('Mario Rossi'))
       await shot('novita-4-solleciti')

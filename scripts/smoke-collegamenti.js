@@ -5,6 +5,7 @@ const fs = require('node:fs')
 const http = require('node:http')
 const os = require('node:os')
 const path = require('node:path')
+const { attendi } = require('./lib/attesa')
 let sleep = (ms) => new Promise((r) => setTimeout(r, ms)) // dentro attach() diventa un'attesa adattiva (scripts/lib/attesa.js)
 const pad = (n) => String(n).padStart(2, '0')
 const ymd = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`
@@ -94,7 +95,10 @@ function attach({ getWindow, db, runAlertCheck }) {
       }
       getWindow().setSize(1024,900)
       db.save('calendari',{id:cal.id,nome:'Udienze Cliens · calendario di prova con un nome lungo per verificare la prima riga del titolo'})
-      wc.send('data-changed',['calendari']);await sleep(400)
+      wc.send('data-changed',['calendari'])
+      // si misura solo quando il nome nuovo è sulla pagina e la finestra ha preso la nuova larghezza (prima: pausa fissa, instabile sotto carico)
+      await attendi(()=>js(`(document.querySelector('.cal-name .cal-label')?.textContent||'').includes('nome lungo')&&window.innerWidth<=1024`))
+      await sleep(150)
       const righe=await js(`(()=>{const t=document.querySelector('.cal-name'),d=t.querySelector('.dot').getBoundingClientRect(),l=t.querySelector('.cal-label').getBoundingClientRect(),h=parseFloat(getComputedStyle(t).lineHeight);return {righe:l.height/h,errore:Math.abs((d.top+d.bottom)/2-(l.top+h/2))}})()`)
       check('titolo calendario su più righe: pallino centrato sulla prima riga',righe.righe>1.1&&righe.errore<1,JSON.stringify(righe));await shot('c02-titolo-multiriga')
       db.save('calendari',{id:cal.id,nome:'Udienze Cliens'});wc.send('data-changed',['calendari'])
@@ -113,7 +117,7 @@ function attach({ getWindow, db, runAlertCheck }) {
       process.env.MNGMNT_TEST_ICS_FILE = fileIcs
       await clickText('.modal button', 'Usa il file'); await sleep(500)
       await clickText('.modal .btn-primary', 'Collega e importa'); await sleep(1800)
-      const calFile = db.list('calendari').find((c) => /^file:/.test(c.url))
+      const calFile = db.list('calendari').find((c) => c.url.startsWith('file:'))
       check('file .ics: collegato con il nome del file, eventi importati, scheda «File: …»', calFile?.nome === 'Google basic' && calFile.ultimo_esito === 'ok' && db.list('eventi_esterni').some((e) => e.titolo === 'Riunione dal file Google') && (await text()).includes('File: Google basic.ics'), JSON.stringify(calFile))
       delete process.env.MNGMNT_TEST_ICS_FILE
       if (calFile) { db.remove('calendari', calFile.id); wc.send('data-changed', ['calendari', 'eventi_esterni']); await sleep(500) } // i controlli seguenti partono da un solo calendario

@@ -174,7 +174,7 @@ const esegui = (tipo, f, opz) => { const p = mappa(tipo, f); const a = imp.antep
   const f = scrivi('anteprima.csv', 'Cognome;Nome\nUno;Test\nDue;Test\n'); const prima = db.getDb().prepare('SELECT COUNT(*) c FROM anagrafica').get().c
   const a = imp.anteprima('anagrafica', f, mappa('anagrafica', f).mappatura, {}); assert.equal(a.creati, 2); assert.equal(db.getDb().prepare('SELECT COUNT(*) c FROM anagrafica').get().c, prima)
   assert.throws(() => imp.anteprima('anagrafica', f, {}, {}), /Associa una colonna/); assert.throws(() => imp.anteprima('pratiche', f, { numero: 0 }, {}), /Associa una colonna/)
-  const rollback = scrivi('rollback.csv', 'Oggetto;Cliente\nA;X\nB;Y\n'); const pre = db.list('pratiche').length
+  const rollback = scrivi('rollback.csv', 'Oggetto;Cliente\nA;X\nB;Y\n')
   const orig = db.save; let k = 0; db.save = (t, o) => { if (t === 'pratiche' && ++k === 2) throw new Error('disco pieno (simulato)'); return orig(t, o) }
   try { const r = imp.importa('pratiche', rollback, mappa('pratiche', rollback).mappatura, {}); assert.equal(r.errori.length, 1) } finally { db.save = orig }
   ok('anteprima: nessuna scrittura; campi obbligatori non associati rifiutati; un errore di salvataggio su una riga non blocca le altre')
@@ -186,7 +186,6 @@ const esegui = (tipo, f, opz) => { const p = mappa(tipo, f); const a = imp.antep
   const r = imp.importa('anagrafica', f, mappa('anagrafica', f).mappatura, {})
   assert.equal(r.creati, 20000); assert.ok(Date.now() - t0 < 15000, `${Date.now() - t0} ms`); assert.equal(impronta(f), h)
   const r2 = imp.importa('anagrafica', f, mappa('anagrafica', f).mappatura, {}); assert.equal(r2.creati, 0)
-  const tutti = fs.readdirSync(tmp).filter((x) => /\.(csv|xlsx)$/.test(x))
   ok(`volumi: 20.000 anagrafiche importate in ${Date.now() - t0} ms, riimportazione senza duplicati; il file di origine non è stato toccato (impronta e data identiche)`)
   db.getDb().exec("DELETE FROM anagrafica WHERE denominazione LIKE 'Cognome%'")
 }
@@ -198,7 +197,7 @@ const esegui = (tipo, f, opz) => { const p = mappa(tipo, f); const a = imp.antep
   ok('modelli CSV scaricabili: tutte le colonne vengono riconosciute da sole e l\'esempio si importa correttamente')
 }
 // ---------- 12. cartelle di documenti ----------
-{
+;(async () => {
   const radice = path.join(tmp, 'ArchivioVecchio')
   const crea = (rel, cont = rel) => scrivi(path.join('ArchivioVecchio', rel), cont)
   crea('2024-010 Rossi c. Bianchi/atto di citazione.pdf', 'PDF citazione'); crea('2024-010 Rossi c. Bianchi/Memorie/memoria 183.docx', 'DOCX memoria'); crea('2024-010 Rossi c. Bianchi/Memorie/Bozze/memoria 183.docx', 'altro contenuto'); crea('2024-010 Rossi c. Bianchi/.DS_Store'); crea('2024-010 Rossi c. Bianchi/~$lock.docx')
@@ -210,7 +209,7 @@ const esegui = (tipo, f, opz) => { const p = mappa(tipo, f); const a = imp.antep
   assert.equal(per['2024-010 Rossi c. Bianchi'].pratica.numero, '2024/010'); assert.equal(per['2024-010 Rossi c. Bianchi'].file, 3); assert.equal(per['Recupero crediti Gamma'].pratica.titolo, 'Recupero crediti Gamma')
   assert.equal(per['Contratto Società Nuova'].pratica, null); assert.equal(a.fileInRadice, 1); assert.equal(per['Cartella vuota'].file, 0)
   const p0 = db.list('pratiche').length, d0 = db.list('documenti').length
-  const r = imp.importaCartella(radice, {}, {})
+  const r = await imp.importaCartella(radice, {}, {})
   assert.deepEqual([r.collegati, r.createPratiche, r.errori.length], [6, 1, 0]); assert.equal(db.list('pratiche').length, p0 + 1); assert.equal(db.list('documenti').length, d0 + 6)
   const rossi = db.list('pratiche').find((x) => x.numero === '2024/010'); const docs = db.list('documenti', { pratica_id: rossi.id })
   assert.equal(docs.length, 3); assert.deepEqual(docs.map((d) => d.nome).sort(), ['atto di citazione.pdf', 'memoria 183.docx', 'memoria 183.docx']); assert.equal(new Set(docs.map((d) => d.percorso)).size, 3) // due file con lo stesso nome in sottocartelle diverse: restano due collegamenti distinti
@@ -218,11 +217,12 @@ const esegui = (tipo, f, opz) => { const p = mappa(tipo, f); const a = imp.antep
   for (const d of docs) assert.ok(d.percorso && fs.existsSync(d.percorso) && d.percorso.startsWith(radice + path.sep) && d.file === '') // collegati: nessuna copia
   assert.equal(fs.readFileSync(docs.find((d) => d.nome === 'atto di citazione.pdf').percorso, 'utf8'), 'PDF citazione')
   const nuova = db.list('pratiche').find((x) => x.titolo === 'Contratto Società Nuova'); assert.ok(db.list('documenti', { pratica_id: nuova.id }).some((d) => d.nome === 'àèìòù perizia.pdf'))
-  const r2 = imp.importaCartella(radice, {}, {}); assert.deepEqual([r2.collegati, r2.createPratiche], [0, 0]); assert.equal(r2.saltati, 6)
-  const r3 = imp.importaCartella(radice, { 'Contratto Società Nuova': 'salta', 'Recupero crediti Gamma': 'salta' }, {}); assert.equal(r3.collegati, 0)
+  const r2 = await imp.importaCartella(radice, {}, {}); assert.deepEqual([r2.collegati, r2.createPratiche], [0, 0]); assert.equal(r2.saltati, 6)
+  const r3 = await imp.importaCartella(radice, { 'Contratto Società Nuova': 'salta', 'Recupero crediti Gamma': 'salta' }, {}); assert.equal(r3.collegati, 0)
   assert.deepEqual(hashOrigine(), prima)
   ok('cartelle di documenti: abbinamento alle pratiche per numero o titolo, sottocartelle e nomi uguali gestiti, file di sistema ignorati, riimportazione senza doppioni; i file di origine restano identici (impronta e data)')
-}
+})().then(() => {
 
-db.close(); fs.rmSync(tmp, { recursive: true, force: true })
-console.log(`\n${n} prove superate`)
+  db.close(); fs.rmSync(tmp, { recursive: true, force: true })
+  console.log(`\n${n} prove superate`)
+}).catch((e) => { console.error(e); process.exit(1) })

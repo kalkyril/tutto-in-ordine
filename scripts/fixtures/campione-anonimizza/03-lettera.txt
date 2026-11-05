@@ -1,0 +1,14 @@
+Spett.le {{ORG|Assicurazioni Riunite S.p.A.}}
+Ufficio sinistri
+
+Oggetto: sinistro del {{DATE|21/06/2026}}, veicolo targato {{TARGA|FG123HK}}
+
+Gentili signori,
+scrivo per conto della mia assistita, sig.ra {{FULLNAME|Elena Righi}}, in relazione al sinistro avvenuto in {{STREET|via Giardini 455}} a {{CITY|Modena}}.
+
+Vi invito a liquidare il danno quantificato in {{AMOUNT|€ 3.200,00}} mediante bonifico sul conto IBAN {{IBAN|IT60X0542811101000000123456}} intestato alla stessa.
+
+Per ogni comunicazione potete scrivere a {{EMAIL|studio.lugari@esempio.it}} o telefonare al {{TELEPHONENUM|059 123456}}.
+
+Distinti saluti.
+Avv. {{FULLNAME|Andrea Lugari}}

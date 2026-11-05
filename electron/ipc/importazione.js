@@ -55,8 +55,10 @@ module.exports = function registra({ handle, changed, getWindow, scelti, autoriz
   })
   // cartella di pratiche (una sottocartella per pratica): anteprima e importazione, i file restano dove sono
   handle('import:cartellaAnteprima', (dir) => importer.anteprimaCartella(autorizza(dir)))
-  handle('import:cartellaEsegui', (dir, scelte, opz) => {
-    const r = importer.importaCartella(autorizza(dir), scelte || {}, opz || {})
+  handle('import:cartellaEsegui', async (dir, scelte, opz) => {
+    const avanza = (info) => { const w = getWindow(); if (w && !w.isDestroyed()) w.webContents.send('avanzamento', { operazione: 'cartella', ...info }) }
+    const r = await importer.importaCartella(autorizza(dir), scelte || {}, { ...opz, avanza })
+    avanza({ fine: true })
     changed('pratiche', 'documenti'); return r
   })
 }

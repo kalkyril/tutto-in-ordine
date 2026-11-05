@@ -119,5 +119,26 @@ fs.copyFileSync(path.join(bdir, 'mngmnt.db'), path.join(vecchio, 'lara.db'))
 db.open(vecchio); assert.ok(fs.existsSync(path.join(vecchio, 'mngmnt.db')) && !fs.existsSync(path.join(vecchio, 'lara.db'))); assert.equal(db.list('pratiche').length, 1); ok('dati della versione precedente (lara.db) riutilizzati')
 const bkVecchio = path.join(tmp, 'bk-vecchio'); fs.mkdirSync(bkVecchio); fs.copyFileSync(path.join(bdir, 'mngmnt.db'), path.join(bkVecchio, 'lara.db')); fs.cpSync(path.join(bdir, 'documenti'), path.join(bkVecchio, 'documenti'), { recursive: true })
 assert.ok(backup.isBackup(bkVecchio)); backup.restore(bkVecchio); assert.equal(db.list('pratiche').length, 1); ok('ripristino di un backup creato dalla versione precedente')
+// 1.0.1: logo e font dei modelli salvati una volta sola, con un riferimento nelle impostazioni
+{
+  const logo = 'data:image/png;base64,' + 'A'.repeat(4000), font = 'data:font/ttf;base64,' + 'B'.repeat(3000)
+  db.setSettings({ modello_pdf: { logo }, modelli_documento: Array.from({ length: 12 }, (_, i) => ({ id: 'm' + i, logo, fontPersonali: [{ id: 'f', dati: font }] })) })
+  const s = db.getSettings(), raw = JSON.stringify(s)
+  assert.ok(!raw.includes('data:image') && !raw.includes('data:font') && raw.length < 3000, 'nelle impostazioni restano solo i riferimenti')
+  assert.equal(db.getDb().prepare('SELECT count(*) n FROM risorse').get().n, 2)
+  const ids = [...raw.matchAll(/tio-risorsa:([0-9a-f]{64})/g)].map((m) => m[1])
+  const r = db.risorse([...ids, '../x', 'nonvalido']); assert.equal(Object.keys(r).length, 2); assert.ok(Object.values(r).includes(logo) && Object.values(r).includes(font))
+  assert.equal(db.espandiRisorse(db.getSettings()).modelli_documento[11].fontPersonali[0].dati, font)
+  db.setSettings({ modelli_documento: [{ id: 'm0', logo }] }); assert.equal(db.getDb().prepare('SELECT count(*) n FROM risorse').get().n, 2, 'durante il lavoro nessuna risorsa viene tolta')
+  { const dir = db.getDataDir(); db.close(); db.open(dir) }
+  assert.equal(db.getDb().prepare('SELECT count(*) n FROM risorse').get().n, 1, 'il font non più usato viene tolto alla riapertura')
+  db.setSettings({ modelli_documento: [{ id: 'm0', logo: s.modello_pdf.logo }] }); assert.equal(db.getSettings().modelli_documento[0].logo, s.modello_pdf.logo, 'un riferimento già salvato resta tale')
+  ok('logo e font dei modelli salvati una volta sola e tolti alla riapertura quando non servono più')
+  // archivi della 1.0.0: i dati incorporati nelle impostazioni passano nelle risorse all'apertura
+  db.getDb().prepare("UPDATE settings SET value = ? WHERE key = 'modello_pdf'").run(JSON.stringify({ logo: 'data:image/png;base64,' + 'C'.repeat(2000) }))
+  const dir = db.getDataDir(); db.close(); db.open(dir)
+  assert.match(db.getSettings().modello_pdf.logo, /^tio-risorsa:[0-9a-f]{64}$/); assert.equal(db.getDb().prepare('SELECT count(*) n FROM risorse').get().n, 2)
+  ok('logo incorporato da una versione precedente spostato nelle risorse all\'apertura')
+}
 db.close(); fs.rmSync(tmp, { recursive: true, force: true })
 console.log(`\n${n} test superati`)

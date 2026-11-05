@@ -34,7 +34,7 @@ function attach({ getWindow, db }) {
       const bundle = path.join(db.getDataDir(), 'template-test')
       await build({ configFile: false, logLevel: 'silent', build: { lib: { entry: path.resolve(__dirname, '../src/lib/print.ts'), formats: ['es'], fileName: () => 'print.mjs' }, outDir: bundle } })
       const E = await import(pathToFileURL(path.join(bundle, 'print.mjs')).href)
-      const example = (preview = true) => E.esempioNotaHtml({ ...db.getSettings(), studio: db.getSettings().studio || {} }, preview)
+      const example = (preview = true) => { const s = db.espandiRisorse(db.getSettings()); return E.esempioNotaHtml({ ...s, studio: s.studio || {} }, preview) } // logo e font salvati come riferimento: qui servono i dati veri
       wc.send('data-changed', ['settings']); await sleep(500)
       await click('.nav-item', 'Impostazioni'); await click('.tabs button', 'Modello PDF'); await sleep(350)
       await waitPreview()

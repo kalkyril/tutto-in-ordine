@@ -74,9 +74,10 @@ const usa = (fn) => { chiamate = []; globalThis.fetch = async (url, init) => { c
   usa(() => risposta({ tag_name: 'v1.4.0' }))
   let p = await prova({ aggiornamenti_controllo: false })
   assert.equal(p.esito, null); assert.equal(chiamate.length, 0)
+  ok('spento nelle Impostazioni: il controllo automatico non fa nessuna richiesta')
   p = await prova({})
-  assert.equal(p.esito, null); assert.equal(chiamate.length, 0)
-  ok('spento di default: senza il consenso il controllo automatico non fa nessuna richiesta')
+  assert.equal(p.esito?.versione, '1.4.0'); assert.equal(chiamate.length, 1); chiamate.length = 0
+  ok('acceso di default dalla 1.0.1: senza una scelta salvata il controllo automatico parte')
 
   p = await prova({ aggiornamenti_controllo: true, aggiornamenti_ultimo: new Date(ADESSO - giorno / 2).toISOString() })
   assert.equal(p.esito, null); assert.equal(chiamate.length, 0)

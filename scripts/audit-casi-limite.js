@@ -23,7 +23,7 @@ async function main() {
     const matchRoot=path.join(root,'abbinamento'),source=path.join(matchRoot,'lavoro','originale','contratto-collisione.txt'),other=path.join(matchRoot,'ritrovati','contratto-collisione.txt')
     fs.mkdirSync(path.dirname(source),{recursive:true});fs.mkdirSync(path.dirname(other),{recursive:true});fs.writeFileSync(source,'AAA');fs.writeFileSync(other,'BBB')
     const matching=docfile.collega(p.id,source);fs.unlinkSync(source)
-    const report=docfile.sincronizza({praticaId:p.id,radici:[path.dirname(other)]})
+    const report=await docfile.sincronizza({praticaId:p.id,radici:[path.dirname(other)]})
     result('sincronizza-contenuto','Sincronizza non collega automaticamente un documento diverso',db.get('documenti',matching.id).percorso!==other,{ritrovati:report.ritrovati.filter(d=>d.id===matching.id).length,fileDiversoCollegato:db.get('documenti',matching.id).percorso===other,impronteDiverse:matching.impronta!==docfile.impronta(other)})
 
     const named=path.join(root,'contratto.pdf');fs.writeFileSync(named,pdf('ParolaPdfUnica'))

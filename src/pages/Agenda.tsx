@@ -64,6 +64,7 @@ export default function Agenda() {
       }
     }
     return list.sort((a, b) => a.day.localeCompare(b.day) || a.time.localeCompare(b.time) || a.title.localeCompare(b.title))
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `clock` ricalcola i ritardi al passare del tempo
   }, [scadenze, todos, pratica, showTodo, showDone, praticaById, showExt, calendari, eventi, clock])
 
   const byDay = useMemo(() => { const m = new Map<string, Ev[]>(); events.forEach((e) => m.set(e.day, [...(m.get(e.day) || []), e])); return m }, [events])

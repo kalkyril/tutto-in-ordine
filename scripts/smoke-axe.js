@@ -1,8 +1,6 @@
 'use strict'
 // Dettaglio delle violazioni di accessibilità (contrasti, nomi accessibili) per correggerle. Avvio: sh scripts/run-smoke.sh <cartella> smoke-axe
 const fs = require('node:fs')
-const path = require('node:path')
-const os = require('node:os')
 let sleep = (ms) => new Promise((r) => setTimeout(r, ms)) // dentro attach() diventa un'attesa adattiva (scripts/lib/attesa.js)
 const pad = (n) => String(n).padStart(2, '0')
 const iso = (dd, h = 9) => { const x = new Date(); x.setDate(x.getDate() + dd); return `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}T${pad(h)}:00` }

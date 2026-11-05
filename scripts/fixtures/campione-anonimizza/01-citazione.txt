@@ -1,0 +1,12 @@
+TRIBUNALE DI BOLOGNA
+ATTO DI CITAZIONE
+
+Il sig. {{FULLNAME|Marco Valentini}}, nato a {{CITY|Ferrara}} il {{DATE|12/03/1971}}, residente in {{STREET|via dei Mille 14}}, {{ZIPCODE|40121}} {{CITY|Bologna}}, C.F. {{CF|RSSMRA85T10A562S}}, rappresentato e difeso dall'Avv. {{FULLNAME|Giulia Ferraresi}} del Foro di Bologna (PEC {{EMAIL|giulia.ferraresi@pec.esempio.it}}),
+
+CITA
+
+la società {{ORG|Edilnova S.r.l.}}, P.IVA {{PIVA|12345678903}}, con sede in {{STREET|viale Europa 3}}, {{ZIPCODE|41012}} {{CITY|Carpi}}, in persona del legale rappresentante pro tempore,
+
+a comparire all'udienza del {{DATE|15 gennaio 2027}} innanzi al Tribunale di Bologna, per sentir condannare la convenuta al pagamento della somma di {{AMOUNT|€ 18.450,00}} oltre interessi.
+
+Si producono: contratto di appalto del {{DATE|3 maggio 2024}}; fattura n. {{DOCID|112/2024}}.

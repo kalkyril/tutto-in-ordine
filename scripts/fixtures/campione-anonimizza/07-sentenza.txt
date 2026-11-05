@@ -1,0 +1,21 @@
+REPUBBLICA ITALIANA
+IN NOME DEL POPOLO ITALIANO
+IL TRIBUNALE DI REGGIO EMILIA
+
+nella causa civile iscritta al n. {{DOCID|2231/2024}} R.G. promossa da
+
+{{FULLNAME|BERNARDI LUCA}} (C.F. {{CF|BRNLCU80A01H223Q}}), elettivamente domiciliato in {{CITY|Scandiano}}, {{STREET|via Corrado Vecchi 12}}, presso lo studio dell'avv. {{FULLNAME|Silvia Ferretti}}, che lo rappresenta e difende
+
+- attore -
+
+contro
+
+{{ORG|IMMOBILIARE SAN PROSPERO S.R.L.}}, in persona del legale rappresentante
+
+- convenuta contumace -
+
+Il Bernardi ha esposto di aver versato in data {{DATE|14.02.2023}} la somma di {{AMOUNT|euro 25.000,00}} a titolo di caparra confirmatoria.
+
+P.Q.M.
+
+condanna la convenuta a restituire all'attore la somma di {{AMOUNT|€ 50.000,00}}.

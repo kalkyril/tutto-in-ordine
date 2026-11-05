@@ -217,7 +217,7 @@ function attach({ getWindow, db }) {
       check('Word trascinato e aperto in Anonimizza', await js(`!!document.querySelector('.anon-testo') && document.querySelector('.anon-nome b')?.textContent.endsWith('.docx')`))
       check('per un Word si offre il salvataggio con la stessa impaginazione', await js(`document.querySelector('.anon-salva select').value`) === 'docx-originale')
       await clickText('.anon-salva button', 'Salva'); await sleep(1000)
-      const orig = fs.readdirSync(file).find((n) => /Ezio Zanichelli anonimizzato\.docx$/.test(n))
+      const orig = fs.readdirSync(file).find((n) => n.endsWith('Ezio Zanichelli anonimizzato.docx'))
       const tOrig = orig ? leggiDocx(path.join(file, orig)) : ''
       check('copia Word anonimizzata: corpo e intestazione senza dati personali', orig && !/Zanichelli|Studio Legale Prova|41012/.test(tOrig) && /\[NOME_COMPLETO_\d\]/.test(tOrig) && /Importo dovuto/.test(tOrig), tOrig.slice(0, 300))
       const origXml = orig ? require('../electron/zip').leggiZip(fs.readFileSync(path.join(file, orig))) : null
@@ -328,9 +328,9 @@ function attach({ getWindow, db }) {
       await clickText('.anon-pratica .btn-primary', 'Anonimizza'); await sleep(500)
       for (let i = 0; i < 60 && /in corso/.test(await js(`document.querySelector('.anon-pratica .btn-primary')?.textContent || ''`)); i++) await sleep(1000)
       const dirAnon = path.join(file, 'Anonimizzati'), prodotti = fs.existsSync(dirAnon) ? fs.readdirSync(dirAnon) : []
-      const chiaveComune = prodotti.find((n) => /chiave di ripristino\.json$/.test(n))
-      const testiAnon = prodotti.filter((n) => /\.txt$/.test(n)).map((n) => fs.readFileSync(path.join(dirAnon, n), 'utf8')).join('\n')
-      check('in blocco: una copia per documento, PDF e Word compresi, e una chiave comune', nDoc >= 5 && prodotti.filter((n) => / anonimizzato/.test(n)).length >= nDoc - 1 && prodotti.some((n) => /\.pdf$/.test(n)) && prodotti.some((n) => /\.docx$/.test(n)) && !!chiaveComune, `${nDoc} documenti, prodotti: ${prodotti.join(' | ')}`)
+      const chiaveComune = prodotti.find((n) => n.endsWith('chiave di ripristino.json'))
+      const testiAnon = prodotti.filter((n) => n.endsWith('.txt')).map((n) => fs.readFileSync(path.join(dirAnon, n), 'utf8')).join('\n')
+      check('in blocco: una copia per documento, PDF e Word compresi, e una chiave comune', nDoc >= 5 && prodotti.filter((n) => / anonimizzato/.test(n)).length >= nDoc - 1 && prodotti.some((n) => n.endsWith('.pdf')) && prodotti.some((n) => n.endsWith('.docx')) && !!chiaveComune, `${nDoc} documenti, prodotti: ${prodotti.join(' | ')}`)
       check('nessun dato del cliente nelle copie di testo; la chiave li ripristina', testiAnon.length > 0 && !/Zanichelli|ZNCZEI/.test(testiAnon) && /Ezio Zanichelli/.test(chiaveComune ? fs.readFileSync(path.join(dirAnon, chiaveComune), 'utf8') : ''))
       await shot('strumenti-10-anon-pratica')
 
@@ -366,7 +366,7 @@ function attach({ getWindow, db }) {
       await clickText('.nav-item', 'Da pagare'); await sleep(700)
       let dp = await text()
       check('Da pagare: totali, scadute ed entro 30 giorni', /Da pagare\s*430,50\s*€/.test(dp) && /Scadute\s*250,00\s*€/.test(dp) && /Entro 30 giorni\s*180,50\s*€/.test(dp), dp.slice(0, 400))
-      check('Da pagare: la voce scaduta prima, con la pratica e il rimborso da chiedere', await js(`(() => { const r=[...document.querySelectorAll('.da-pagare tbody tr')]; return r.length===2 && /Domiciliazione/.test(r[0].textContent) && /Scaduta/.test(r[0].textContent) && /Zanichelli c\. Acme/.test(r[0].textContent) && /da riaddebitare/.test(r[0].textContent) })()`))
+      check('Da pagare: la voce scaduta prima, con la pratica e il rimborso da chiedere', await js(`(() => { const r=[...document.querySelectorAll('.da-pagare tbody tr')]; return r.length===2 && /Domiciliazione/.test(r[0].textContent) && /Scaduta/.test(r[0].textContent) && /Zanichelli c. Acme/.test(r[0].textContent) && /da riaddebitare/.test(r[0].textContent) })()`))
       await shot('strumenti-12-da-pagare')
       await layout('Da pagare')
       await clickText('.da-pagare tbody tr .btn', 'Pagata'); await sleep(700)
@@ -386,7 +386,7 @@ function attach({ getWindow, db }) {
       await setVal('.modal select.spesa-extra', '0:2'); await sleep(300)
       await setVal('.modal select.spesa-extra', '1:0'); await sleep(300)
       const vociSpese = await js(`[...document.querySelectorAll('.modal table.voci tbody tr')].map(r=>({ tipo:r.querySelector('select').value, d:r.querySelectorAll('input')[0].value, i:r.querySelectorAll('input')[2].value }))`)
-      check('marca da bollo esente da 16 €, carburante imponibile da compilare', vociSpese.some((v) => v.tipo === 'spesa_esente' && v.d === 'Marca da bollo' && /^16/.test(v.i)) && vociSpese.some((v) => v.tipo === 'spesa_imponibile' && v.d === 'Carburante'), JSON.stringify(vociSpese))
+      check('marca da bollo esente da 16 €, carburante imponibile da compilare', vociSpese.some((v) => v.tipo === 'spesa_esente' && v.d === 'Marca da bollo' && v.i.startsWith('16')) && vociSpese.some((v) => v.tipo === 'spesa_imponibile' && v.d === 'Carburante'), JSON.stringify(vociSpese))
       check('il menu delle spese torna su «+ Spesa extra…»', await js(`document.querySelector('.modal select.spesa-extra').value === ''`))
       await shot('strumenti-14-spese-extra')
       // la parcella di prova resta non salvata: senza questo, ricaricare apre «Ci sono modifiche non salvate» (finestra di sistema) e la prova si ferma

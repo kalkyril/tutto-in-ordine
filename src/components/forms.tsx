@@ -13,8 +13,8 @@ import type { Anagrafica, Link, Pratica, Scadenza, Todo } from '../types'
 /* ---------- Select pratica ---------- */
 export function PraticaSelect({ value, onChange, allowNone = true, noneLabel = '— Nessuna pratica —', id, ariaLabel }: { value: number | null | undefined; onChange: (v: number | null) => void; allowNone?: boolean; noneLabel?: string; id?: string; ariaLabel?: string }) {
   const { pratiche, settings } = useData()
-  const chiuse = new Set(settings.stati_pratica.filter((s) => s.chiusa).map((s) => s.nome))
-  const sorted = useMemo(() => [...pratiche].sort((a, b) => Number(chiuse.has(a.stato || '')) - Number(chiuse.has(b.stato || '')) || (b.numero || '').localeCompare(a.numero || '')), [pratiche, settings.stati_pratica])
+  const chiuse = useMemo(() => new Set(settings.stati_pratica.filter((s) => s.chiusa).map((s) => s.nome)), [settings.stati_pratica])
+  const sorted = useMemo(() => [...pratiche].sort((a, b) => Number(chiuse.has(a.stato || '')) - Number(chiuse.has(b.stato || '')) || (b.numero || '').localeCompare(a.numero || '')), [pratiche, chiuse])
   return (
     <Select value={value ?? ''} onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)} id={id} aria-label={ariaLabel}>
       {allowNone && <option value="">{noneLabel}</option>}
@@ -59,8 +59,8 @@ export function AnagraficaForm({ item, ruolo, onClose, onSaved }: { item?: Parti
 
 /* ---------- Pratica ---------- */
 function AvvisoConflitto({ conflitti }: { conflitti: Conflitto[] }) {
+  const { go } = useNav() // prima di ogni return: lo stesso numero di hook a ogni render
   if (!conflitti.length) return null
-  const { go } = useNav()
   return (
     <div className="conflitto" role="alert">
       <AlertTriangle size={14} aria-hidden /> <span><b>Possibile conflitto di interessi:</b> {conflitti[0].contatto.denominazione} risulta {conflitti[0].ruoloAltrove === 'controparte' ? 'controparte' : 'cliente'} in {conflitti.slice(0, 3).map((c, i) => <span key={c.pratica.id}>{i > 0 && ', '}<button type="button" className="link-btn" onClick={() => go({ page: 'pratica', id: c.pratica.id })}>{c.pratica.numero || c.pratica.titolo}</button></span>)}{conflitti.length > 3 ? ` e altre ${conflitti.length - 3}` : ''}. Verifica prima di accettare l'incarico.</span>

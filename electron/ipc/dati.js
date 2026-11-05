@@ -2,7 +2,6 @@
 // Dati: lettura e scrittura generiche, impostazioni, operazioni composte (parcelle, compiti).
 const fs = require('node:fs')
 const db = require('../db')
-const calendari = require('../calendari')
 const doctext = require('../doctext')
 const { praticaDir, docPath } = require('./percorsi')
 
@@ -96,9 +95,11 @@ module.exports = function registra({ handle, changed, onSettings }) {
     const patch = { ...obj }; delete patch.backup_cifrato // si gestisce solo dai canali dedicati alla chiave
     const r = db.setSettings(patch)
     onSettings(r)
-    changed('settings', 'pratiche')
-    return r
+    // le pratiche cambiano solo se si rinomina uno stato: ricaricarle a ogni salvataggio rallentava gli archivi grandi
+    changed('settings', ...(patch.stati_pratica ? ['pratiche'] : []))
+    return true
   })
+  handle('settings:risorse', (ids) => db.risorse(ids))
 
 
   handle('pratica:nextNumero', () => db.nextPraticaNumero())

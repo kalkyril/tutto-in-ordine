@@ -55,7 +55,7 @@ export const DEFAULT_SETTINGS: Settings = {
   brand_colore: '#4338ca', brand_logo: null, onboarding_fatto: false,
   tema: 'auto',
   resta_in_background: true, avvia_al_login: false, notifiche_desktop: true, avvisa_ritardi: true, riepilogo_giornaliero: true,
-  notifiche_riservate: true, vista_compatta: false, backup_documenti: true, backup_cifrato: false, backup_automatico: true, backup_cartella: '', backup_mantieni: 7, aggiornamenti_controllo: false,
+  notifiche_riservate: true, vista_compatta: false, backup_documenti: true, backup_cifrato: false, backup_automatico: true, backup_cartella: '', backup_mantieni: 7, aggiornamenti_controllo: true,
   cartella_documenti: '', cartelle_ricerca: [],
   etichette: LABELS_AVVOCATO,
   categorie_link: ['Processo telematico', 'Normativa', 'Giurisprudenza', 'Fisco', 'Previdenza', 'Altro'],

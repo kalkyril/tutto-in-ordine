@@ -13,6 +13,7 @@ export function Modal({ title, onClose, children, footer, width = 560, subtitle,
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const dirty = useRef(false)
+  const protezione = useRef(protectChanges); protezione.current = protectChanges // letta al momento: l'effetto della modale non va rifatto se cambia
   const busy = useRef(false)
   const { confirm } = useFeedback()
   const requestClose = async () => {
@@ -56,7 +57,7 @@ export function Modal({ title, onClose, children, footer, width = 560, subtitle,
     }
     const saved = () => { if (pilaModali[pilaModali.length - 1] === me) dirty.current = false }
     window.addEventListener('mngmnt-saved', saved)
-    const beforeUnload = (event: BeforeUnloadEvent) => { if (protectChanges && dirty.current) { event.preventDefault(); event.returnValue = '' } }
+    const beforeUnload = (event: BeforeUnloadEvent) => { if (protezione.current && dirty.current) { event.preventDefault(); event.returnValue = '' } }
     window.addEventListener('beforeunload', beforeUnload)
     document.addEventListener('keydown', onKey, true)
     return () => { document.removeEventListener('keydown', onKey, true); window.removeEventListener('mngmnt-saved', saved); window.removeEventListener('beforeunload', beforeUnload); hidden.forEach((node) => { node.inert = false }); const i = pilaModali.indexOf(me); if (i >= 0) pilaModali.splice(i, 1); prev?.focus?.() }

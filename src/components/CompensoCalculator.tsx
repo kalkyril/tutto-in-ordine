@@ -167,6 +167,7 @@ export function CompensoForm({ initial, extraVoci = [], onResult }: { initial?: 
       .catch((e: any) => { if (!off) { setVals(null); setErrore(String(e?.message || e).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')) } })
       .finally(() => !off && setLoading(false))
     return () => { off = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- basta l'identità dello scaglione scelto, non l'oggetto
   }, [daSito, sel?.id, sel?.calcolato, senzaScaglioni, anno, competenza, scaglione, valoreD])
 
   const variazione = (struttura?.variazione || (anno === 2022 ? [50, 50] : [50, 80])) as [number, number]
@@ -179,6 +180,7 @@ export function CompensoForm({ initial, extraVoci = [], onResult }: { initial?: 
       return [{ cod: '99', nome: 'Compenso', terna }]
     }
     return struttura.fasi.map((f) => ({ cod: f.cod, nome: f.nome, terna: (vals?.valori?.[f.cod] || [0, 0, 0]) as Terna }))
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `variazione` è un array nuovo a ogni render: contano i due valori
   }, [struttura, tipo, calcolatoLocale, scaglione, valoreN, metodo, pctN, variazione[0], variazione[1], competenza, anno, vals])
 
   const multiFase = fasiDef.length > 1
@@ -210,6 +212,7 @@ export function CompensoForm({ initial, extraVoci = [], onResult }: { initial?: 
     }),
     ulteriorePct: ulterioreOn ? parseNumber(ulteriore) : 0, esitoPositivo: esito, esitoImporto: parseNumber(esitoImp), praticantePct: praticanteOn ? parseNumber(praticante) : 0,
     speseEsenti: parseNumber(speseEsenti), speseTrasferta: parseNumber(trasferta), speseAltre: parseNumber(altre), sgOn, sgPct: parseNumber(sgPct),
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `variazione` è un array nuovo a ogni render: contano i due valori
   }), [anno, competenza, competenze, variazioni, tipo, scaglione, valoreN, metodo, pctN, variazione[0], variazione[1], fasiDef, fasiSt, ulteriore, ulterioreOn, esito, esitoImp, praticante, praticanteOn, speseEsenti, trasferta, altre, sgOn, sgPct])
 
   const r = useMemo(() => calcolaCompenso(input), [input])
@@ -225,6 +228,7 @@ export function CompensoForm({ initial, extraVoci = [], onResult }: { initial?: 
   }, [r.compenso, input, tipo, sel?.label, nascondiTipo])
 
   const tutte = useMemo(() => [...voci, ...extraVoci], [voci, extraVoci])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `aliq` è un oggetto nuovo a ogni render: contano i valori
   const tot = useMemo(() => calcolaParcella(tutte, aliq), [tutte, aliq.sg, aliq.cpa, aliq.iva, aliq.rit, aliq.bollo])
 
   const state: CalcState = useMemo(() => ({

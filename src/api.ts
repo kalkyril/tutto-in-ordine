@@ -1,10 +1,11 @@
 import type { SearchHit } from './types'
+import { comprimi, espandi } from './lib/risorse'
 
 declare global {
   interface Window {
     mngmnt: {
       invoke: (channel: string, ...args: any[]) => Promise<any>
-      on: (event: 'data-changed' | 'navigate' | 'blocca' | 'menu' | 'time-changed', cb: (payload: any) => void) => () => void
+      on: (event: 'data-changed' | 'navigate' | 'blocca' | 'menu' | 'time-changed' | 'avanzamento', cb: (payload: any) => void) => () => void
       pathForFile: (f: File) => string
       platform: string
       test?: boolean
@@ -35,8 +36,8 @@ export const api = {
   removeUndo: (t: string, id: number): Promise<SnapshotEliminato | null> => inv('db:deleteUndo', t, id),
   undo: (snap: SnapshotEliminato): Promise<unknown> => inv('db:undo', snap),
   search: (q: string): Promise<SearchHit[]> => inv('db:search', q),
-  settings: () => inv('settings:get'),
-  setSettings: (o: Record<string, any>) => inv('settings:set', o),
+  settings: async () => espandi(await inv('settings:get'), (ids) => inv('settings:risorse', ids)),
+  setSettings: (o: Record<string, any>) => inv('settings:set', comprimi(o)),
   nextPraticaNumero: (): Promise<string> => inv('pratica:nextNumero'),
   getParcella: (id: number) => inv('parcella:get', id),
   saveParcella: (o: Record<string, any>) => inv('parcella:save', o),

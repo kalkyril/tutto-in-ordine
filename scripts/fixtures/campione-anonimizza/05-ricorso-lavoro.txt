@@ -1,0 +1,14 @@
+TRIBUNALE DI PARMA – SEZIONE LAVORO
+RICORSO EX ART. 414 C.P.C.
+
+Per la sig.ra {{FULLNAME|Francesca Malaguti}}, nata il {{DATE|02/09/1988}}, C.F. {{CF|MLGFNC88P42G337X}}, dipendente di {{ORG|Logistica Padana S.r.l.}} dal {{DATE|1° febbraio 2019}} con mansioni di magazziniera,
+
+PREMESSO
+
+che la ricorrente ha percepito una retribuzione mensile lorda di {{AMOUNT|€ 1.780,00}};
+che con lettera del {{DATE|30 aprile 2026}} la società ha comunicato il licenziamento;
+che la ricorrente è reperibile al numero {{TELEPHONENUM|+39 333 1234567}};
+
+CHIEDE
+
+l'accertamento dell'illegittimità del licenziamento.

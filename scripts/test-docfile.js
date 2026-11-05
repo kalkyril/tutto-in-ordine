@@ -19,6 +19,7 @@ const pr = (n2, titolo) => db.save('pratiche', { numero: n2, titolo, colore: '#1
 const interni = () => { const d = path.join(dati, 'documenti'); return fs.existsSync(d) ? fs.readdirSync(d, { recursive: true }).filter((x) => fs.statSync(path.join(d, x)).isFile()) : [] }
 const contenuto = (k, byte = 3000) => Buffer.from(k.repeat(Math.ceil(byte / k.length)).slice(0, byte))
 
+;(async () => {
 // ---------- 1. collegamento senza copia ----------
 const p1 = pr('2026/001', 'Rossi c. Bianchi')
 const scr = scrivi(path.join(utente, 'Scritture', 'Pratica 1', 'ScritturaPrivata.pdf'), contenuto('%PDF scrittura privata '))
@@ -38,7 +39,7 @@ ok('stato dei documenti: ok, mancante (spostato o rinominato) e copia interna de
 // ---------- 3. file spostato in un'altra cartella ----------
 const orig = sha(scr); fs.mkdirSync(path.join(utente, 'Scritture', 'Archivio 2026'), { recursive: true })
 const nuovo = path.join(utente, 'Scritture', 'Archivio 2026', 'ScritturaPrivata.pdf'); fs.renameSync(scr, nuovo)
-let r = docfile.sincronizza(); assert.equal(r.ritrovati.length, 1); assert.equal(r.ritrovati[0].a, nuovo); assert.equal(r.mancanti.length, 0); assert.equal(db.get('documenti', d1.id).percorso, nuovo); assert.equal(sha(nuovo), orig)
+let r = await docfile.sincronizza(); assert.equal(r.ritrovati.length, 1); assert.equal(r.ritrovati[0].a, nuovo); assert.equal(r.mancanti.length, 0); assert.equal(db.get('documenti', d1.id).percorso, nuovo); assert.equal(sha(nuovo), orig)
 ok('file spostato in un\'altra cartella: ritrovato cercando vicino alla posizione precedente, percorso aggiornato, file intatto')
 
 // ---------- 4. intera cartella della pratica spostata ----------
@@ -47,7 +48,7 @@ const files = ['Atto.pdf', 'Memoria.docx', path.join('Prove', 'Foto1.jpg'), path
 const dp2 = files.map((f) => docfile.collega(p2.id, f))
 const nuovaBase = path.join(utente, 'Studio', 'Archivio', 'Verdi (chiusa)'); fs.mkdirSync(path.dirname(nuovaBase), { recursive: true }); fs.renameSync(base, nuovaBase)
 assert.deepEqual(Object.values(docfile.stato(p2.id)), Array(5).fill('mancante'))
-r = docfile.sincronizza({ praticaId: p2.id, radici: [path.join(utente, 'Studio')] })
+r = await docfile.sincronizza({ praticaId: p2.id, radici: [path.join(utente, 'Studio')] })
 assert.equal(r.ritrovati.length, 5); assert.equal(r.mancanti.length, 0)
 for (const d of dp2) { const a = db.get('documenti', d.id).percorso; assert.ok(a.startsWith(nuovaBase + path.sep) && fs.existsSync(a)) }
 assert.equal(db.get('documenti', dp2[2].id).percorso, path.join(nuovaBase, 'Prove', 'Foto1.jpg'))
@@ -56,21 +57,21 @@ ok('cartella intera spostata o rinominata: tutti i file ritrovati in una sola sc
 // ---------- 5. file rinominato ----------
 const rin = scrivi(path.join(utente, 'Scambi', 'Lettera del 3 marzo.pdf'), contenuto('lettera marzo ', 4096)); const dr = docfile.collega(p2.id, rin)
 fs.renameSync(rin, path.join(utente, 'Scambi', 'Lettera diffida.pdf'))
-r = docfile.sincronizza({ praticaId: p2.id }); assert.equal(r.ritrovati.length, 1); assert.equal(r.ritrovati[0].come, 'file rinominato'); assert.equal(path.basename(db.get('documenti', dr.id).percorso), 'Lettera diffida.pdf')
+r = await docfile.sincronizza({ praticaId: p2.id }); assert.equal(r.ritrovati.length, 1); assert.equal(r.ritrovati[0].come, 'file rinominato'); assert.equal(path.basename(db.get('documenti', dr.id).percorso), 'Lettera diffida.pdf')
 ok('file rinominato: riconosciuto dal contenuto (dimensione e impronta)')
 
 // ---------- 6. stesso nome, contenuto diverso ----------
 const a = scrivi(path.join(utente, 'X', 'Contratto.pdf'), contenuto('contratto A ', 5000)), b = scrivi(path.join(utente, 'Y', 'Contratto.pdf'), contenuto('contratto B ', 5000))
 const dA = docfile.collega(p1.id, a); const dB = docfile.collega(p1.id, b)
 const arch = path.join(utente, 'Archivio'); fs.mkdirSync(arch, { recursive: true }); fs.renameSync(path.join(utente, 'X'), path.join(arch, 'X2')); fs.renameSync(path.join(utente, 'Y'), path.join(arch, 'Y2'))
-r = docfile.sincronizza({ radici: [arch] })
+r = await docfile.sincronizza({ radici: [arch] })
 assert.ok(db.get('documenti', dA.id).percorso.includes('X2') && db.get('documenti', dB.id).percorso.includes('Y2')); ok('due file con lo stesso nome ma contenuto diverso: ognuno ritrovato nel suo posto')
 
 // ---------- 7. copie identiche: scelta all'utente; file non trovato ----------
 const c = scrivi(path.join(utente, 'Z', 'Copia.txt'), contenuto('stesso ', 1500)); const dC = docfile.collega(p1.id, c)
 fs.unlinkSync(c); scrivi(path.join(arch, 'P', 'Copia.txt'), contenuto('stesso ', 1500)); scrivi(path.join(arch, 'Q', 'Copia.txt'), contenuto('stesso ', 1500))
 const persa = scrivi(path.join(utente, 'W', 'Persa.pdf'), contenuto('persa ', 800)); const dL = docfile.collega(p1.id, persa); fs.unlinkSync(persa)
-r = docfile.sincronizza({ radici: [arch], praticaId: p1.id })
+r = await docfile.sincronizza({ radici: [arch], praticaId: p1.id })
 assert.equal(r.ambigui.length, 1); assert.equal(r.ambigui[0].id, dC.id); assert.equal(r.ambigui[0].candidati.length, 2); assert.deepEqual(r.mancanti.map((x) => x.id), [dL.id]); assert.equal(db.get('documenti', dC.id).percorso, c)
 ok('copie identiche in più cartelle: non si sceglie a caso (elencate all\'utente); file davvero scomparso: segnalato come non trovato')
 
@@ -80,10 +81,10 @@ assert.equal(rc.percorso, rimesso); assert.equal(docfile.stato(p1.id)[dL.id], 'o
 
 // ---------- 9. cartella della pratica spostata e riassegnata ----------
 const p3 = pr('2026/003', 'Gialli'); const cartella = path.join(utente, 'Gialli'); const q = [path.join(cartella, 'a.pdf'), path.join(cartella, 'sub', 'b.pdf')].map((f, i) => scrivi(f, contenuto('g' + i, 600)))
-docfile.impostaCartella(p3.id, cartella); const dq = q.map((f) => docfile.collega(p3.id, f)); assert.deepEqual(dq.map((d) => d.rel), ['a.pdf', path.join('sub', 'b.pdf')])
+await docfile.impostaCartella(p3.id, cartella); const dq = q.map((f) => docfile.collega(p3.id, f)); assert.deepEqual(dq.map((d) => d.rel), ['a.pdf', path.join('sub', 'b.pdf')])
 const spostata = path.join(utente, 'Nuovo posto', 'Gialli 2026'); fs.mkdirSync(path.dirname(spostata), { recursive: true }); fs.renameSync(cartella, spostata)
-const ris = docfile.impostaCartella(p3.id, spostata); assert.equal(ris.aggiornati, 2); assert.deepEqual(Object.values(docfile.stato(p3.id)), ['ok', 'ok']); assert.equal(db.get('pratiche', p3.id).cartella, spostata)
-assert.throws(() => docfile.impostaCartella(p3.id, path.join(utente, 'non-esiste')), /non esiste/); ok('«cartella della pratica» spostata: indicando la nuova posizione tutti i percorsi si ricalcolano')
+const ris = await docfile.impostaCartella(p3.id, spostata); assert.equal(ris.aggiornati, 2); assert.deepEqual(Object.values(docfile.stato(p3.id)), ['ok', 'ok']); assert.equal(db.get('pratiche', p3.id).cartella, spostata)
+await assert.rejects(() => docfile.impostaCartella(p3.id, path.join(utente, 'non-esiste')), /non esiste/); ok('«cartella della pratica» spostata: indicando la nuova posizione tutti i percorsi si ricalcolano')
 
 // ---------- 10. documenti creati dall'app ----------
 const p4 = pr('2026/004', 'Atto: "prova"?'); const g = docfile.salvaGenerato(p4.id, 'Citazione.docx', Buffer.from('docx'), { categoria: 'Atti' })
@@ -94,8 +95,8 @@ ok('documenti creati dall\'app: salvati in una cartella dell\'utente (<Documenti
 
 // ---------- 11. collegare un'intera cartella ----------
 const p5 = pr('2026/005', 'Bianchi'); const cb = path.join(utente, 'Bianchi'); for (const f of ['uno.pdf', 'sotto/due.pdf', 'sotto/tre/tre.docx', '.nascosto', '~$temp.docx', 'x.tmp']) scrivi(path.join(cb, f), contenuto(f, 700))
-let cc = docfile.collegaCartella(p5.id, cb); assert.equal(cc.collegati, 3); assert.equal(db.get('pratiche', p5.id).cartella, cb); assert.deepEqual(db.list('documenti', { pratica_id: p5.id }).map((d) => d.categoria).sort(), [null, 'sotto', path.join('sotto', 'tre')].sort())
-cc = docfile.collegaCartella(p5.id, cb); assert.equal(cc.collegati, 0); assert.equal(cc.gia, 3); ok('collegare una cartella intera: sottocartelle comprese, file nascosti e temporanei ignorati, nessun doppione')
+let cc = await docfile.collegaCartella(p5.id, cb); assert.equal(cc.collegati, 3); assert.equal(db.get('pratiche', p5.id).cartella, cb); assert.deepEqual(db.list('documenti', { pratica_id: p5.id }).map((d) => d.categoria).sort(), [null, 'sotto', path.join('sotto', 'tre')].sort())
+cc = await docfile.collegaCartella(p5.id, cb); assert.equal(cc.collegati, 0); assert.equal(cc.gia, 3); ok('collegare una cartella intera: sottocartelle comprese, file nascosti e temporanei ignorati, nessun doppione')
 
 // ---------- 12. sicurezza della ricerca ----------
 const loop = path.join(utente, 'Loop'); fs.mkdirSync(path.join(loop, 'a'), { recursive: true }); fs.symlinkSync(loop, path.join(loop, 'a', 'torna'))
@@ -104,6 +105,17 @@ const { file, incompleto } = docfile.percorri([utente]); assert.ok(file.length >
 assert.equal(docfile.percorri([utente], { maxVoci: 5 }).incompleto, true); assert.equal(docfile.percorri([path.join(utente, 'non-esiste')]).file.length, 0)
 ok('ricerca: collegamenti simbolici (anche ciclici) non seguiti, cartelle nascoste e node_modules saltate, limiti rispettati')
 
+// ---------- 12b. operazioni lunghe senza bloccare l'app ----------
+{
+  const tanti = path.join(utente, 'Tanti'); for (let i = 0; i < 600; i++) scrivi(path.join(tanti, `sotto${i % 10}`, `f${i}.txt`), contenuto('x' + i, 2000))
+  const pt = pr('2026/099', 'Tanti file')
+  let battiti = 0; const t = setInterval(() => battiti++, 1)
+  const avanzamenti = []
+  const r = await docfile.collegaCartella(pt.id, tanti, { avanza: (x) => avanzamenti.push(x) })
+  clearInterval(t)
+  assert.equal(r.collegati, 600); assert.ok(battiti > 0, 'il processo principale ha continuato a rispondere'); assert.ok(avanzamenti.some((x) => x.fase === 'collego' && x.totale === 600))
+  ok(`collegare una cartella di 600 file non blocca l'app (${battiti} risposte durante l'operazione) e ne segnala l'avanzamento`)
+}
 // ---------- 13. i file dell'utente non vengono mai toccati ----------
 const tutti = db.list('documenti').filter((d) => d.percorso && fs.existsSync(d.percorso)); assert.ok(tutti.length >= 10)
 db.remove('documenti', d1.id); assert.ok(fs.existsSync(nuovo)); assert.deepEqual(interni(), [])
@@ -111,3 +123,4 @@ ok('rimuovere un collegamento non cancella il file; nulla è stato copiato nella
 
 db.close(); fs.rmSync(tmp, { recursive: true, force: true })
 console.log(`\n${n} prove superate`)
+})().catch((e) => { console.error(e); process.exit(1) })

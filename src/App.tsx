@@ -41,25 +41,13 @@ export default function App() {
   const [termini, setTermini] = useState(false)
   const [segnala, setSegnala] = useState(false)
   const run = useAction()
-  const { toast, confirm } = useFeedback()
+  const { toast } = useFeedback()
   // «Controlla aggiornamenti…» dal menu: si apre la sezione delle Impostazioni e si chiede subito a GitHub (richiesta voluta dall'utente)
   const controllaAggiornamenti = useCallback(async () => {
     go({ page: 'impostazioni', tab: 'backup' })
     const [r, info] = await Promise.all([run(() => api.controllaAggiornamenti()), api.appInfo().catch(() => null)])
     if (r) toast(r.nuova ? `È disponibile TIO ${r.versione}` : `Nessuna versione più recente: usi già TIO ${info?.version || ''}`.trim())
   }, [go, run, toast])
-  // una volta sola, finito il benvenuto (anche dopo un aggiornamento): TIO chiede se avvisare delle nuove versioni.
-  // Fino alla risposta il controllo resta spento; si cambia poi da Impostazioni › Backup e sicurezza › Aggiornamenti.
-  const chiesto = useRef(false)
-  useEffect(() => {
-    if (!ready || !settings.onboarding_fatto || settings.aggiornamenti_chiesto || settings.aggiornamenti_controllo === true || chiesto.current) return
-    chiesto.current = true
-    api.appInfo().then(async (info: { chiediAggiornamenti?: boolean }) => {
-      if (!info?.chiediAggiornamenti) return
-      const si = await confirm({ title: 'Vuoi sapere quando esce una nuova versione?', text: 'Una volta al giorno TIO chiede a GitHub il numero dell’ultima versione pubblicata e, se ce n’è una nuova, ti avvisa. Non invia dati dell’archivio e non installa nulla da solo. Puoi cambiare idea da Impostazioni › Backup e sicurezza.', ok: 'Avvisami', cancel: 'Non ora' })
-      await run(() => api.setSettings({ aggiornamenti_chiesto: true, aggiornamenti_controllo: si }))
-    }).catch(() => {})
-  }, [ready, settings.onboarding_fatto, settings.aggiornamenti_chiesto, settings.aggiornamenti_controllo, confirm, run])
   const azioni = azioniRapide({ go, apri: ed.open, L: settings.etichette, calcolaTermine: () => setTermini(true), avvocato: settings.profilo !== 'ditta' })
   // file rilasciati in un punto dell'app che non è una pratica: si sceglie a quale pratica collegarli
   const [daCollegare, setDaCollegare] = useState<string[] | null>(null)
@@ -84,10 +72,8 @@ export default function App() {
     mq.addEventListener('change', applica)
     return () => mq.removeEventListener('change', applica)
   }, [settings.brand_colore, settings.tema])
-  useEffect(() => {
-    const n = nomeAttivita(settings)
-    document.title = n === 'TIO' ? 'TIO' : `${n} · TIO`
-  }, [settings.studio?.nome])
+  const nomeFinestra = nomeAttivita(settings)
+  useEffect(() => { document.title = nomeFinestra === 'TIO' ? 'TIO' : `${nomeFinestra} · TIO` }, [nomeFinestra])
 
   // un file rilasciato dove non c'è una zona di rilascio non deve aprirsi al posto dell'app
   useEffect(() => {
@@ -107,7 +93,7 @@ export default function App() {
     else if (id === 'guida') run(() => api.apriGuida())
     else if (id === 'controlla-aggiornamenti') controllaAggiornamenti()
     else if (id.startsWith('vai-') || settings.onboarding_fatto) azioniRef.current.find((a) => a.id === id)?.esegui()
-  }, [go, settings.onboarding_fatto, controllaAggiornamenti])
+  }, [go, run, settings.onboarding_fatto, controllaAggiornamenti])
   useEffect(() => window.mngmnt.on('menu', esegui), [esegui])
   useEffect(() => {
     document.documentElement.dataset.platform = window.mngmnt.platform

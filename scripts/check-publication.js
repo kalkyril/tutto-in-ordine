@@ -4,6 +4,8 @@ const fs = require('node:fs'), path = require('node:path'), assert = require('no
 const { minimatch } = require('minimatch')
 const ROOT = path.resolve(__dirname, '..')
 const PRIVATE = /(?:^|\/)(?:\.env(?:\.[^/]+)?|blocco\.json|backup-key\.json(?:\.tmp)?|\.restore-state\.json(?:\.tmp)?)$|\.(?:db|sqlite3?|key|pem|p12|pfx|p8)(?:-wal|-shm)?$/i
+// unica eccezione: archivi di prova creati dalle versioni precedenti con dati inventati (scripts/test-archivi-vecchi.js)
+const ARCHIVI_DI_PROVA = /^scripts\/fixtures\/archivio-\d+\.\d+\.\d+\/mngmnt\.db$/
 const SECRETS = [/gh[pousr]_[a-zA-Z0-9]{36,}/, /github_pat_[a-zA-Z0-9_]{70,}/, /AKIA[A-Z0-9]{16}/, /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/, /(?:sk_live_|sk-proj-)[a-zA-Z0-9_-]{24,}/]
 function ignored(rel, directory, patterns) {
   let result = false
@@ -27,7 +29,7 @@ function scan(root = ROOT) {
       if (entry.isSymbolicLink()) { failures.push('Collegamento simbolico: ' + rel); continue }
       if (entry.isDirectory()) { walk(file, rel + '/'); continue }
       if (!entry.isFile()) { failures.push('File non regolare: ' + rel); continue }
-      if (PRIVATE.test(rel) && !rel.endsWith('.env.example')) { failures.push('File riservato candidato alla pubblicazione: ' + rel); continue }
+      if (PRIVATE.test(rel) && !rel.endsWith('.env.example') && !ARCHIVI_DI_PROVA.test(rel)) { failures.push('File riservato candidato alla pubblicazione: ' + rel); continue }
       files.push({ file: rel, bytes: fs.statSync(file).size })
       if (!/\.(?:js|mjs|mts|ts|tsx|json|md|yml|yaml|html|css|sh|py|svg|txt|toml|lock)$/.test(rel) && !['LICENSE', '.gitignore', '.npmrc'].includes(entry.name)) continue
       const content = fs.readFileSync(file, 'utf8'); textFiles++

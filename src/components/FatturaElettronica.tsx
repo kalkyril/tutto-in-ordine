@@ -38,7 +38,7 @@ export function FatturaElettronicaModal({ parcella, onClose }: { parcella: Parce
   const ordinati = useMemo(() => liste, [liste])
   const salva = async () => {
     // le scelte valgono anche per le prossime fatture; codice e PEC restano associati al cliente
-    await api.setSettings({ fatturapa: { tipoDocumento: o.tipoDocumento, regime: o.regime, tipoCassa: o.tipoCassa, natura: o.natura, tipoRitenuta: o.tipoRitenuta }, ...(parcella.cliente_id && { fatturapa_destinatari: { ...(settings.fatturapa_destinatari || {}), [parcella.cliente_id]: { codice: (o.codiceDestinatario || '').toUpperCase(), pec: o.pecDestinatario } } }) })
+    await api.setSettings({ fatturapa: { tipoDocumento: o.tipoDocumento, regime: o.regime, tipoCassa: o.tipoCassa, natura: o.natura, tipoRitenuta: o.tipoRitenuta }, ...(parcella.cliente_id && { fatturapa_destinatari: { ...settings.fatturapa_destinatari, [parcella.cliente_id]: { codice: (o.codiceDestinatario || '').toUpperCase(), pec: o.pecDestinatario } } }) })
     const r = await run(() => api.salvaFatturaXml(parcella.id, o))
     if (r) { toast(r.avvisi.length ? `File salvato. ${r.avvisi[0]}` : 'Fattura elettronica salvata: caricala sul tuo canale verso lo SdI'); onClose() }
   }

@@ -23,37 +23,73 @@ const TEMPORANEI = /^(~\$.*|.*\.tmp|.*\.crdownload|.*\.part)$/i
 const MAX_FILE = 5000
 
 /** File di una cartella (sottocartelle comprese), senza seguire i collegamenti simbolici. */
-function fileDi(dir) {
+async function fileDi(dir, avanza) {
   if (!isDir(dir)) return { file: [], incompleto: false }
-  const r = docfile.percorri([path.resolve(dir)], { maxVoci: MAX_FILE * 4, maxMs: 30000 })
+  const r = await docfile.percorriAsync([path.resolve(dir)], { maxVoci: MAX_FILE * 4, maxMs: 30000, avanza })
   return { file: r.file.filter((f) => !TEMPORANEI.test(f.nome)).slice(0, MAX_FILE), incompleto: r.incompleto || r.file.length > MAX_FILE }
 }
 
 const chiaveNome = (nome, byte) => `${String(nome).toLowerCase()}|${byte}`
-const impronta = (f) => { try { return f.impronta || (f.impronta = docfile.impronta(f.percorso)) } catch { return null } }
+
+/**
+ * Impronta del file, riusata se percorso, dimensione e data di modifica non sono cambiati dall'ultima volta:
+ * così una sincronizzazione legge per intero solo i file nuovi o modificati, non tutta la cartella di Cliens.
+ */
+async function improntaRicordata(f) {
+  const d = db.getDb()
+  const ass = path.resolve(f.percorso)
+  const c = d.prepare('SELECT byte, mtime, impronta FROM impronte WHERE percorso = ?').get(ass)
+  if (c && c.byte === f.byte && c.mtime === f.mtime) return c.impronta
+  try {
+    const imp = await docfile.improntaAsync(ass)
+    d.prepare('INSERT INTO impronte(percorso, byte, mtime, impronta) VALUES(?,?,?,?) ON CONFLICT(percorso) DO UPDATE SET byte = excluded.byte, mtime = excluded.mtime, impronta = excluded.impronta').run(ass, f.byte, f.mtime ?? 0, imp)
+    return imp
+  } catch { return null }
+}
+/** Toglie dalla memoria delle impronte i file della cartella che non ci sono più. */
+function dimenticaMancanti(cartella, presenti) {
+  if (!cartella) return
+  const d = db.getDb(), radice = path.resolve(cartella) + path.sep
+  const del = d.prepare('DELETE FROM impronte WHERE percorso = ?')
+  for (const r of d.prepare('SELECT percorso FROM impronte WHERE substr(percorso, 1, ?) = ?').all(radice.length, radice)) if (!presenti.has(r.percorso)) del.run(r.percorso)
+}
 
 /**
  * Sincronizzazione manuale di una pratica: collega i file nuovi delle due cartelle, riconosce quelli presenti in
  * entrambe, unisce i doppioni e segnala i file tolti da Cliens. Restituisce il resoconto.
+ * Le letture dei file (lente su cartelle grandi o in rete) si fanno prima, senza bloccare la finestra;
+ * poi le modifiche all'archivio in un'unica transazione.
  */
-function sincronizzaPratica(praticaId) {
+async function sincronizzaPratica(praticaId, { avanza: cb = null } = {}) {
+  const avanza = docfile.avanzamento(cb)
   const p = db.get('pratiche', praticaId); if (!p) throw new Error('Pratica non trovata')
   const rep = { praticaId: p.id, cliens: 0, locali: 0, condivisi: 0, nuovi: 0, uniti: 0, toltiDaCliens: 0, incompleto: false, cartellaCliens: !!p.cartella_cliens && isDir(p.cartella_cliens), cartellaLocale: !!p.cartella && isDir(p.cartella) }
   if (p.cartella_cliens && !rep.cartellaCliens) throw new Error(`La cartella di Cliens di questa pratica non si trova più («${p.cartella_cliens}»). Scegline un'altra.`)
-  const cl = rep.cartellaCliens ? fileDi(p.cartella_cliens) : { file: [], incompleto: false }
+  const cl = rep.cartellaCliens ? await fileDi(p.cartella_cliens, avanza) : { file: [], incompleto: false }
   // la cartella di Cliens dentro quella locale (o viceversa) non deve far contare due volte gli stessi file
-  const loc = rep.cartellaLocale ? fileDi(p.cartella) : { file: [], incompleto: false }
+  const loc = rep.cartellaLocale ? await fileDi(p.cartella, avanza) : { file: [], incompleto: false }
   const locali = loc.file.filter((f) => !(rep.cartellaCliens && dentro(f.percorso, p.cartella_cliens)))
   const daCliens = cl.file.filter((f) => !(rep.cartellaLocale && dentro(f.percorso, p.cartella) && !dentro(p.cartella_cliens, p.cartella)))
   rep.incompleto = cl.incompleto || loc.incompleto
+
+  // impronte: dei file di Cliens (riusate se il file non è cambiato) e dei file locali non ancora collegati
+  const giaCollegati = new Set(db.list('documenti', { pratica_id: p.id }).filter((d) => d.percorso && !d.ora_id).map((d) => path.resolve(d.percorso)))
+  const daLeggere = [...daCliens, ...locali.filter((f) => !giaCollegati.has(path.resolve(f.percorso)))]
+  let i = 0
+  for (const f of daLeggere) {
+    avanza({ fase: 'leggo', fatti: ++i, totale: daLeggere.length })
+    f.impronta = await improntaRicordata(f)
+  }
+  if (rep.cartellaCliens) dimenticaMancanti(p.cartella_cliens, new Set(cl.file.map((f) => path.resolve(f.percorso))))
+  avanza({ fase: 'salvo', fatti: daLeggere.length, totale: daLeggere.length }, true)
 
   db.transaction(() => db.senzaCronologia(() => {
     let docs = db.list('documenti', { pratica_id: p.id }).filter((d) => d.percorso && !d.ora_id)
     const perPercorso = new Map(docs.map((d) => [path.resolve(d.percorso), d]))
     // 1) file locali nuovi
     for (const f of locali) {
-      if (perPercorso.has(path.resolve(f.percorso))) continue
-      try { const d = docfile.collega(p.id, f.percorso, { categoria: categoria(f.percorso, p.cartella) }); perPercorso.set(path.resolve(f.percorso), d); docs.push(d); rep.nuovi++ } catch { /* illeggibile */ }
+      if (perPercorso.has(path.resolve(f.percorso)) || !f.impronta) continue
+      try { const d = docfile.collega(p.id, f.percorso, { categoria: categoria(f.percorso, p.cartella), impronta: f.impronta }); perPercorso.set(path.resolve(f.percorso), d); docs.push(d); rep.nuovi++ } catch { /* illeggibile */ }
     }
     // indice dei documenti non di Cliens: per contenuto e per nome + dimensione
     const nonCliens = () => docs.filter((d) => !dentro(d.percorso, p.cartella_cliens))
@@ -63,7 +99,7 @@ function sincronizzaPratica(praticaId) {
     const visti = new Set()
     for (const f of daCliens) {
       const ass = path.resolve(f.percorso); visti.add(ass)
-      const imp = impronta(f)
+      const imp = f.impronta
       // stesso contenuto; in mancanza dell'impronta, stesso nome e dimensione (ma mai due file dal contenuto diverso)
       const perN = perNome.get(chiaveNome(f.nome, f.byte))
       const gemello = (imp && perImpronta.get(imp)) || (perN && (!imp || !perN.impronta || perN.impronta === imp) ? perN : null)
@@ -76,7 +112,8 @@ function sincronizzaPratica(praticaId) {
         continue
       }
       if (giaCliens) { if (giaCliens.origine !== 'cliens') db.save('documenti', { id: giaCliens.id, origine: 'cliens' }); continue }
-      try { const d = docfile.collega(p.id, ass, { categoria: categoria(ass, p.cartella_cliens) }); db.save('documenti', { id: d.id, origine: 'cliens' }); d.origine = 'cliens'; perPercorso.set(ass, d); docs.push(d); rep.nuovi++ } catch { /* illeggibile */ }
+      if (!imp) continue // illeggibile
+      try { const d = docfile.collega(p.id, ass, { categoria: categoria(ass, p.cartella_cliens), impronta: imp }); db.save('documenti', { id: d.id, origine: 'cliens' }); d.origine = 'cliens'; perPercorso.set(ass, d); docs.push(d); rep.nuovi++ } catch { /* illeggibile */ }
     }
     // 3) doppioni fra documenti già collegati (stesso contenuto, uno in Cliens e uno in locale)
     const perContenuto = new Map()
@@ -123,7 +160,7 @@ function sezione(d, p) {
 function abbinaCartelle(radice) {
   if (!isDir(radice)) throw new Error('La cartella di Cliens non esiste')
   const pratiche = db.list('pratiche')
-  const sotto = fs.readdirSync(radice, { withFileTypes: true }).filter((e) => e.isDirectory() && !/^\./.test(e.name)).map((e) => e.name)
+  const sotto = fs.readdirSync(radice, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith('.')).map((e) => e.name)
   return sotto.map((nome) => {
     const n = norm(nome)
     const pr = pratiche.find((p) => p.numero && (n === norm(p.numero) || n.startsWith(norm(p.numero) + ' ') || n.endsWith(' ' + norm(p.numero))))
@@ -136,7 +173,7 @@ function abbinaCartelle(radice) {
 }
 
 /** Imposta la cartella di Cliens della pratica (o la toglie con null) e sincronizza. */
-function impostaCartella(praticaId, dir) {
+async function impostaCartella(praticaId, dir, opzioni = {}) {
   const p = db.get('pratiche', praticaId); if (!p) throw new Error('Pratica non trovata')
   if (dir && !isDir(dir)) throw new Error('La cartella non esiste')
   db.save('pratiche', { id: p.id, cartella_cliens: dir ? path.resolve(dir) : null })
@@ -144,19 +181,20 @@ function impostaCartella(praticaId, dir) {
     for (const d of db.list('documenti', { pratica_id: p.id })) if (d.origine === 'condivisa') db.save('documenti', { id: d.id, percorso_cliens: null, origine: 'locale' })
     return { praticaId: p.id, rimossa: true }
   }
-  return sincronizzaPratica(p.id)
+  return sincronizzaPratica(p.id, opzioni)
 }
 
 /** Sincronizza tutte le pratiche: con `radice` collega prima le sottocartelle riconosciute alle pratiche che non ne hanno una. */
-function sincronizzaTutte(radice) {
+async function sincronizzaTutte(radice, { avanza = null } = {}) {
   const esito = { pratiche: 0, collegate: 0, nuovi: 0, uniti: 0, condivisi: 0, errori: [] }
   if (radice) for (const c of abbinaCartelle(radice)) {
     if (!c.pratica) continue
     const p = db.get('pratiche', c.pratica.id)
     if (!p.cartella_cliens || !isDir(p.cartella_cliens)) { db.save('pratiche', { id: p.id, cartella_cliens: path.resolve(c.percorso) }); esito.collegate++ }
   }
-  for (const p of db.list('pratiche').filter((x) => x.cartella_cliens || x.cartella)) {
-    try { const r = sincronizzaPratica(p.id); esito.pratiche++; esito.nuovi += r.nuovi; esito.uniti += r.uniti; esito.condivisi += r.condivisi } catch (e) { esito.errori.push({ pratica: p.numero || p.titolo, motivo: e.message }) }
+  const daFare = db.list('pratiche').filter((x) => x.cartella_cliens || x.cartella)
+  for (const [i, p] of daFare.entries()) {
+    try { const r = await sincronizzaPratica(p.id, { avanza: avanza && ((x) => avanza({ ...x, pratica: p.numero || p.titolo, pratiche: i + 1, totalePratiche: daFare.length })) }); esito.pratiche++; esito.nuovi += r.nuovi; esito.uniti += r.uniti; esito.condivisi += r.condivisi } catch (e) { esito.errori.push({ pratica: p.numero || p.titolo, motivo: e.message }) }
   }
   return esito
 }

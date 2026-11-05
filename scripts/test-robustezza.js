@@ -5,7 +5,7 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
-const { spawn, spawnSync } = require('node:child_process')
+const { spawn } = require('node:child_process')
 const { DatabaseSync } = require('node:sqlite')
 
 if (process.argv[2] === '--scrittore') { // processo figlio: scrive righe una per una (usato per crash e concorrenza)
@@ -28,7 +28,7 @@ const ms = (f) => { const t = process.hrtime.bigint(); const r = f(); return [Nu
 
 // ---------- 1. migrazione da uno schema precedente ----------
 {
-  const d = path.join(tmp, 'migra'); db.open(d); const p = db.save('pratiche', { titolo: 'Vecchia', numero: '2025/001' })
+  const d = path.join(tmp, 'migra'); db.open(d); db.save('pratiche', { titolo: 'Vecchia', numero: '2025/001' })
   db.saveParcella({ data: '2025-01-01', voci: [{ tipo: 'compenso', descrizione: 'x', quantita: 1, importo: 10 }] }); db.close()
   const raw = new DatabaseSync(path.join(d, 'mngmnt.db')); raw.exec('ALTER TABLE parcelle DROP COLUMN calcolo'); raw.close()
   db.open(d)
