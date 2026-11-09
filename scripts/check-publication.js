@@ -49,7 +49,8 @@ function verify(root = ROOT) {
   assert.ok(fs.existsSync(path.join(root, 'PRIVACY.md')) && fs.existsSync(path.join(root, 'SECURITY.md')), 'Documentazione mancante')
   if (fs.existsSync(path.join(root, '.git'))) {
     const files = require('node:child_process').execFileSync('git', ['ls-files', '-cz'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean)
-    for (const rel of files) if (PRIVATE.test(rel) && !rel.endsWith('.env.example')) result.failures.push('File riservato tracciato da Git: ' + rel)
+    // gli archivi di prova con dati inventati (scripts/fixtures/archivio-x.y.z) sono voluti, come nel controllo dei file da pubblicare
+    for (const rel of files) if (PRIVATE.test(rel) && !rel.endsWith('.env.example') && !ARCHIVI_DI_PROVA.test(rel)) result.failures.push('File riservato tracciato da Git: ' + rel)
   }
   return result
 }
