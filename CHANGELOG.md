@@ -2,12 +2,6 @@
 
 Novità di ogni versione di TIO, dalla più recente. Come installare e usare TIO è spiegato nel [README](README.md).
 
-## Versione 1.0.3 (in preparazione)
-
-- **Sito e guida:** il sito racconta TIO come app unica per tutto il lavoro, con le sezioni nuove «Tutto in un’app» e «Si collega» (calendari, Cliens, fattura elettronica, Word, Excel, cartelle, posta, intelligenza artificiale), le schede su scadenzario, valore della commessa, editor dei documenti e Comprimi PDF e domande nuove. Tutte le immagini di sito, guida e README sono state rifatte dalla 1.0.2 con dati inventati (`scripts/immagini-sito.js`). La guida ha due sezioni nuove, «Un’app sola per tutto» e «Con cosa si collega TIO», e le immagini delle funzioni della 1.0.2.
-- **Documenti:** nel testo incollato «1. Premessa» da solo (anche prima di un elenco puntato) diventa un titolo; «1. …» seguito da «2. …» resta un elenco numerato. Nei modelli Word l’elenco dei campi non propone più firma e testo lungo, che lì non funzionano.
-- **Ricerca:** l’etichetta dei risultati segue il profilo («Commessa», «Incarico») invece di dire sempre «Pratica».
-
 ## Versione 1.0.2 — Pagamenti, documenti più completi, Comprimi PDF
 
 Nuove funzioni chieste da chi usa TIO ogni giorno e revisione dell'interfaccia con le linee guida di Apple per le app desktop, WCAG 2.2 e una prova con dati estremi (nomi lunghissimi, parole senza spazi, caratteri non latini).
@@ -38,6 +32,9 @@ Nuove funzioni chieste da chi usa TIO ogni giorno e revisione dell'interfaccia c
 - **Impostazioni:** per libero professionista e ditta individuale niente più scheda «Modello PDF» (intestazione e piè di pagina dei documenti si curano in Documenti); nel piè di pagina predefinito della ditta «Sede:» al posto di «Studio legale:».
 - **Peso:** la sola dipendenza nuova è pdf-lib (MIT): circa 3,9 MB installata e 0,4 MB nell'installer compresso, escluse le versioni per browser; la compressione lavora in un processo separato con un limite di memoria e si chiude a lavoro finito.
 - **Dati:** schema 6 con cinque colonne nuove (titolo, SDI e recapiti in anagrafica, tariffa da decidere nelle attività, contabile nelle voci da pagare), aggiunte da sole all'apertura; i backup delle versioni precedenti si ripristinano come prima.
+- **Sito e guida:** il sito racconta TIO come app unica per tutto il lavoro, con le sezioni nuove «Tutto in un’app» e «Si collega» (calendari, Cliens, fattura elettronica, Word, Excel, cartelle, posta, intelligenza artificiale), le schede su scadenzario, valore della commessa, editor dei documenti e Comprimi PDF e domande nuove. Tutte le immagini di sito, guida e README sono state rifatte dalla 1.0.2 con dati inventati (`scripts/immagini-sito.js`). La guida ha due sezioni nuove, «Un’app sola per tutto» e «Con cosa si collega TIO», e le immagini delle funzioni della 1.0.2.
+- **Testo incollato:** «1. Premessa» da solo (anche prima di un elenco puntato) diventa un titolo; «1. …» seguito da «2. …» resta un elenco numerato. Nei modelli Word l’elenco dei campi non propone più firma e testo lungo, che lì non funzionano.
+- **Ricerca:** l’etichetta dei risultati segue il profilo («Commessa», «Incarico») invece di dire sempre «Pratica».
 
 - **Finestre strette e testo ingrandito:** la Panoramica non scorre più di lato nella finestra minima (980 × 640) e allo zoom 125%; i numeri in cima restano allineati anche quando un'etichetta va su più righe; le colonne che scorrono sfumano in fondo invece di tagliare l'ultima voce a metà.
 - **Testi lunghi:** ragioni sociali, luoghi ed email senza spazi vanno a capo invece di uscire da schede, righe e dettagli; i titoli negli elenchi si fermano a tre righe e non coprono più lo stato.
