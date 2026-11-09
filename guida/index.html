@@ -166,16 +166,16 @@
 <div class="tabella"><table>
   <thead><tr><th>Sistema</th><th>File da scaricare</th></tr></thead>
   <tbody>
-    <tr><td>Mac con chip Apple (M1, M2…)</td><td><code>TIO-1.0.1-arm64.dmg</code> · macOS 13 Ventura o successivo</td></tr>
-    <tr><td>Mac con processore Intel</td><td><code>TIO-1.0.1.dmg</code> · macOS 13 o successivo</td></tr>
-    <tr><td>Windows</td><td><code>TIO-Setup-1.0.1.exe</code> · Windows 10 o 11 a 64 bit</td></tr>
+    <tr><td>Mac con chip Apple (M1, M2…)</td><td><code>TIO-1.0.2-arm64.dmg</code> · macOS 13 Ventura o successivo</td></tr>
+    <tr><td>Mac con processore Intel</td><td><code>TIO-1.0.2.dmg</code> · macOS 13 o successivo</td></tr>
+    <tr><td>Windows</td><td><code>TIO-Setup-1.0.2.exe</code> · Windows 10 o 11 a 64 bit</td></tr>
   </tbody>
 </table></div>
 <p>L’app occupa circa 420 MB su Mac e 510 MB su Windows, più l’archivio e i backup. Non sai che Mac hai? Menu Apple › <span class="percorso">Informazioni su questo Mac</span>: «Chip Apple M…» indica Apple Silicon, «Processore Intel» un Mac Intel.</p>
 <p>Gli installer sono nella pagina <strong>Releases</strong> del progetto su GitHub, insieme al file <code>SHA256SUMS.txt</code>. Per controllare che il file scaricato sia integro e sia proprio quello pubblicato, confronta il suo codice:</p>
 <ul>
-  <li>Mac, nel Terminale: <code>shasum -a 256 TIO-1.0.1-arm64.dmg</code></li>
-  <li>Windows, nel Prompt dei comandi: <code>certutil -hashfile TIO-Setup-1.0.1.exe SHA256</code></li>
+  <li>Mac, nel Terminale: <code>shasum -a 256 TIO-1.0.2-arm64.dmg</code></li>
+  <li>Windows, nel Prompt dei comandi: <code>certutil -hashfile TIO-Setup-1.0.2.exe SHA256</code></li>
 </ul>
 
 <h3 id="installare-mac">Su Mac</h3>
@@ -189,7 +189,7 @@
 
 <h3 id="installare-windows">Su Windows</h3>
 <ol class="passi">
-  <li>Scarica <code>TIO-Setup-1.0.1.exe</code>. Se il browser dice che il file «non viene scaricato comunemente», scegli di conservarlo (in Edge: menu <strong>…</strong> › <strong>Mantieni</strong> › <strong>Mantieni comunque</strong>).</li>
+  <li>Scarica <code>TIO-Setup-1.0.2.exe</code>. Se il browser dice che il file «non viene scaricato comunemente», scegli di conservarlo (in Edge: menu <strong>…</strong> › <strong>Mantieni</strong> › <strong>Mantieni comunque</strong>).</li>
   <li>Fai doppio clic. Se compare <strong>«Windows ha protetto il PC»</strong> (SmartScreen), premi <strong>Ulteriori informazioni</strong> e poi <strong>Esegui comunque</strong>. L’avviso dipende dalla mancanza di una firma digitale a pagamento.</li>
   <li>Segui l’installazione in italiano: non servono permessi da amministratore. TIO crea l’icona sul desktop e nel menu Start e alla fine si apre.</li>
 </ol>

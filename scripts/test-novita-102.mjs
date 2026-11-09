@@ -6,11 +6,12 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { createRequire } from 'node:module'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { Worker } from 'node:worker_threads'
 
 const require = createRequire(import.meta.url)
-const radice = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
+// fileURLToPath e non URL.pathname: su Windows pathname dà «/D:/…» e il percorso diventa «D:\D:\…»
+const radice = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const out = fs.mkdtempSync(path.join(os.tmpdir(), 'tio-102-'))
 await build({ configFile: false, logLevel: 'silent', build: { lib: { entry: { pagamenti: 'src/lib/pagamenti.ts', recapiti: 'src/lib/recapiti.ts', documento: 'src/lib/documento.ts' }, formats: ['es'], fileName: (_f, nome) => `${nome}.mjs` }, outDir: out, emptyOutDir: false, minify: false } })
 const pag = await import(pathToFileURL(path.join(out, 'pagamenti.mjs')).href)

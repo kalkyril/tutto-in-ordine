@@ -1,7 +1,7 @@
 {
   "name": "tio",
   "productName": "TIO",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "TIO, Tutto In Ordine: gestionale locale per avvocati, liberi professionisti e ditte individuali: pratiche, scadenze, compiti, anagrafica, attività svolte, parcelle.",
   "main": "electron/main.js",
   "author": {

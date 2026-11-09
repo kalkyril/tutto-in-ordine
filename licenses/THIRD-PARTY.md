@@ -21,6 +21,7 @@ In **Impostazioni → Backup e sicurezza → Informazioni**, scegliere **Licenze
 | @napi-rs/canvas 1.0.11, Skia e dipendenze | MIT del wrapper; BSD di Skia; testi dei componenti selezionati dalla build, copyright e avvisi sui brevetti conservati. FreeType utilizzato secondo FTL; ICU secondo Unicode V3. Vedere manifest per le altre condizioni. |
 | cssparser 0.38.0, cssparser-color 0.6.0, cssparser-macros 0.7.0, dtoa-short 0.3.5 | MPL-2.0. Sorgenti originali completi e licenze disponibili negli archivi `.crate` di `licenses/native/sources/mpl/`, accessibili anche dalla pagina delle licenze. Gli archivi si aprono come tar.gz. I sorgenti di queste parti restano MPL-2.0. |
 | Runtime Rust e altre dipendenze incorporate | Copyright e licenze originali conservati, incluse MIT/Apache-2.0, BSD, ISC e Unicode; la raccolta include un insieme prudenziale derivato dai lockfile |
+| pdf-lib 1.17.1, @pdf-lib/standard-fonts, @pdf-lib/upng, pako, tslib | MIT (pako MIT e Zlib, tslib 0BSD); testi originali dei pacchetti. Usati da Comprimi PDF per riscrivere i PDF sul computer, senza modifiche. |
 | Altre dipendenze npm | Inventario e testi corrispondenti, inclusi gli avvisi recuperati per is-url e tr46 |
 | rizzo-pii (Simone Rizzo — Rizzo AI Academy) | MIT; testo completo qui sotto. Codice derivato nella sezione Anonimizza (`src/lib/anonimizza.ts`): non è incluso il modello linguistico. |
 

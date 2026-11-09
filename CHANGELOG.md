@@ -2,7 +2,7 @@
 
 Novità di ogni versione di TIO, dalla più recente. Come installare e usare TIO è spiegato nel [README](README.md).
 
-## Versione 1.0.2 — Pagamenti, documenti più completi, Comprimi PDF (in preparazione)
+## Versione 1.0.2 — Pagamenti, documenti più completi, Comprimi PDF
 
 Nuove funzioni chieste da chi usa TIO ogni giorno e revisione dell'interfaccia con le linee guida di Apple per le app desktop, WCAG 2.2 e una prova con dati estremi (nomi lunghissimi, parole senza spazi, caratteri non latini).
 
