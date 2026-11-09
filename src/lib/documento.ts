@@ -306,8 +306,11 @@ export function blocchiDaTestoStrutturato(testo: string): Blocco[] {
       i = j - 1; continue
     }
     const elenco = /^\s*(?:[-•*–·▪]\s+|(\d{1,3}|[a-z])[.)]\s+)(.*)$/.exec(r)
-    if (elenco && (elenco[2] !== undefined)) { chiudi(); out.push({ tipo: elenco[1] ? 'ol' : 'ul', runs: inlineMd(elenco[2].trim()) }); continue }
     const h = titolo(r)
+    // «1. Premessa» da solo (anche prima di un elenco puntato) è un titolo; «1. …» subito seguito o preceduto da «2. …» è un elenco numerato
+    const voce = (x?: string) => !!x && /^\s*\d{1,3}[.)]\s+/.test(x)
+    const titoloNumerato = !!(elenco?.[1] && /^\d/.test(elenco[1]) && h && !voce(righe[i - 1]) && !voce(righe[i + 1]) && !par.length)
+    if (elenco && elenco[2] !== undefined && !titoloNumerato) { chiudi(); out.push({ tipo: elenco[1] ? 'ol' : 'ul', runs: inlineMd(elenco[2].trim()) }); continue }
     if (h && !par.length) { out.push({ tipo: h, runs: inlineMd(t.replace(/^#{1,4}\s+/, '')) }); continue }
     if (h && par.length && /[.!?:;]$/.test(par[par.length - 1])) { chiudi(); out.push({ tipo: h, runs: inlineMd(t.replace(/^#{1,4}\s+/, '')) }); continue }
     if (/^>\s?/.test(t)) { chiudi(); out.push({ tipo: 'quote', runs: inlineMd(t.replace(/^>\s?/, '')) }); continue }

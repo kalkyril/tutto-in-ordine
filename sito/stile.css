@@ -505,3 +505,15 @@ p { max-width: 62ch; text-wrap: pretty; }
 @media (prefers-reduced-motion: reduce) {
   .segmentato button, .pulsante, .barra a { transition: none; }
 }
+
+/* ---------- 1.0.2: «Tutto in un’app» e «Si collega»: schede in griglia, stesse superfici delle domande ---------- */
+.mappa, .collega { min-height: 0; }
+.mappa-griglia, .collega-griglia { width: 100%; max-width: var(--larghezza); margin: clamp(2rem, 5svh, 3.5rem) auto 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16.5rem), 1fr)); gap: var(--gutter); text-align: left; }
+.mappa-carta, .collega-carta { padding: clamp(1.25rem, 2.2vw, 1.75rem); border-radius: 20px; background: var(--surface); }
+.mappa-carta h3, .collega-carta h3 { font-family: var(--font); font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem); color: var(--ink); }
+.mappa-carta .funz-elenco { margin-top: 1rem; max-width: none; }
+.mappa-carta .funz-elenco li { font-size: 0.9375rem; }
+.collega-carta p { margin-top: 0.6rem; font-size: 0.9375rem; line-height: 1.55; color: color-mix(in srgb, var(--ink) 88%, var(--muted)); }
+.collega-carta .collega-con { margin: 0 0 0.5rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.collega-nota { max-width: 46rem; margin: 2rem auto 0; font-size: 1rem; line-height: 1.55; color: var(--ink); }
+#tutto, #collega { scroll-margin-top: 0; }

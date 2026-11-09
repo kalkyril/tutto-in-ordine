@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TIO — il gestionale gratuito per studi legali, professionisti e ditte</title>
-<meta name="description" content="TIO, Tutto In Ordine: il gestionale gratuito e open source per studi legali, liberi professionisti e ditte individuali. Clienti, lavori, scadenze, preventivi, fatture e parcelle sul tuo computer, senza account. Per Mac e Windows.">
+<title>TIO — tutto il lavoro in un’app: gestionale gratuito per studi legali, professionisti e ditte</title>
+<meta name="description" content="TIO, Tutto In Ordine: un’app sola per tutto il lavoro di studi legali, liberi professionisti e ditte individuali. Clienti, pratiche e commesse, agenda con avvisi, documenti, preventivi, fatture, pagamenti, anonimizzazione e compressione dei PDF. Si collega a calendari, Word, Excel, Cliens e fattura elettronica; i dati restano sul tuo computer. Gratis, per Mac e Windows.">
 <meta name="theme-color" content="#3d0012">
 <meta property="og:title" content="TIO — Tutto In Ordine">
-<meta property="og:description" content="Il gestionale gratuito e open source per studi legali, liberi professionisti e ditte individuali, sul tuo computer.">
+<meta property="og:description" content="Un’app sola per tutto il lavoro di studi legali, professionisti e ditte: clienti, agenda, documenti, fatture e pagamenti. Si collega ai tuoi programmi, i dati restano sul tuo computer.">
 <meta property="og:image" content="img/panoramica-chiaro.webp">
 <link rel="icon" href="img/favicon.png" type="image/png">
 <link rel="preload" href="font/literata-latin-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -37,6 +37,7 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
     <a class="barra-marchio" href="#contenuto" aria-label="TIO, inizio pagina"><img src="img/icona.png" width="30" height="30" alt="">TIO</a>
     <nav class="barra-voci" aria-label="Sezioni">
       <a href="#funzioni">Funzioni</a>
+      <a href="#collega">Si collega</a>
       <a href="#dati">I tuoi dati</a>
       <a href="#strumenti">Strumenti</a>
       <a href="#installare">Installare</a>
@@ -89,7 +90,7 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
       </div>
       <h1 class="nome" id="titolo-eroe" aria-label="Tutto In Ordine" data-scrivi><span class="iniziale">T</span>utto <span class="iniziale">I</span>n <span class="iniziale">O</span>rdine</h1>
       <p class="eroe-motto" data-rise style="--i:1">Il tuo lavoro, <em>sul tuo computer.</em></p>
-      <p class="eroe-frase" data-rise style="--i:2">Il gestionale gratuito e open source per studi legali, liberi professionisti e ditte individuali: clienti, lavori, scadenze, preventivi e fatture. Senza account e senza abbonamento.</p>
+      <p class="eroe-frase" data-rise style="--i:2">Un’app sola per tutto il lavoro di studi legali, liberi professionisti e ditte individuali: clienti, pratiche e commesse, agenda, documenti, preventivi, fatture e pagamenti. Si collega ai tuoi calendari, a Word, a Excel e alla fattura elettronica. Gratis, senza account e senza abbonamento.</p>
       <div class="eroe-azioni due-sistemi" data-rise style="--i:3">
         <a class="pulsante pulsante-grande" href="#installare" data-scarica-os="mac" data-scarica-file="macArm" aria-label="Scarica per Mac Apple Silicon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>Mac Apple Silicon</a>
       <a class="pulsante pulsante-grande" href="#installare" data-scarica-os="mac" data-scarica-file="macIntel" aria-label="Scarica per Mac Intel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>Mac Intel</a>
@@ -109,7 +110,7 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
   <!-- prima e dopo: trascinando, dieci finestre aperte diventano una -->
   <section class="confronto-sezione" aria-labelledby="titolo-confronto">
     <h2 id="titolo-confronto" data-reveal>Una finestra sola.</h2>
-    <p class="confronto-sotto" data-reveal>Trascina per confrontare. Lo stesso studio: prima sparso tra cartelle, fogli, posta e promemoria, poi tutto in TIO.</p>
+    <p class="confronto-sotto" data-reveal>Trascina per confrontare. Lo stesso studio: prima sparso tra cartelle, fogli Excel, posta, calendario e post-it; poi tutto in un’app, TIO.</p>
     <div class="confronto" data-confronto data-ui role="slider" tabindex="0" aria-label="Confronto: a sinistra la scrivania senza TIO, a destra con TIO" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" data-reveal>
       <div class="scrivania scrivania-dopo" data-ui aria-hidden="true">
         <div class="finestra-sola"><span class="semafori"><i></i><i></i><i></i></span><img draggable="false" src="img/panoramica-chiaro.webp" width="1700" height="1075" alt="" loading="lazy"></div>
@@ -133,16 +134,16 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
   </section>
 
   <!-- funzioni: righe alternate, testo da un lato e la finestra di TIO dall'altro (come Free My TV) -->
-  <section class="funz" style="--n: 6" id="funzioni" aria-labelledby="titolo-funz">
+  <section class="funz" style="--n: 8" id="funzioni" aria-labelledby="titolo-funz">
     <div class="funz-palco">
       <h2 id="titolo-funz" data-reveal>Funzioni.</h2>
-      <p class="sezione-sotto" data-reveal>Quello che fai ogni giorno, in una sola app.</p>
+      <p class="sezione-sotto" data-reveal>Quello che fai ogni giorno, in un’app sola: niente più cartelle, fogli e promemoria sparsi.</p>
       <!-- sul computer il palco resta fermo: titolo e testo non si muovono, scorrendo cambiano immagine e testo; senza script, o sul telefono, ogni immagine ha il suo testo -->
       <div class="funz-scorri" data-funz-scorri>
         <div class="funz-fisso" aria-hidden="true">
           <h3 data-funz-titolo>Tutto il lavoro in una schermata.</h3>
           <p data-funz-testo>Appena apri TIO vedi gli impegni di oggi, le cose da fare, i lavori in corso e quanto resta da incassare. Un clic su una riga e sei dentro il lavoro giusto.</p>
-          <div class="funz-punti"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="funz-punti"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
         <div class="funz-voci">
         <article class="funz-voce" data-funz="0">
@@ -164,18 +165,30 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
           </figure>
         </article>
         <article class="funz-voce" data-funz="3">
-          <div class="funz-testo"><h3>Preventivi e fatture in PDF.</h3><p>Con la tua intestazione, IVA e bollo già calcolati. TIO tiene il conto di cosa è incassato e di cosa manca, e a fine anno prepara la prima nota per il commercialista.</p></div>
+          <div class="funz-testo"><h3>Preventivi e fatture in PDF e XML.</h3><p>Con la tua intestazione, IVA e bollo già calcolati, e il file XML FatturaPA per il tuo canale verso lo SdI. TIO tiene il conto di cosa è incassato e di cosa manca, e a fine anno prepara la prima nota per il commercialista.</p></div>
           <figure class="funz-figura" data-ui>
-            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-fatture.webp" width="1600" height="1012" loading="lazy" alt="L'elenco di fatture e preventivi con emesso, incassato e da incassare"></div>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-fatture.webp" width="1600" height="1012" loading="lazy" alt="Pagamenti › Incassi: fatture e preventivi dell’anno con emesso, incassato e da incassare"></div>
           </figure>
         </article>
         <article class="funz-voce" data-funz="4">
+          <div class="funz-testo"><h3>I soldi, mese per mese.</h3><p>Pagamenti riunisce incassi e uscite: lo scadenzario mostra mese per mese cosa hai incassato, cosa aspetti, cosa hai pagato e cosa devi pagare, con il saldo previsto. Quando paghi un fornitore alleghi la contabile.</p></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-scadenzario.webp" width="1600" height="1012" loading="lazy" alt="Pagamenti › Scadenzario: totali dell’anno e, per ogni mese, incassi ricevuti e attesi, voci pagate e da pagare con il saldo previsto"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="5">
+          <div class="funz-testo"><h3>Quanto vale ogni lavoro.</h3><p>Nella scheda di una commessa o di un incarico vedi fatture incassate e da incassare, fornitori pagati e da pagare, in un grafico a torta con il margine. I colori li scegli tu.</p></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-commessa.webp" width="1600" height="1012" loading="lazy" alt="La scheda «Fatture e pagamenti» di una commessa: grafico a torta con incassate, da incassare, pagate e da pagare, e il margine previsto"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="6">
           <div class="funz-testo"><h3>Trovi tutto in un attimo.</h3><p>Premi ⌘K sul Mac o Ctrl+K su Windows e scrivi: clienti, lavori, scadenze, compiti, note e documenti. Dentro PDF e scansioni cerchi dalla scheda del lavoro.</p></div>
           <figure class="funz-figura" data-ui>
             <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-ricerca.webp" width="1600" height="1012" loading="lazy" alt="La ricerca di TIO aperta sulla parola «bar»: un lavoro, un cliente, una scadenza e tre documenti"></div>
           </figure>
         </article>
-        <article class="funz-voce" data-funz="5">
+        <article class="funz-voce" data-funz="7">
           <div class="funz-testo"><h3>Una copia al sicuro, ogni giorno.</h3><p>TIO salva da solo una copia dei tuoi dati e tiene le ultime sette, anche su un disco esterno e protette da una password.</p></div>
           <figure class="funz-figura" data-ui>
             <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-backup.webp" width="1600" height="1012" loading="lazy" alt="Impostazioni › Backup e sicurezza: copia di sicurezza con o senza password e backup automatico"></div>
@@ -187,6 +200,18 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
   </section>
 
   <!-- tutto incluso: per chi lavora in modi diversi; la stessa impaginazione di Strumenti, un palco per profilo -->
+  <!-- tutto quello che c'è in TIO, in un colpo d'occhio: un'app sola al posto di cartelle, fogli, agenda e programmi diversi -->
+  <section class="palco mappa" id="tutto" aria-labelledby="titolo-tutto">
+    <h2 id="titolo-tutto" data-reveal>Tutto in un’app.</h2>
+    <p class="sezione-sotto" data-reveal>Clienti, lavori, agenda, documenti, soldi e strumenti: quello che prima stava in cinque programmi, una cartella e un foglio Excel.</p>
+    <div class="mappa-griglia" data-reveal>
+      <article class="mappa-carta"><span class="funz-tag">Lavoro</span><h3>Il lavoro.</h3><ul class="funz-elenco"><li>Pratiche, incarichi e commesse, ognuno con la sua scheda e la cronologia.</li><li>Agenda per mese, settimana o elenco, con gli avvisi anche a finestra chiusa.</li><li>Compiti con priorità e attività ricorrenti che si creano da sole.</li><li>Anagrafica con titolo, più telefoni ed email, PEC e codice SDI.</li><li>Ricerca in tutto l’archivio con ⌘K o Ctrl+K, anche dentro PDF e scansioni.</li></ul></article>
+      <article class="mappa-carta"><span class="funz-tag">Pagamenti</span><h3>I soldi.</h3><ul class="funz-elenco"><li>Preventivi, fatture, parcelle e note pro forma in PDF, con IVA, bollo e cassa.</li><li>File XML FatturaPA per il tuo canale verso lo SdI.</li><li>Scadenzario mese per mese, incassi, solleciti e voci da pagare con la contabile.</li><li>Ore e spese di ogni lavoro, con la tariffa scritta subito o da decidere.</li><li>Valore di ogni commessa con il grafico, redditività e prima nota.</li></ul></article>
+      <article class="mappa-carta"><span class="funz-tag">Documenti</span><h3>I documenti.</h3><ul class="funz-elenco"><li>Modelli pronti con la tua intestazione, già compilati con i dati dell’archivio.</li><li>Un editor completo: titoli, tabelle, immagini, colori, capitoli e anteprima grande.</li><li>Testi lunghi da incollare, firma, campi tuoi come {{n.giorni}} o {{compenso}}.</li><li>La tua carta intestata Word, così com’è.</li><li>Documenti dei lavori collegati alle tue cartelle, senza copie.</li></ul></article>
+      <article class="mappa-carta"><span class="funz-tag">Strumenti</span><h3>Gli strumenti.</h3><ul class="funz-elenco"><li>Anonimizza: dati personali tolti prima di condividere o usare un’IA.</li><li>Comprimi PDF: allegati più leggeri per PEC e depositi, sul computer.</li><li>Calcolo dei termini e dei compensi forensi, per gli studi legali.</li><li>Scadenze fiscali pronte per il tuo profilo.</li><li>Backup automatici, blocco con password, tema chiaro e scuro.</li></ul></article>
+    </div>
+  </section>
+
   <section class="palco funzioni" id="incluso" aria-labelledby="titolo-funzioni">
     <h2 id="titolo-funzioni" data-reveal>Tutto incluso.</h2>
     <p class="sezione-sotto" data-reveal>Per studi legali, liberi professionisti e ditte individuali: al primo avvio scegli la tua attività e TIO usa le tue parole.</p>
@@ -196,17 +221,34 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
       <button type="button" data-profilo="avvocato" aria-pressed="false">Studi legali</button>
     </div>
     <article class="palco-griglia profilo-voce" data-profilo="professionista">
-      <div class="palco-testo"><span class="funz-tag">Liberi professionisti</span><h3>Incarichi e conti, in un posto solo.</h3><p>Ogni incarico con i suoi documenti, le scadenze e le ore; preventivi, documenti PDF e incassi con le aliquote e il contributo della tua cassa.</p><ul class="funz-elenco"><li>Clienti e incarichi con documenti, note, scadenze e compiti.</li><li>Budget, ore e consegne, con il confronto tra previsto e lavorato.</li><li>Preventivi con validità ed esito, e avvio dell’incarico.</li><li>Note pro forma, pagamenti, solleciti e prima nota per il commercialista.</li><li>Calendari collegati e attività ricorrenti che diventano compiti.</li></ul></div>
+      <div class="palco-testo"><span class="funz-tag">Liberi professionisti</span><h3>Incarichi e conti, in un posto solo.</h3><p>Ogni incarico con i suoi documenti, le scadenze e le ore; preventivi, documenti PDF e incassi con le aliquote e il contributo della tua cassa.</p><ul class="funz-elenco"><li>Clienti e incarichi con documenti, note, scadenze e compiti.</li><li>Budget, ore e consegne, con il confronto tra previsto e lavorato.</li><li>Preventivi con validità ed esito, e avvio dell’incarico.</li><li>Note pro forma, scadenzario dei pagamenti, solleciti e prima nota per il commercialista.</li><li>Clienti, fornitori e collaboratori con più telefoni, email e codice SDI.</li><li>Calendari collegati e attività ricorrenti che diventano compiti.</li></ul></div>
       <figure class="palco-figura" data-ui><div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-lavoro.webp" width="1600" height="1012" loading="lazy" alt="La scheda di un lavoro con dettagli, prossime scadenze, compiti e cronologia"></div></figure>
     </article>
     <article class="palco-griglia profilo-voce" data-profilo="ditta" hidden>
-      <div class="palco-testo"><span class="funz-tag">Ditte individuali</span><h3>Commesse, fatture e fornitori.</h3><p>Commesse, forniture, manutenzioni e consulenze, ognuna con i suoi documenti; fatture in PDF e XML FatturaPA con IVA e bollo.</p><ul class="funz-elenco"><li>Sopralluoghi e scadenze con avvisi, anche a finestra chiusa.</li><li>Budget per commessa, con ore e costi a consuntivo.</li><li>Preventivi accettati che diventano commesse e fatture.</li><li>Fatture in PDF e file XML FatturaPA per il tuo canale verso lo SdI.</li><li>Costi, fornitori e voci da pagare con le loro scadenze.</li></ul></div>
+      <div class="palco-testo"><span class="funz-tag">Ditte individuali</span><h3>Commesse, fatture e fornitori.</h3><p>Commesse, forniture, manutenzioni e consulenze, ognuna con i suoi documenti; fatture in PDF e XML FatturaPA con IVA e bollo.</p><ul class="funz-elenco"><li>Sopralluoghi e scadenze con avvisi, anche a finestra chiusa.</li><li>Budget per commessa, con ore e costi a consuntivo.</li><li>Preventivi accettati che diventano commesse e fatture.</li><li>Fatture in PDF e file XML FatturaPA per il tuo canale verso lo SdI.</li><li>Fornitori e voci da pagare con le scadenze, la contabile e il valore di ogni commessa.</li></ul></div>
       <figure class="palco-figura" data-ui><div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-fatture.webp" width="1600" height="1012" loading="lazy" alt="L’elenco di fatture e preventivi di una ditta di esempio, con emesso, incassato e da incassare"></div></figure>
     </article>
     <article class="palco-griglia profilo-voce" data-profilo="avvocato" hidden>
-      <div class="palco-testo"><span class="funz-tag">Studi legali</span><h3>Pratiche, udienze e parcelle.</h3><p>Numero di ruolo, autorità e giudice in ogni pratica; udienze con avvisi e parcelle con i parametri forensi.</p><ul class="funz-elenco"><li>Udienze e scadenze con avvisi; esito e rinvio quando chiudi l’udienza.</li><li>Calcolo dei termini in avanti e a ritroso, con sospensione feriale e festivi.</li><li>Compensi con i parametri del DM 55/2014 e del DM 147/2022.</li><li>Parcelle e note pro forma con spese generali, CPA, IVA, ritenuta e bollo.</li><li>Avviso di conflitto di interessi e pratiche riconosciute dal calendario.</li></ul></div>
+      <div class="palco-testo"><span class="funz-tag">Studi legali</span><h3>Pratiche, udienze e parcelle.</h3><p>Numero di ruolo, autorità e giudice in ogni pratica; udienze con avvisi e parcelle con i parametri forensi.</p><ul class="funz-elenco"><li>Udienze e scadenze con avvisi; esito e rinvio quando chiudi l’udienza.</li><li>Calcolo dei termini in avanti e a ritroso, con sospensione feriale e festivi.</li><li>Compensi con i parametri del DM 55/2014 e del DM 147/2022.</li><li>Parcelle e note pro forma con spese generali, CPA, IVA, ritenuta e bollo.</li><li>Avviso di conflitto di interessi e pratiche riconosciute dal calendario e da Cliens.</li></ul></div>
       <figure class="palco-figura" data-ui><div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/panoramica-chiaro.webp" width="1700" height="1075" loading="lazy" alt="La Panoramica di uno studio legale di esempio: udienze di oggi, compiti, pratiche attive e importi da incassare"></div></figure>
     </article>
+  </section>
+
+  <!-- i programmi e i servizi con cui TIO lavora: legge e prepara, i dati restano sul computer -->
+  <section class="palco collega" id="collega" aria-labelledby="titolo-collega">
+    <h2 id="titolo-collega" data-reveal>Si collega.</h2>
+    <p class="sezione-sotto" data-reveal>TIO lavora con i programmi e i servizi che usi già. Legge, prepara e compila; quello che esce dal computer lo decidi tu.</p>
+    <div class="collega-griglia" data-reveal>
+      <article class="collega-carta"><p class="collega-con">Google Calendar · Outlook · iCloud · Cliens Più</p><h3>Calendari</h3><p>Gli impegni dei calendari che già usi compaiono in Agenda, con i loro avvisi; da quelli di Cliens TIO riconosce anche le pratiche. E l’agenda di TIO si esporta in .ics.</p></article>
+      <article class="collega-carta"><p class="collega-con">Fascicoli e documenti</p><h3>Cliens Cube</h3><p>Importi l’esportazione dei fascicoli con parti, ruolo e ufficio; la cartella dei documenti scaricati da Cliens si unisce a quella di ogni pratica.</p></article>
+      <article class="collega-carta"><p class="collega-con">Fatture e Corrispettivi · intermediario · commercialista</p><h3>Fattura elettronica</h3><p>Da ogni fattura il file XML FatturaPA controllato, con il codice SDI del cliente già scritto: lo carichi sul tuo canale verso il Sistema di Interscambio.</p></article>
+      <article class="collega-carta"><p class="collega-con">Word · Pages · LibreOffice</p><h3>Word e LibreOffice</h3><p>La tua carta intestata Word diventa un modello; i documenti si creano in Word, OpenDocument, RTF, PDF, pagina web, Markdown o testo.</p></article>
+      <article class="collega-carta"><p class="collega-con">Excel · Numbers · fogli di calcolo</p><h3>Excel e CSV</h3><p>Porti dentro clienti, pratiche, scadenze e fatture da un foglio o da un altro programma; esporti prima nota, scadenzario e voci da pagare.</p></article>
+      <article class="collega-carta"><p class="collega-con">Finder · Esplora file · disco esterno</p><h3>Cartelle del computer</h3><p>I documenti di ogni lavoro restano nelle tue cartelle: TIO li collega senza copiarli e li ritrova se li sposti. Il backup va anche su un disco esterno.</p></article>
+      <article class="collega-carta"><p class="collega-con">Il tuo programma di posta</p><h3>Posta e PEC</h3><p>Solleciti e messaggi già scritti si aprono nel tuo programma di posta, pronti da controllare e inviare; email, PEC e telefoni dei contatti sono a un clic.</p></article>
+      <article class="collega-carta"><p class="collega-con">Qualsiasi assistente</p><h3>Intelligenza artificiale</h3><p>Anonimizza toglie i dati personali prima di mandare un testo a un’IA; quando arriva la risposta, TIO rimette nomi, numeri e indirizzi veri.</p></article>
+    </div>
+    <p class="collega-nota" data-reveal>Nessun account e nessun server di TIO in mezzo: i collegamenti partono dal tuo computer e solo quando servono.</p>
   </section>
 
   <!-- i tuoi dati: dove stanno e come sono protetti -->
@@ -221,54 +263,66 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
 
   <!-- strumenti: Documenti e Anonimizza, nel gruppo «Strumenti» della barra laterale dell'app. Stesso palco di Funzioni:
        sul computer il testo resta fermo a sinistra e scorrendo cambiano immagine, etichetta, titolo e dettagli -->
-  <section class="funz funz-strumenti" style="--n: 6" id="strumenti" aria-labelledby="titolo-strumenti">
+  <section class="funz funz-strumenti" style="--n: 8" id="strumenti" aria-labelledby="titolo-strumenti">
     <div class="funz-palco">
       <h2 id="titolo-strumenti" data-reveal>Strumenti.</h2>
-      <p class="sezione-sotto" data-reveal>Documenti e Anonimizza: scrivere e condividere senza uscire da TIO, sempre sul tuo computer.</p>
+      <p class="sezione-sotto" data-reveal>Documenti, Anonimizza e Comprimi PDF: scrivere, condividere e spedire senza uscire da TIO, sempre sul tuo computer.</p>
       <div class="funz-scorri" data-funz-scorri>
         <div class="funz-fisso">
           <span class="funz-tag" data-funz-tag aria-hidden="true">Documenti</span>
           <h3 data-funz-titolo aria-hidden="true">Modelli pronti per il tuo lavoro.</h3>
           <p data-funz-testo aria-hidden="true">Alla prima apertura trovi già lettere, preventivi, conferme d’ordine, solleciti, verbali, relazioni e l’informativa privacy, scritti per il tuo profilo e con la tua intestazione.</p>
-          <ul class="funz-elenco" data-funz-elenco aria-hidden="true"><li>Li rinomini, li modifichi o ne crei di nuovi in un editor con anteprima A4.</li><li>Intestazione, logo e piè di pagina si impostano una volta per tutti.</li><li>Testo a sinistra, al centro, a destra o giustificato; anche solo una parte su due colonne.</li></ul>
+          <ul class="funz-elenco" data-funz-elenco aria-hidden="true"><li>Li rinomini, li modifichi o ne crei di nuovi, con l’anteprima A4 sempre accanto.</li><li>Intestazione, logo, piè di pagina e firma si impostano una volta per tutti.</li><li>Anteprima a tutta finestra con lo zoom, per leggere ogni dettaglio.</li></ul>
           <p class="funz-grazie" data-funz-grazie hidden>Si ringrazia <a class="collegamento" href="https://rizzo-ai-academy.github.io/rizzo-pii/" rel="noopener">Simone Rizzo</a> per l’ispirazione.</p>
-          <div class="funz-punti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="funz-punti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
         <div class="funz-voci">
         <article class="funz-voce" data-funz="0">
-          <div class="funz-testo"><span class="funz-tag">Documenti</span><h3>Modelli pronti per il tuo lavoro.</h3><p>Alla prima apertura trovi già lettere, preventivi, conferme d’ordine, solleciti, verbali, relazioni e l’informativa privacy, scritti per il tuo profilo e con la tua intestazione.</p><ul class="funz-elenco"><li>Li rinomini, li modifichi o ne crei di nuovi in un editor con anteprima A4.</li><li>Intestazione, logo e piè di pagina si impostano una volta per tutti.</li><li>Testo a sinistra, al centro, a destra o giustificato; anche solo una parte su due colonne.</li></ul></div>
+          <div class="funz-testo"><span class="funz-tag">Documenti</span><h3>Modelli pronti per il tuo lavoro.</h3><p>Alla prima apertura trovi già lettere, preventivi, conferme d’ordine, solleciti, verbali, relazioni e l’informativa privacy, scritti per il tuo profilo e con la tua intestazione.</p><ul class="funz-elenco"><li>Li rinomini, li modifichi o ne crei di nuovi, con l’anteprima A4 sempre accanto.</li><li>Intestazione, logo, piè di pagina e firma si impostano una volta per tutti.</li><li>Anteprima a tutta finestra con lo zoom, per leggere ogni dettaglio.</li></ul></div>
           <figure class="funz-figura" data-ui>
             <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-modelli.webp" width="1600" height="1012" loading="lazy" alt="Strumenti › Documenti: l’elenco dei modelli predefiniti di una ditta di esempio e il modello «Preventivo» aperto con l’anteprima A4"></div>
           </figure>
         </article>
         <article class="funz-voce" data-funz="1">
+          <div class="funz-testo"><span class="funz-tag">Documenti</span><h3>Un vero editor, anche per i testi lunghi.</h3><p>Titoli e capitoli, tabelle, immagini, colori, dimensioni e interruzioni di pagina. Incolli un atto o una relazione da Word, da un PDF o da un’email e TIO ne riconosce titoli, elenchi e tabelle.</p><ul class="funz-elenco"><li>{{corpo.documento}}: il testo lungo si incolla quando crei il documento, dentro la tua carta intestata.</li><li>Campi tuoi, come «entro {{n.giorni}} giorni» o «compenso di € {{compenso}}».</li><li>La foto della firma dove scrivi {{firma}}; luogo e data in alto o in basso.</li></ul></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-editor.webp" width="1600" height="1012" loading="lazy" alt="L’editor dei documenti con la barra degli strumenti, una tabella, l’indice dei capitoli e l’anteprima A4 della relazione tecnica"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="2">
           <div class="funz-testo"><span class="funz-tag">Documenti</span><h3>Dal lavoro al documento, già compilato.</h3><p>Scegli il lavoro e il modello: cliente, indirizzo, numero e oggetto si inseriscono da soli. TIO chiede solo i campi che mancano, come l’importo.</p><ul class="funz-elenco"><li>Word, PDF, OpenDocument, RTF, pagina web, Markdown o testo semplice.</li><li>Il file finisce nella cartella del lavoro ed è già collegato ai suoi documenti.</li><li>Dalla scheda del lavoro: «Da modello…» fa lo stesso senza passare da qui.</li></ul></div>
           <figure class="funz-figura" data-ui>
             <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-crea.webp" width="1600" height="1012" loading="lazy" alt="La finestra «Crea documento» con il lavoro del Bar Centrale scelto, il destinatario già compilato e i sette formati disponibili"></div>
           </figure>
         </article>
-        <article class="funz-voce" data-funz="2">
+        <article class="funz-voce" data-funz="3">
           <div class="funz-testo"><span class="funz-tag">Documenti</span><h3>La tua carta intestata, così com’è.</h3><p>Hai già un modello in Word? Importalo: scrivi i campi tra doppie graffe, come {{destinatario.nome}}, e TIO li riempie lasciando identici stili, immagini, intestazione e piè di pagina.</p><ul class="funz-elenco"><li>Riconosce i campi anche quando Word li spezza in più parti.</li><li>Mostra quali campi ha trovato e quali dati userà per ognuno.</li><li>Per cambiarlo sostituisci il file: il nome e i documenti già creati restano.</li></ul></div>
           <figure class="funz-figura" data-ui>
             <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-word.webp" width="1600" height="1012" loading="lazy" alt="Un modello Word importato, «Carta intestata Galli», con l’elenco dei campi trovati e il testo del modello"></div>
           </figure>
         </article>
-        <article class="funz-voce" data-funz="3">
+        <article class="funz-voce" data-funz="4">
           <div class="funz-testo"><span class="funz-tag">Anonimizza</span><h3>Anonimizza prima di condividere.</h3><p>Incolla un testo o apri un PDF, un Word o una scansione: TIO trova nomi, società, codici fiscali, partite IVA, IBAN, indirizzi, telefoni ed email e li sostituisce con segnaposto come [FULLNAME_1].</p><ul class="funz-elenco"><li>22 tipi di dati, con i controlli dei codici fiscali, delle partite IVA e degli IBAN.</li><li>Riconosce i clienti e i fornitori del tuo archivio, anche dal solo cognome.</li><li>Un clic lascia in chiaro un dato; una parola selezionata si anonimizza ovunque.</li></ul></div>
           <figure class="funz-figura" data-ui>
             <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-anonimizza.webp" width="1600" height="1012" loading="lazy" alt="Anonimizza con il messaggio di una cliente: nomi, società, telefono, partita IVA, indirizzo, IBAN ed email evidenziati e pronti da sostituire"></div>
           </figure>
         </article>
-        <article class="funz-voce" data-funz="4">
+        <article class="funz-voce" data-funz="5">
           <div class="funz-testo"><span class="funz-tag">Anonimizza</span><h3>Un lavoro intero, in una volta.</h3><p>Dalla scheda del lavoro, «Anonimizza…» prepara una copia anonima di tutti i suoi documenti in una cartella a parte. Gli originali non cambiano.</p><ul class="funz-elenco"><li>PDF e Word mantengono la loro impaginazione; gli altri file diventano testo.</li><li>La stessa persona ha lo stesso segnaposto in tutti i file.</li><li>Una sola chiave di ripristino vale per tutto il lavoro.</li></ul></div>
           <figure class="funz-figura" data-ui>
             <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-anonimizza-pratica.webp" width="1600" height="1012" loading="lazy" alt="Anonimizza sulla scheda «Una pratica»: tre documenti del Bar Centrale anonimizzati, con il numero di dati trovati in ognuno"></div>
           </figure>
         </article>
-        <article class="funz-voce" data-funz="5">
+        <article class="funz-voce" data-funz="6">
           <div class="funz-testo"><span class="funz-tag">Anonimizza</span><h3>I dati veri tornano al loro posto.</h3><p>Usi un’intelligenza artificiale per una bozza o un riassunto? Le mandi il testo anonimizzato, poi incolli qui la risposta: TIO rimette nomi, numeri e indirizzi veri.</p><ul class="funz-elenco"><li>Funziona anche se l’IA scrive i segnaposto senza parentesi.</li><li>La chiave si salva in un file e si riapre quando serve.</li><li>Tutto avviene sul tuo computer: nessun dato viene inviato.</li></ul><p class="funz-grazie">Si ringrazia <a class="collegamento" href="https://rizzo-ai-academy.github.io/rizzo-pii/" rel="noopener">Simone Rizzo</a> per l’ispirazione.</p></div>
           <figure class="funz-figura" data-ui>
             <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-ripristino.webp" width="1600" height="1012" loading="lazy" alt="Anonimizza, scheda «Ripristina»: una risposta con i segnaposto e, sotto, lo stesso testo con i nomi, il telefono e l’IBAN originali"></div>
+          </figure>
+        </article>
+        <article class="funz-voce" data-funz="7">
+          <div class="funz-testo"><span class="funz-tag">Comprimi PDF</span><h3>Allegati leggeri per la PEC.</h3><p>Scansioni e PDF pesanti diventano leggeri in pochi secondi, sul tuo computer: scegli compressione minima, media o massima e trascina i file.</p><ul class="funz-elenco"><li>Il testo resta selezionabile e ricercabile.</li><li>L’originale non si tocca: il nuovo file si chiama «… (compresso).pdf».</li><li>Più file alla volta; nessun file viene inviato.</li></ul></div>
+          <figure class="funz-figura" data-ui>
+            <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/strumento-comprimi.webp" width="1600" height="1012" loading="lazy" alt="Comprimi PDF: livello medio scelto e due PDF compressi, da 2,1 MB a 410 KB e da 3,1 MB a 614 KB"></div>
           </figure>
         </article>
         </div>
@@ -330,8 +384,11 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
       </div>
     <div class="domande-elenco" data-ui>
       <details><summary>È davvero gratis?</summary><p>Sì. Nessun abbonamento, nessuna versione a pagamento, nessuna pubblicità. Il codice è pubblico con licenza MIT: chiunque può leggerlo e verificarlo.</p></details>
-      <details><summary>Va bene per un libero professionista o una ditta individuale?</summary><p>Sì. Al primo avvio scegli «Ditta individuale / libero professionista»: le parcelle diventano fatture e preventivi con IVA e bollo, i lavori diventano commesse, forniture, consulenze e manutenzioni, le controparti diventano fornitori. Puoi cambiare tutto da Impostazioni.</p></details>
-      <details><summary>Mi serve internet?</summary><p>No. TIO funziona anche senza connessione: internet serve solo per scaricarlo, per leggere un calendario collegato e per il controllo degli aggiornamenti (si può spegnere).</p></details>
+      <details><summary>Va bene per un libero professionista o una ditta individuale?</summary><p>Sì. Al primo avvio scegli «Libero professionista» o «Ditta individuale»: i lavori diventano incarichi o commesse, le parcelle diventano documenti di vendita con IVA, bollo e cassa, e in rubrica hai clienti, fornitori e collaboratori. Puoi cambiare tutto da Impostazioni.</p></details>
+      <details><summary>Posso tenere tutto in TIO, senza altri programmi?</summary><p>È fatto per questo: clienti, lavori, agenda, compiti, documenti, preventivi, fatture, pagamenti e scadenze fiscali stanno in un’app sola. Restano fuori solo l’invio della fattura elettronica (lo fa il tuo canale verso lo SdI) e la contabilità del commercialista, a cui TIO prepara i file.</p></details>
+      <details><summary>Con quali programmi si collega?</summary><p>Con i calendari Google, Outlook, iCloud e Cliens Più (in sola lettura), con Cliens Cube per fascicoli e documenti, con Word e LibreOffice per i modelli, con Excel per importare ed esportare, con il tuo programma di posta per i solleciti e con il canale della fattura elettronica tramite il file XML. Nessun account di TIO in mezzo.</p></details>
+      <details><summary>Mi serve internet?</summary><p>No. TIO funziona anche senza connessione, compresi Anonimizza e Comprimi PDF: internet serve solo per scaricarlo, per leggere un calendario collegato e per il controllo degli aggiornamenti (si può spegnere).</p></details>
+      <details><summary>Posso rendere più leggero un PDF per la PEC?</summary><p>Sì, con Comprimi PDF: scegli compressione minima, media o massima e trascini i file. Tutto avviene sul tuo computer, il testo resta selezionabile e l’originale resta com’era; il nuovo file si chiama «… (compresso).pdf».</p></details>
       <details><summary>Fa anche la fattura elettronica?</summary><p>Prepara il file. Da ogni fattura TIO crea l'XML FatturaPA, controllato con le regole dello schema ufficiale, da caricare su Fatture e Corrispettivi o sul servizio del tuo intermediario. L'invio al Sistema di Interscambio, le ricevute e la conservazione restano a quel canale o al commercialista.</p></details>
       <details><summary>Va bene per il regime forfettario?</summary><p>Sì. Imposti l'IVA a zero in Impostazioni: TIO non la calcola e aggiunge il bollo da 2 € quando l'importo supera 77,47 €. Lì si cambiano anche cassa previdenziale e ritenuta.</p></details>
       <details><summary>Cosa passo al commercialista?</summary><p>La prima nota dell'anno, un file CSV che si apre con Excel con tutti i documenti emessi, e i PDF di fatture e preventivi.</p></details>

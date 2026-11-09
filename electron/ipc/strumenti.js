@@ -57,13 +57,14 @@ function nomeCompresso(file, cartella) {
 
 module.exports = function registra({ handle, changed, getWindow, autorizza }) {
   // ---------- Comprimi PDF: si leggono solo i file scelti dall'utente, si scrive un file nuovo, l'originale resta com'è
-  const compressi = new Set()
+  const compressi = new Set(), autorizzati = new Set()
   handle('pdf:scegliDaComprimere', async () => {
+    // prove automatiche e immagini del sito: i file arrivano dalla variabile invece che dalla finestra di sistema
+    if (process.env.MNGMNT_TEST && process.env.MNGMNT_TEST_PDF_COMPRIMI) return process.env.MNGMNT_TEST_PDF_COMPRIMI.split('|').filter(Boolean).map((p) => { autorizzati.add(p); return { percorso: p, nome: path.basename(p), byte: fs.statSync(p).size } })
     const r = await dialog.showOpenDialog(getWindow(), { title: 'Scegli i PDF da comprimere', properties: ['openFile', 'multiSelections'], filters: [{ name: 'PDF', extensions: ['pdf'] }] })
     if (r.canceled) return []
     return r.filePaths.map((p) => { autorizzati.add(p); return { percorso: p, nome: path.basename(p), byte: fs.statSync(p).size } })
   })
-  const autorizzati = new Set()
   handle('pdf:infoFile', (percorso) => { if (!process.env.MNGMNT_TEST) autorizza(percorso); autorizzati.add(percorso); const st = fs.statSync(percorso); if (!st.isFile() || !/\.pdf$/i.test(percorso)) throw new Error('Non è un PDF'); return { percorso, nome: path.basename(percorso), byte: st.size } })
   handle('pdf:comprimi', async (percorso, livello, chiedi) => {
     if (typeof percorso !== 'string' || !autorizzati.has(percorso)) throw new Error('Scegli di nuovo il file da comprimere')

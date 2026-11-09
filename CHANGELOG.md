@@ -2,6 +2,12 @@
 
 Novità di ogni versione di TIO, dalla più recente. Come installare e usare TIO è spiegato nel [README](README.md).
 
+## Versione 1.0.3 (in preparazione)
+
+- **Sito e guida:** il sito racconta TIO come app unica per tutto il lavoro, con le sezioni nuove «Tutto in un’app» e «Si collega» (calendari, Cliens, fattura elettronica, Word, Excel, cartelle, posta, intelligenza artificiale), le schede su scadenzario, valore della commessa, editor dei documenti e Comprimi PDF e domande nuove. Tutte le immagini di sito, guida e README sono state rifatte dalla 1.0.2 con dati inventati (`scripts/immagini-sito.js`). La guida ha due sezioni nuove, «Un’app sola per tutto» e «Con cosa si collega TIO», e le immagini delle funzioni della 1.0.2.
+- **Documenti:** nel testo incollato «1. Premessa» da solo (anche prima di un elenco puntato) diventa un titolo; «1. …» seguito da «2. …» resta un elenco numerato. Nei modelli Word l’elenco dei campi non propone più firma e testo lungo, che lì non funzionano.
+- **Ricerca:** l’etichetta dei risultati segue il profilo («Commessa», «Incarico») invece di dire sempre «Pratica».
+
 ## Versione 1.0.2 — Pagamenti, documenti più completi, Comprimi PDF
 
 Nuove funzioni chieste da chi usa TIO ogni giorno e revisione dell'interfaccia con le linee guida di Apple per le app desktop, WCAG 2.2 e una prova con dati estremi (nomi lunghissimi, parole senza spazi, caratteri non latini).

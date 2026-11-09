@@ -71,8 +71,8 @@ try {
   ok('anagrafica: più telefoni ed email con etichetta, campi principali compatibili, titolo, ruoli per profilo')
 
   // ---------- testo incollato
-  const b = doc.blocchiDaTestoStrutturato(['CAPITOLO 1', 'Premesse generali', '', '1.1 Oggetto del contratto', 'Il presente contratto', 'disciplina la fornitura.', '', '- primo punto', '- secondo **importante**', 'a) lettera', '', 'Voce\tImporto', 'Consulenza\t1.000', 'Spese\t50', '', 'ART. 2 - DURATA', '> citazione', '# Titolo md'].join('\n'))
-  assert.deepEqual(b.map((x) => x.tipo), ['h1', 'p', 'h3', 'p', 'ul', 'ul', 'ol', 'table', 'h2', 'quote', 'h1'])
+  const b = doc.blocchiDaTestoStrutturato(['CAPITOLO 1', 'Premesse generali', '', '1.1 Oggetto del contratto', 'Il presente contratto', 'disciplina la fornitura.', '', '- primo punto', '- secondo **importante**', 'a) lettera', '', 'Voce\tImporto', 'Consulenza\t1.000', 'Spese\t50', '', 'ART. 2 - DURATA', '> citazione', '# Titolo md', '', '2. Interventi eseguiti', 'Testo dopo il titolo numerato.', '', '1. primo passo', '2. secondo passo', '', '3. Materiali', '- cavi'].join('\n'))
+  assert.deepEqual(b.map((x) => x.tipo), ['h1', 'p', 'h3', 'p', 'ul', 'ul', 'ol', 'table', 'h2', 'quote', 'h1', 'h2', 'p', 'ol', 'ol', 'h2', 'ul'])
   assert.equal(b[3].runs.map((x) => x.t).join(''), 'Il presente contratto disciplina la fornitura.')
   assert.deepEqual(b[5].runs, [{ t: 'secondo ' }, { t: 'importante', b: true }])
   assert.equal(b[7].celle.length, 3); assert.equal(b[7].celle[1][1][0].t, '1.000')

@@ -137,6 +137,7 @@ const KIND_LABEL: Record<string, string> = { evento: 'Calendario', pratica: 'Pra
 
 export function SearchPalette({ onClose, azioni = [] }: { onClose: () => void; azioni?: Azione[] }) {
   const { go } = useNav()
+  const { settings } = useData()
   const [q, setQ] = useState('')
   const [hits, setHits] = useState<SearchHit[]>([])
   const [i, setI] = useState(0)
@@ -186,7 +187,7 @@ export function SearchPalette({ onClose, azioni = [] }: { onClose: () => void; a
             <button key={h.kind + h.id} className={`result ${idx === i ? 'on' : ''}`} onMouseEnter={() => setI(idx)} onClick={() => pick(h)}>
               {h.color ? <ColorDot color={h.color} size={10} /> : <Icon size={15} />}
               <span className="grow"><b>{h.title}</b>{h.sub && <small className="muted">{h.sub}</small>}</span>
-              <span className="pill">{KIND_LABEL[h.kind]}</span>
+              <span className="pill">{h.kind === 'pratica' ? settings.etichette.pratica : KIND_LABEL[h.kind]}</span>
             </button>
           )
         })}

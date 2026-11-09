@@ -15,7 +15,7 @@
 <div class="guida">
 
 <aside class="indice" aria-label="Indice della guida">
-  <a class="marchio" href="#inizio"><img src="img/icona.png" alt=""><span>Guida di TIO<small>Versione 1.0</small></span></a>
+  <a class="marchio" href="#inizio"><img src="img/icona.png" alt=""><span>Guida di TIO<small>Versione 1.0.2</small></span></a>
   <button class="apri-indice" type="button" data-apri-indice aria-expanded="false">Indice</button>
   <nav>
     <div class="cerca">
@@ -41,6 +41,8 @@
           <li><a href="#barra-laterale">La barra laterale</a></li>
           <li><a href="#barra-alto">La barra in alto</a></li>
           <li><a href="#profili">Studio, professionista, ditta</a></li>
+          <li><a href="#app-unica">Un’app sola per tutto</a></li>
+          <li><a href="#si-collega">Con cosa si collega TIO</a></li>
         </ol>
       </li>
       <li class="gruppo" aria-hidden="true">Il lavoro</li>
@@ -140,9 +142,9 @@
 <div class="testo">
 
 <header class="copertina" id="inizio">
-  <p class="sopra">Guida completa · TIO 1.0</p>
+  <p class="sopra">Guida completa · TIO 1.0.2</p>
   <h1>Tutto In Ordine, spiegato bene.</h1>
-  <p class="sotto">Il manuale di TIO, sezione per sezione: dall’installazione al primo documento, dall’agenda alla fattura elettronica, fino a Documenti e Anonimizza. Gratuito, sul tuo computer, anche senza internet.</p>
+  <p class="sotto">Il manuale di TIO, l’app unica per tutto il lavoro: dall’installazione al primo documento, dall’agenda ai pagamenti e alla fattura elettronica, fino a Documenti, Anonimizza e Comprimi PDF, e a come TIO si collega ai programmi che usi già. Gratuito, sul tuo computer, anche senza internet.</p>
 </header>
 
 <!-- ================================================================ 1 -->
@@ -153,7 +155,7 @@
   <li><strong>Cerca:</strong> scrivi nel campo in alto a sinistra (o premi <kbd>/</kbd>): l’indice mostra solo le sezioni che contengono le parole cercate. <kbd>Invio</kbd> apre la prima.</li>
   <li><strong>Tasti:</strong> sul Mac <kbd>⌘</kbd> è il tasto Comando; su Windows usa <kbd>Ctrl</kbd> al suo posto. Quando i tasti sono diversi la guida li indica entrambi.</li>
   <li><strong>Percorsi:</strong> «<span class="percorso">Impostazioni › Avvisi</span>» significa: apri Impostazioni, poi la scheda Avvisi.</li>
-  <li><strong>Le parole cambiano col profilo:</strong> uno studio legale vede «Pratiche» e «Parcelle», un libero professionista «Incarichi» e «Documenti e incassi», una ditta «Commesse» e «Fatture». La guida usa di solito «lavoro» o «pratica»: vale per tutti.</li>
+  <li><strong>Le parole cambiano col profilo:</strong> uno studio legale vede «Pratiche» e «Parcelle», un libero professionista «Incarichi», una ditta «Commesse»; i soldi stanno per tutti in «Pagamenti». La guida usa di solito «lavoro» o «pratica»: vale per tutti.</li>
 </ul>
 <div class="nota"><b>Un aiuto, non un consulente.</b>Compensi, termini processuali, date e importi fiscali calcolati da TIO sono un supporto operativo: verificali sempre sul caso concreto e, per le questioni fiscali, con il tuo commercialista.</div>
 </section>
@@ -262,6 +264,38 @@
   <div><b>Ditta individuale</b>Commesse, forniture, manutenzioni; fatture con IVA e bollo, sopralluoghi e appuntamenti, budget per commessa, INPS artigiani e commercianti.</div>
 </div>
 <p>Le etichette («Pratica», «Cliente», «Controparte», «Autorità», «Parcella»…) si possono anche riscrivere a mano in <span class="percorso">Impostazioni › Pratiche e colori</span>.</p>
+
+<h3 id="app-unica">Un’app sola per tutto</h3>
+<p>TIO raccoglie in una finestra quello che di solito sta in programmi, cartelle e fogli diversi. Ogni parte usa gli stessi clienti e gli stessi lavori, quindi un dato si scrive una volta sola.</p>
+<div class="tabella"><table>
+  <thead><tr><th>Prima</th><th>In TIO</th></tr></thead>
+  <tbody>
+    <tr><td>Rubrica, fogli con codici fiscali e IBAN</td><td><a href="#anagrafica">Anagrafica</a>: clienti, fornitori, collaboratori, controparti, con titolo, più telefoni ed email, PEC e codice SDI</td></tr>
+    <tr><td>Cartelle per cliente, file sparsi</td><td><a href="#pratiche">Pratiche, incarichi e commesse</a>: una scheda per lavoro con documenti collegati, note, compiti, ore, spese e cronologia</td></tr>
+    <tr><td>Calendario, agenda di carta, promemoria sul telefono</td><td><a href="#agenda">Agenda e avvisi</a> e <a href="#compiti">Compiti</a>, con gli avvisi anche a finestra chiusa</td></tr>
+    <tr><td>Programma di fatturazione, foglio Excel degli incassi</td><td><a href="#parcelle">Parcelle, fatture e preventivi</a> e <a href="#da-pagare">Pagamenti</a>: scadenzario, incassi, voci da pagare con la contabile, prima nota</td></tr>
+    <tr><td>Word con la carta intestata, modelli da ricopiare</td><td><a href="#documenti">Documenti</a>: modelli compilati da soli, editor completo, testi lunghi, firma, modelli Word</td></tr>
+    <tr><td>Servizi online per anonimizzare o comprimere i PDF</td><td><a href="#anonimizza">Anonimizza</a> e <a href="#comprimi-pdf">Comprimi PDF</a>, senza inviare nulla</td></tr>
+    <tr><td>Chiavetta con le copie, «spero di non perdere niente»</td><td><a href="#backup">Backup</a> automatico ogni giorno, anche cifrato e su un disco esterno</td></tr>
+  </tbody>
+</table></div>
+<p>Restano fuori solo due cose, per scelta: l’invio della fattura elettronica al Sistema di Interscambio (lo fa il tuo canale: TIO prepara il file XML) e la contabilità del commercialista (TIO gli prepara prima nota e dati in CSV).</p>
+
+<h3 id="si-collega">Con cosa si collega TIO</h3>
+<p>TIO lavora con i programmi e i servizi che usi già. Non ha un account né un server suo: legge, prepara e compila sul tuo computer, e quello che esce lo decidi tu.</p>
+<div class="tabella"><table>
+  <thead><tr><th>Con</th><th>Cosa fa</th><th>Dove</th></tr></thead>
+  <tbody>
+    <tr><td>Google Calendar, Outlook, iCloud, Cliens Più</td><td>Mostra in Agenda gli impegni dei calendari collegati (in sola lettura), con i loro avvisi; dai calendari di Cliens riconosce le pratiche. L’agenda di TIO si esporta in <code>.ics</code>.</td><td><a href="#calendari-collegati">Calendari collegati</a></td></tr>
+    <tr><td>Cliens Cube</td><td>Importa l’esportazione dei fascicoli; unisce la cartella dei documenti scaricati da Cliens a quella di ogni pratica.</td><td><a href="#documenti-cliens">Documenti di Cliens</a></td></tr>
+    <tr><td>Fatture e Corrispettivi, intermediario, commercialista</td><td>Prepara il file XML FatturaPA controllato, con il codice SDI del cliente.</td><td><a href="#fattura-elettronica">Fattura elettronica XML</a></td></tr>
+    <tr><td>Word, Pages, LibreOffice</td><td>Usa la tua carta intestata Word come modello; crea documenti in Word, OpenDocument, RTF, PDF, HTML, Markdown e testo.</td><td><a href="#modelli-word">Modelli Word</a>, <a href="#crea-documento">Creare un documento</a></td></tr>
+    <tr><td>Excel, Numbers, file CSV</td><td>Importa clienti, pratiche, scadenze e documenti contabili; esporta prima nota, scadenzario, voci da pagare e redditività.</td><td><a href="#importare">Importare i dati</a>, <a href="#prima-nota">Prima nota</a></td></tr>
+    <tr><td>Cartelle del computer e dischi esterni</td><td>Collega i documenti di ogni lavoro senza copiarli e li ritrova se li sposti; salva i backup dove scegli.</td><td><a href="#documenti-collegati">Documenti collegati</a>, <a href="#backup">Backup</a></td></tr>
+    <tr><td>Programma di posta e PEC</td><td>Apre solleciti e messaggi già scritti nel tuo programma di posta; email, PEC e telefoni dei contatti sono a un clic.</td><td><a href="#incassi">Incassi e solleciti</a></td></tr>
+    <tr><td>Assistenti di intelligenza artificiale</td><td>Anonimizza toglie i dati personali prima di usare un’IA e li rimette nella risposta.</td><td><a href="#anonimizza">Anonimizza</a></td></tr>
+  </tbody>
+</table></div>
 <a class="torna" href="#inizio">↑ Torna all’inizio</a>
 </section>
 
@@ -336,6 +370,7 @@
 <h3 id="attivita-spese">Attività, ore e spese</h3>
 <p>In <strong>Attività e spese</strong> registri le ore lavorate (data, durata, descrizione, tariffa oraria) e le spese anticipate (con o senza IVA), anche con un allegato. Nel menu della <strong>tariffa oraria</strong> scegli <strong>Inserisci</strong> per scriverla subito o <strong>Da decidere</strong> per fissarla dopo: l’attività conta le ore e, nel documento contabile, diventa una voce a 0 € con la nota «tariffa oraria da decidere», da completare. Quando prepari un documento contabile dal lavoro, ore e spese non ancora fatturate si possono importare come voci; se elimini il documento tornano «da fatturare».</p>
 
+<figure><img src="img/funzione-commessa.webp" width="1600" height="1012" loading="lazy" alt="La scheda «Fatture e pagamenti» di una commessa: grafico a torta con incassate, da incassare, pagate e da pagare e margine previsto"><figcaption>Il valore di una commessa, con il grafico a torta.</figcaption></figure>
 <p>Nella scheda <strong>Parcelle</strong> (per professionisti e ditte <strong>Fatture e pagamenti</strong>) di ogni lavoro, <strong>Valore della pratica</strong> riassume fatture incassate e da incassare, voci pagate e da pagare collegate al lavoro, con un <strong>grafico a torta</strong> e il margine previsto. I colori del grafico si scelgono in <span class="percorso">Impostazioni › Generale › Aspetto</span>.</p>
 
 <h3 id="budget">Budget e consegna</h3>
@@ -415,7 +450,7 @@
 <!-- ================================================================ 9 -->
 <section class="capitolo" id="parcelle">
 <h2><span class="num">9.</span>Parcelle, fatture e preventivi</h2>
-<figure><img src="img/funzione-fatture.webp" width="1600" height="1012" loading="lazy" alt="L’elenco di fatture e preventivi con emesso, incassato e da incassare"><figcaption>L’elenco dei documenti dell’anno con emesso, incassato e da incassare.</figcaption></figure>
+<figure><img src="img/funzione-fatture.webp" width="1600" height="1012" loading="lazy" alt="Pagamenti › Incassi: l’elenco di fatture e preventivi con emesso, incassato e da incassare"><figcaption>Pagamenti › Incassi: i documenti dell’anno con emesso, incassato e da incassare.</figcaption></figure>
 <p>La sezione (Parcelle, Fatture o Documenti e incassi secondo il profilo) raccoglie i documenti contabili dell’anno scelto, con i totali in alto: emesso, incassato netto, da incassare e preventivi. Le schede in alto portano a <strong>Documenti</strong>, <strong>Da incassare</strong>, <strong>Redditività</strong> e, secondo il profilo, a <strong>Preventivi e lavori</strong>, <strong>Pagamenti</strong>, <strong>Costi e fornitori</strong> e <strong>Attività ricorrenti</strong>.</p>
 
 <h3 id="tipi-documento">I tipi di documento</h3>
@@ -522,6 +557,7 @@
 <p>Nella barra laterale <strong>Pagamenti</strong> (<kbd>⌘</kbd><kbd>6</kbd>) riunisce in tre schede tutto il denaro dell’attività: <strong>Scadenzario</strong>, <strong>Incassi</strong> (per lo studio legale <strong>Parcelle</strong>: documenti contabili, preventivi e incassi, descritti nel <a href="#parcelle">capitolo 9</a>) e <strong>Da pagare</strong>.</p>
 
 <h3 id="scadenzario">Scadenzario</h3>
+<figure><img src="img/funzione-scadenzario.webp" width="1600" height="1012" loading="lazy" alt="Lo scadenzario di Pagamenti: totali dell’anno e, mese per mese, incassi ricevuti e attesi, voci pagate e da pagare con il saldo previsto"><figcaption>Lo scadenzario: il giro del denaro mese per mese.</figcaption></figure>
 <p>Il giro del denaro mese per mese: per ogni mese gli incassi ricevuti, quelli attesi (alla scadenza di pagamento del documento, o 30 giorni dopo l’emissione), le voci pagate e quelle da pagare, con i totali e il <strong>saldo previsto</strong>. In alto i totali dell’anno; i filtri mostrano solo entrate, solo uscite o ciò che è ancora aperto. Le scadenze passate degli anni precedenti restano in cima finché non le sistemi. <strong>Esporta CSV</strong> salva lo scadenzario dell’anno.</p>
 
 <h3 id="contabile">Da pagare e contabile del pagamento</h3>
@@ -557,6 +593,7 @@
 <p>Puoi <strong>rinominarli</strong> come vuoi, modificarli, <strong>duplicarli</strong>, eliminarli o crearne di nuovi con <strong>Nuovo modello</strong>: parti da un testo pronto oppure da un <strong>modello personalizzato</strong>, una pagina bianca con il nome che scegli.</p>
 
 <h3 id="editor-modello">Modificare un modello</h3>
+<figure><img src="img/strumento-editor.webp" width="1600" height="1012" loading="lazy" alt="L’editor dei documenti: barra degli strumenti, barra della tabella, indice dei capitoli, testo con titoli e tabella e anteprima A4"><figcaption>L’editor con i capitoli riconosciuti, una tabella e l’indice.</figcaption></figure>
 <p>Il modello ha quattro schede:</p>
 <ul>
   <li><strong>Contenuto</strong>: il testo, con un editor quasi da programma di videoscrittura: stili di paragrafo (titolo, sottotitolo, titoletto, paragrafo, citazione), dimensione del testo (fino a 72 pt), grassetto, corsivo, sottolineato, barrato, colore ed evidenziatore, elenchi, <strong>tabelle</strong> (con riga d’intestazione che si ripete su ogni pagina), <strong>immagini</strong> (anche incollate o trascinate), <strong>interruzioni di pagina</strong>, annulla e ripeti;</li>
@@ -611,6 +648,7 @@
 </ul>
 
 <h3 id="comprimi-pdf">Comprimi PDF</h3>
+<figure><img src="img/strumento-comprimi.webp" width="1600" height="1012" loading="lazy" alt="Comprimi PDF con il livello medio e due PDF compressi, con il peso prima e dopo"><figcaption>Due scansioni più leggere dell’81%; gli originali restano com’erano.</figcaption></figure>
 <p>Lo strumento <strong>Comprimi PDF</strong>, nella barra laterale sotto Anonimizza, rende più leggeri i PDF pesanti (scansioni, foto, allegati) per PEC, email e depositi telematici. Tutto avviene sul computer: nessun file viene inviato.</p>
 <ol class="passi">
   <li>Scegli il livello: <strong>Minima</strong> (qualità quasi identica), <strong>Media</strong> (consigliata per PEC e depositi) o <strong>Massima</strong> (il file più leggero; toglie anche miniature e metadati).</li>

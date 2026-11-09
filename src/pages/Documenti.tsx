@@ -7,7 +7,7 @@ import { CreaDocumentoModal } from '../components/CreaDocumento'
 import { AnteprimaNota, ImmagineBlocco, RigheEditor } from '../components/ModelloPdfEditor'
 import { GestioneFont, OpzioniFont } from '../components/SceltaFont'
 import { modelloEffettivo } from '../lib/modello'
-import { MARGINI_PREDEFINITI, NOMI_POSIZIONE_LD, campiDisponibili, duplicaModello, documentoHtml, modelliPredefiniti, modelloPersonalizzato, nuovoModello, predefinitiMancanti, rigaVuota, tipiDocumento, valoriCampi } from '../lib/documento'
+import { CAMPI_SPECIALI, MARGINI_PREDEFINITI, NOMI_POSIZIONE_LD, campiDisponibili, duplicaModello, documentoHtml, modelliPredefiniti, modelloPersonalizzato, nuovoModello, predefinitiMancanti, rigaVuota, tipiDocumento, valoriCampi } from '../lib/documento'
 import { EditorTesto } from '../components/EditorTesto'
 import { AnteprimaGrande } from '../components/AnteprimaGrande'
 import type { Allineamento, ModelloDocumento, PosizioneLuogoData, Settings } from '../types'
@@ -225,7 +225,8 @@ function EditorWord(p: AzioniModello) {
   const [info, setInfo] = useState<InfoWord | null>(null)
   const [errore, setErrore] = useState('')
   useEffect(() => { api.infoModelloWord(m.id).then(setInfo).catch((e) => setErrore(String(e?.message || e).replace(/^Error invoking remote method '[^']+': (Error: )?/, ''))) }, [m.id])
-  const campi = campiDisponibili(settings)
+  // firma e testo lungo non esistono nei modelli Word: il file resta com'è
+  const campi = campiDisponibili(settings).filter((c) => !CAMPI_SPECIALI.has(c.id))
   const nomi = new Map(campi.map((c) => [c.id, `${c.gruppo}: ${c.etichetta.toLowerCase()}`]))
   const sostituisci = async () => { const r = await run(() => api.sostituisciModelloWord(m.id)); if (r) { setInfo(r); onChange({ campiWord: r.campi }); toast('Modello Word aggiornato') } }
   const copia = async (t: string) => { try { await navigator.clipboard.writeText(t); toast(`${t} copiato: incollalo nel documento Word`) } catch { toast('Copia non riuscita', 'err') } }
