@@ -37,7 +37,60 @@ function lavoroPdf(dati, ms) {
   })
 }
 
+/** Esegue pdf-comprimi-worker.js fuori dal processo principale; l'avanzamento arriva alla finestra. */
+function lavoroComprimi(dati, avanza) {
+  const { Worker } = require('node:worker_threads')
+  return new Promise((resolve, reject) => {
+    const w = new Worker(path.join(__dirname, '..', 'pdf-comprimi-worker.js').replace(/app\.asar([\\/])/, 'app.asar.unpacked$1'), { workerData: dati, resourceLimits: { maxOldGenerationSizeMb: 1536 } })
+    const timer = setTimeout(() => { w.terminate(); reject(new Error('Il PDF ha superato il tempo massimo di elaborazione (10 minuti)')) }, 600000)
+    w.on('message', (r) => { if (r.avanzamento) { avanza(r.avanzamento); return } clearTimeout(timer); w.terminate(); r.error ? reject(new Error(r.error)) : resolve(r.esito) })
+    w.once('error', (e) => { clearTimeout(timer); reject(e) })
+    w.once('exit', (c) => { clearTimeout(timer); if (c !== 0) reject(new Error('Elaborazione interrotta: il PDF potrebbe essere troppo grande per la memoria disponibile')) })
+  })
+}
+/** «Contratto.pdf» → «Contratto (compresso).pdf», «Contratto (compresso 2).pdf»… senza sovrascrivere nulla. */
+function nomeCompresso(file, cartella) {
+  const base = path.basename(file, path.extname(file))
+  for (let i = 1; i < 1000; i++) { const p = path.join(cartella, `${base} (compresso${i > 1 ? ' ' + i : ''}).pdf`); if (!fs.existsSync(p)) return p }
+  throw new Error('Troppi file compressi con lo stesso nome nella cartella')
+}
+
 module.exports = function registra({ handle, changed, getWindow, autorizza }) {
+  // ---------- Comprimi PDF: si leggono solo i file scelti dall'utente, si scrive un file nuovo, l'originale resta com'è
+  const compressi = new Set()
+  handle('pdf:scegliDaComprimere', async () => {
+    const r = await dialog.showOpenDialog(getWindow(), { title: 'Scegli i PDF da comprimere', properties: ['openFile', 'multiSelections'], filters: [{ name: 'PDF', extensions: ['pdf'] }] })
+    if (r.canceled) return []
+    return r.filePaths.map((p) => { autorizzati.add(p); return { percorso: p, nome: path.basename(p), byte: fs.statSync(p).size } })
+  })
+  const autorizzati = new Set()
+  handle('pdf:infoFile', (percorso) => { if (!process.env.MNGMNT_TEST) autorizza(percorso); autorizzati.add(percorso); const st = fs.statSync(percorso); if (!st.isFile() || !/\.pdf$/i.test(percorso)) throw new Error('Non è un PDF'); return { percorso, nome: path.basename(percorso), byte: st.size } })
+  handle('pdf:comprimi', async (percorso, livello, chiedi) => {
+    if (typeof percorso !== 'string' || !autorizzati.has(percorso)) throw new Error('Scegli di nuovo il file da comprimere')
+    if (!['minima', 'media', 'massima'].includes(livello)) throw new Error('Livello di compressione non valido')
+    let uscita = null
+    const cartella = path.dirname(percorso)
+    let scrivibile = true
+    try { fs.accessSync(cartella, fs.constants.W_OK) } catch { scrivibile = false }
+    if (chiedi || !scrivibile) {
+      const r = await dialog.showSaveDialog(getWindow(), { title: 'Salva il PDF compresso', defaultPath: nomeCompresso(percorso, scrivibile ? cartella : app.getPath('documents')), filters: [{ name: 'PDF', extensions: ['pdf'] }] })
+      if (r.canceled || !r.filePath) return null
+      uscita = r.filePath
+    } else uscita = nomeCompresso(percorso, cartella)
+    if (path.resolve(uscita) === path.resolve(percorso)) throw new Error('Scegli un nome diverso dall’originale')
+    const avanza = (info) => { const w = getWindow(); if (w && !w.isDestroyed()) w.webContents.send('avanzamento', { operazione: 'comprimi', fase: info.fase, fatti: info.fatto, totale: info.totale }) }
+    try {
+      const esito = await lavoroComprimi({ file: percorso, uscita, livello }, avanza)
+      compressi.add(uscita)
+      return { ...esito, uscita, nome: path.basename(uscita) }
+    } finally { const w = getWindow(); if (w && !w.isDestroyed()) w.webContents.send('avanzamento', { operazione: 'comprimi', fine: true }) }
+  })
+  handle('pdf:mostraCompresso', (uscita, apri) => {
+    if (!compressi.has(uscita)) throw new Error('File non trovato')
+    if (apri) return shell.openPath(uscita).then((e) => { if (e) throw new Error(e); return true })
+    shell.showItemInFolder(uscita); return true
+  })
+
   // file aperti in questa sessione: il .docx originale serve per salvarne la copia anonimizzata con la stessa impaginazione
   const aperti = new Map()
   let prossimo = 1

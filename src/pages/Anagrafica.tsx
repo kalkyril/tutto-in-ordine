@@ -1,5 +1,5 @@
 import { usePagination } from '../components/Pagination'
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Building2, Mail, Pencil, Phone, Plus, Search, Trash2, User, Users } from 'lucide-react'
 import { api } from '../api'
 import { useData } from '../store'
@@ -7,8 +7,9 @@ import { useNav } from '../nav'
 import { useEditors } from '../components/editors'
 import { conflittiPer } from '../lib/conflitti'
 import { Btn, ColorDot, Empty, PageHeader, Pill, Segmented, useAction, useFeedback } from '../components/ui'
+import { leggiRecapiti, nomeConTitolo, nomeRuolo, ruoliAnagrafica } from '../lib/recapiti'
 
-type R = 'tutti' | 'cliente' | 'controparte' | 'altro'
+type R = 'tutti' | 'cliente' | 'controparte' | 'fornitore' | 'collaboratore' | 'altro'
 
 export default function AnagraficaPage() {
   const { anagrafica, pratiche, settings, anagraficaById } = useData()
@@ -20,8 +21,12 @@ export default function AnagraficaPage() {
   const [q, setQ] = useState('')
   const [ruolo, setRuolo] = useState<R>('tutti')
   const [sel, setSel] = useState<number | null>(null)
-  const rows = useMemo(() => anagrafica.filter((a) => (ruolo === 'tutti' || a.ruolo === ruolo) &&
-    (!q.trim() || [a.denominazione, a.codice_fiscale, a.partita_iva, a.email, a.telefono, a.citta].join(' ').toLowerCase().includes(q.toLowerCase()))), [anagrafica, q, ruolo])
+  const ditta = settings.profilo === 'ditta'
+  // per le ditte le vecchie «controparti» (fornitore o altro) compaiono tra i fornitori
+  const delRuolo = (a: { ruolo: string }) => ruolo === 'tutti' || a.ruolo === ruolo || (ditta && ruolo === 'fornitore' && a.ruolo === 'controparte')
+  const rows = useMemo(() => anagrafica.filter((a) => delRuolo(a) &&
+    (!q.trim() || [a.denominazione, a.titolo, a.codice_fiscale, a.partita_iva, a.sdi, a.email, a.telefono, a.recapiti, a.citta].join(' ').toLowerCase().includes(q.toLowerCase()))), [anagrafica, q, ruolo]) // eslint-disable-line react-hooks/exhaustive-deps -- delRuolo dipende solo da ruolo e profilo
+  const nomeR = (r: string) => nomeRuolo(r, settings.profilo, L)
   const { visible, controls } = usePagination(rows, JSON.stringify([q, ruolo]))
   const cur = anagrafica.find((a) => a.id === sel) || rows[0]
   const comeCliente = useMemo(() => cur ? pratiche.filter((p) => p.cliente_id && anagraficaById.get(p.cliente_id) && conflittiPer(cur, 'controparte', [p], anagraficaById).length) : [], [cur, pratiche, anagraficaById])
@@ -29,13 +34,14 @@ export default function AnagraficaPage() {
   // conflitto di interessi: concetto degli studi legali; per una ditta un cliente può essere anche fornitore
   const conflitto = settings.profilo !== 'ditta' && comeCliente.length > 0 && comeControparte.length > 0
   const sue = cur ? pratiche.filter((p) => p.cliente_id === cur.id || p.controparte_id === cur.id) : []
+  const recapiti = leggiRecapiti(cur)
 
   return (
     <div className="page">
       <PageHeader title="Anagrafica" subtitle={`${anagrafica.length} contatti`} actions={<Btn variant="primary" onClick={() => ed.open({ kind: 'anagrafica', ruolo: ruolo === 'tutti' ? 'cliente' : ruolo, onSaved: (a) => setSel(a.id) })}><Plus size={16} /> Nuovo contatto</Btn>} />
       <div className="toolbar">
         <div className="search-box"><Search size={15} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca per nome, codice fiscale, email…" aria-label="Cerca" /></div>
-        <Segmented<R> value={ruolo} onChange={setRuolo} options={[{ id: 'tutti', label: 'Tutti' }, { id: 'cliente', label: L.clienti }, { id: 'controparte', label: L.controparte }, { id: 'altro', label: 'Altri' }]} />
+        <Segmented<R> value={ruolo} onChange={setRuolo} options={[{ id: 'tutti', label: 'Tutti' }, ...ruoliAnagrafica(settings.profilo, L).map((r) => ({ id: r.id as R, label: r.id === 'cliente' ? L.clienti : r.id === 'fornitore' ? 'Fornitori' : r.id === 'collaboratore' ? 'Collaboratori' : r.id === 'altro' ? 'Altri' : r.label }))]} />
       </div>
       {!anagrafica.length ? (
         <Empty icon={<Users size={32} />} title="Rubrica vuota" text={`Registra ${L.clienti.toLowerCase()} e ${L.controparte.toLowerCase()} con dati fiscali e contatti: potrai collegarli alle pratiche.`}
@@ -46,7 +52,7 @@ export default function AnagraficaPage() {
             {visible.map((a) => (
               <button key={a.id} className={`contact ${cur?.id === a.id ? 'on' : ''}`} onClick={() => setSel(a.id)}>
                 <span className="avatar">{a.tipo === 'azienda' ? <Building2 size={16} /> : <User size={16} />}</span>
-                <span className="grow"><b>{a.denominazione}</b><small className="muted">{a.ruolo === 'cliente' ? L.cliente : a.ruolo === 'controparte' ? L.controparte : 'Altro'}{a.citta ? ' · ' + a.citta : ''}</small></span>
+                <span className="grow"><b>{nomeConTitolo(a)}</b><small className="muted">{nomeR(a.ruolo)}{a.citta ? ' · ' + a.citta : ''}</small></span>
               </button>
             ))}
             {!rows.length && <p className="muted pad">Nessun risultato.</p>}
@@ -54,20 +60,21 @@ export default function AnagraficaPage() {
           {cur && (
             <section className="card detail-pane">
               <header className="card-head">
-                <h2>{cur.denominazione}</h2>
+                <h2>{nomeConTitolo(cur)}</h2>
                 <div className="row">
                   <Btn size="sm" onClick={() => ed.open({ kind: 'anagrafica', item: cur })}><Pencil size={14} /> Modifica</Btn>
                   <Btn size="sm" variant="danger" aria-label="Elimina il contatto" title="Elimina il contatto" onClick={async () => { if (await confirm({ title: 'Eliminare il contatto?', text: sue.length ? `È collegato a ${sue.length} pratiche: resteranno, ma senza questo contatto.` : cur.denominazione, ok: 'Elimina', danger: true })) { await run(() => api.remove('anagrafica', cur.id)); setSel(null) } }}><Trash2 size={14} /></Btn>
                 </div>
               </header>
-              <div className="row wrap" style={{ marginBottom: 10 }}><Pill>{cur.ruolo === 'cliente' ? L.cliente : cur.ruolo === 'controparte' ? L.controparte : 'Altro'}</Pill><Pill>{cur.tipo === 'azienda' ? 'Società / Ente' : 'Persona fisica'}</Pill></div>
+              <div className="row wrap" style={{ marginBottom: 10 }}><Pill>{nomeR(cur.ruolo)}</Pill>{cur.tipo && <Pill>{cur.tipo === 'azienda' ? 'Società / Ente' : 'Persona fisica'}</Pill>}</div>
               {conflitto && <div className="conflitto" role="alert"><b>Possibile conflitto di interessi:</b>&nbsp;compare sia come {L.cliente.toLowerCase()} ({comeCliente.map((p) => p.numero || p.titolo).slice(0, 3).join(', ')}) sia come {L.controparte.toLowerCase()} ({comeControparte.map((p) => p.numero || p.titolo).slice(0, 3).join(', ')}).</div>}
               <dl className="defs">
                 {cur.codice_fiscale && <><dt>Codice fiscale</dt><dd>{cur.codice_fiscale}</dd></>}
                 {cur.partita_iva && <><dt>Partita IVA</dt><dd>{cur.partita_iva}</dd></>}
-                {cur.email && <><dt>Email</dt><dd><button className="link-btn" onClick={() => run(() => api.openExternal('mailto:' + cur.email))}><Mail size={13} /> {cur.email}</button></dd></>}
+                {cur.sdi && <><dt>Codice SDI</dt><dd>{cur.sdi}</dd></>}
+                {recapiti.email.map((e, i) => <Fragment key={'e' + i}><dt>{recapiti.email.length > 1 || e.etichetta !== 'Personale' ? `Email · ${e.etichetta || 'altra'}` : 'Email'}</dt><dd><button className="link-btn" onClick={() => run(() => api.openExternal('mailto:' + e.valore))}><Mail size={13} /> {e.valore}</button></dd></Fragment>)}
                 {cur.pec && <><dt>PEC</dt><dd><button className="link-btn" onClick={() => run(() => api.openExternal('mailto:' + cur.pec))}>{cur.pec}</button></dd></>}
-                {cur.telefono && <><dt>Telefono</dt><dd><button className="link-btn" onClick={() => run(() => api.openExternal('tel:' + cur.telefono!.replace(/\s/g, '')))}><Phone size={13} /> {cur.telefono}</button></dd></>}
+                {recapiti.telefoni.map((t, i) => <Fragment key={'t' + i}><dt>{t.etichetta || 'Telefono'}</dt><dd><button className="link-btn" onClick={() => run(() => api.openExternal('tel:' + t.valore.replace(/\s/g, '')))}><Phone size={13} /> {t.valore}</button></dd></Fragment>)}
                 {(cur.indirizzo || cur.citta) && <><dt>Indirizzo</dt><dd>{[cur.indirizzo, [cur.cap, cur.citta, cur.provincia && `(${cur.provincia})`].filter(Boolean).join(' ')].filter(Boolean).join(', ')}</dd></>}
               </dl>
               {cur.note && <><h3 className="sub-title">Note</h3><p className="prewrap">{cur.note}</p></>}

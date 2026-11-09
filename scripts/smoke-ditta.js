@@ -86,7 +86,7 @@ function attach({ getWindow, db }) {
       check('documenti: la rimozione toglie solo il collegamento, il file dell\'utente resta', fs.existsSync(tmpFile) && fs.readFileSync(tmpFile, 'utf8') === 'prova')
 
       // ---- G. fattura (editor classico, senza calcolo forense) ----
-      await clickText('.nav-item', 'Documenti'); await sleep(400)
+      await clickText('.nav-item', 'Pagamenti'); await clickText('.tabs button', 'Incassi'); await sleep(400)
       await clickText('button', 'Nuovo documento'); await sleep(500)
       t = await text()
       check('ditta: editor fatture senza calcolo dei parametri forensi', !t.toLowerCase().includes('parametri forensi') && t.toLowerCase().includes('aliquote'))
@@ -139,6 +139,6 @@ function attach({ getWindow, db }) {
       console.log(`\nRISULTATO: ${results.length - bad2.length}/${results.length} controlli superati`)
     } catch (e) { console.log('ERRORE', e) } finally { setTimeout(() => process.exit(0), 300) }
   })
-  wc.on('console-message', (_e, level, message) => { if (level >= 2) console.log('[renderer]', message) })
+  wc.on('console-message', (e) => { if (e.level === 'warning' || e.level === 'error') console.log('[renderer]', e.message) }) // API di Electron con l'oggetto evento (gli argomenti separati sono deprecati)
 }
 module.exports = { attach }

@@ -87,11 +87,10 @@ function attach({ getWindow, db }) {
       check('la scheda della pratica ha la «Cronologia»', /Cronologia/.test(pag))
       check('cronologia: scadenza aggiunta e compito completato', /Scadenza «Termine memoria» aggiunta/.test(pag) && /Pratica aperta\s/.test(pag) && !/aperta aggiunt/.test(pag) && /Preparare memoria.*completato/s.test(pag), pag.slice(0, 0))
       await shot('mig-4-cronologia')
-      // bordo della scadenza scaduta: colore di urgenza, non della pratica
+      // scadenza scaduta: l'urgenza la dice l'etichetta rossa nella riga (dalla 1.0.2 niente bordo laterale colorato)
       await clickText('.tabs button', 'Scadenze'); await sleep(500)
-      const bordo = await js(`getComputedStyle(document.querySelector('.row-item')).borderLeftColor`)
-      const danger = await js(`(() => { const e = document.createElement('i'); e.style.color = getComputedStyle(document.documentElement).getPropertyValue('--danger'); document.body.appendChild(e); const c = getComputedStyle(e).color; e.remove(); return c })()`)
-      check('scadenza in ritardo: bordo del colore «scaduto»', bordo === danger, `${bordo} vs ${danger}`)
+      const urgenza = await js(`(() => { const r = document.querySelector('.row-item'); return { etichetta: !!r?.querySelector('.rel-late'), bordo: parseFloat(getComputedStyle(r).borderLeftWidth) } })()`)
+      check('scadenza in ritardo: etichetta «scaduto» nella riga, senza bordo colorato', urgenza.etichetta && urgenza.bordo === 0, JSON.stringify(urgenza))
       // elimina e annulla un compito
       const t2 = await js(`window.mngmnt.invoke('db:save','todos',{pratica_id:${p1.id},titolo:'Telefonare al CTU',completata:0,note:'ore 10'})`); await sleep(400)
             await clickText('.tabs button', 'Compiti'); await sleep(500)
@@ -121,6 +120,6 @@ function attach({ getWindow, db }) {
       console.log(`\nRISULTATO: ${results.length - bad.length}/${results.length} controlli superati`)
     } catch (e) { console.log('ERRORE', e, e && e.stack) } finally { setTimeout(() => process.exit(0), 300) }
   })
-  wc.on('console-message', (_e, level, message) => { if (level >= 2) console.log('[renderer]', message) })
+  wc.on('console-message', (e) => { if (e.level === 'warning' || e.level === 'error') console.log('[renderer]', e.message) }) // API di Electron con l'oggetto evento (gli argomenti separati sono deprecati)
 }
 module.exports = { attach }

@@ -141,7 +141,7 @@ function attach({ getWindow, db }) {
       fs.writeFileSync(path.join(out, 'modello-scuro.png'), (await wc.capturePage()).toPNG())
       const note=db.saveParcella({tipo:'proforma',data:'2026-10-14',stato:'bozza',compensi:100,imponibile:100,totale:100,netto:100,sg_perc:0,cpa_perc:0,iva_perc:0,rit_perc:0,voci:[{tipo:'compenso',descrizione:'Controllo modello',quantita:1,importo:100}]})
       wc.send('data-changed',['parcelle']);await sleep(150)
-      await click('.nav-item','Parcelle');await click('tbody tr',note.numero)
+      await click('.nav-item','Pagamenti');await click('.tabs button','Parcelle');await click('tbody tr',note.numero)
       await click('.modal button','Intestazione e piè di pagina');await waitPreview()
       check('foglio interamente visibile anche nell’editor aperto dalla nota', await sheetVisible())
       fs.writeFileSync(path.join(out, 'modello-nella-nota.png'), (await wc.capturePage()).toPNG())

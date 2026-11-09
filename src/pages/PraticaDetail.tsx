@@ -14,6 +14,7 @@ import { DocumentiTab } from '../components/pratica/DocumentiTab'
 import { NoteTab } from '../components/pratica/NoteTab'
 import { CronologiaCard } from '../components/pratica/CronologiaCard'
 import { CollegamentiTab } from '../components/pratica/CollegamentiTab'
+import { PanoramicaEconomica } from '../components/pratica/PanoramicaEconomica'
 import { ParcellaEditor } from '../components/ParcellaEditor'
 import { EventoEsternoModal, EventoEsternoRow } from '../components/EventoEsterno'
 import { money } from '../lib/format'
@@ -98,7 +99,7 @@ export default function PraticaDetail({ id, tab: initialTab, focus }: { id: numb
         { id: 'documenti', label: 'Documenti', count: mine.doc.length },
         { id: 'note', label: 'Note', count: mine.note.length },
         { id: 'economia', label: 'Attività e spese', count: mine.ore.length },
-        { id: 'parcelle', label: L.parcelle, count: mine.parc.length },
+        { id: 'parcelle', label: settings.profilo === 'ditta' ? 'Fatture e pagamenti' : L.parcelle, count: mine.parc.length },
         { id: 'collegamenti', label: 'Collegamenti', count: mine.link.length },
       ]} />
 
@@ -143,7 +144,7 @@ export default function PraticaDetail({ id, tab: initialTab, focus }: { id: numb
           <header className="card-head"><h2>{nomeImpegni(settings.profilo)}</h2>
             <div className="row">
               <Btn size="sm" variant="ghost" onClick={() => run(async () => { const f = await api.exportIcs(p.id); return f }, undefined)} title="Esporta .ics"><Download size={14} /> .ics</Btn>
-              <Btn size="sm" onClick={() => setTermini(true)} title="Calcola un termine e crealo come scadenza di questa pratica"><Calculator size={14} /> Calcola termine</Btn>
+              <Btn size="sm" variant="ghost" onClick={() => setTermini(true)} title="Calcola un termine e crealo come scadenza di questa pratica"><Calculator size={14} /> Calcola termine</Btn>
               <Btn size="sm" variant="primary" onClick={() => ed.open({ kind: 'scadenza', praticaId: p.id })}><Plus size={14} /> Nuova scadenza</Btn>
             </div>
           </header>
@@ -158,7 +159,8 @@ export default function PraticaDetail({ id, tab: initialTab, focus }: { id: numb
       {tab === 'note' && <NoteTab praticaId={p.id} note={mine.note} />}
       {tab === 'economia' && <EconomiaTab praticaId={p.id} ore={mine.ore} spese={mine.spese} onParcella={(preset) => setParcellaEd({ preset })} />}
 
-      {tab === 'parcelle' && (
+      {tab === 'parcelle' && (<div className="stack">
+        <PanoramicaEconomica praticaId={p.id} onApriDocumento={(pid) => { const x = mine.parc.find((y) => y.id === pid); if (x) setParcellaEd({ parcella: x }) }} />
         <section className="card">
           <header className="card-head"><h2>{L.parcelle}</h2><Btn size="sm" variant="primary" onClick={() => setParcellaEd({ preset: {} })}><Plus size={14} /> Nuova {L.parcella.toLowerCase()}</Btn></header>
           {mine.parc.map((x) => (
@@ -169,7 +171,7 @@ export default function PraticaDetail({ id, tab: initialTab, focus }: { id: numb
           ))}
           {!mine.parc.length && <Empty icon={<Receipt size={28} />} title={`Nessuna ${L.parcella.toLowerCase()}`} text="Crea un preventivo o una parcella partendo dalle ore e spese registrate." />}
         </section>
-      )}
+      </div>)}
 
       {tab === 'collegamenti' && <CollegamentiTab links={mine.link} onNew={() => ed.open({ kind: 'link', praticaId: p.id })} onEdit={(l) => ed.open({ kind: 'link', item: l, praticaId: p.id })} />}
 

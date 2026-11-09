@@ -7,6 +7,7 @@ import { SicurezzaBlocco } from '../components/SicurezzaBlocco'
 import { DocumentiImpostazioni } from '../components/DocumentiImpostazioni'
 import { Bell, Briefcase, Building2, ImagePlus, FolderOpen, Palette, Plus, Receipt, Save, Tag, Trash2, X, BookOpen } from 'lucide-react'
 import { api } from '../api'
+import { coloriMovimento, NOMI_MOVIMENTO, STATI_MOVIMENTO } from '../lib/pagamenti'
 import { mergeSettings, useData } from '../store'
 import { Btn, Field, FormGrid, Input, PageHeader, Segmented, Select, Tabs, useAction, useFeedback } from '../components/ui'
 import { PromemoriaElenco } from '../components/forms'
@@ -68,7 +69,7 @@ export default function Impostazioni() {
         <Btn variant="ghost" disabled={!dirty} onClick={() => setD(settings)} title={dirty ? undefined : 'Nessuna modifica da annullare'}>Annulla modifiche</Btn>
         <Btn variant="primary" disabled={!dirty} onClick={save} title={dirty ? undefined : 'Nessuna modifica da salvare'}><Save size={16} /> Salva</Btn>
       </div>} />
-      <Tabs<Tab> value={tab} onChange={setTab} tabs={[{ id: 'generale', label: 'Generale' }, { id: 'studio', label: d.profilo === 'ditta' ? 'La tua attività' : 'Studio' }, { id: 'integrazioni', label: 'Integrazioni' }, { id: 'documenti', label: 'Documenti' }, { id: 'modello', label: 'Modello PDF' }, { id: 'avvisi', label: 'Avvisi' }, { id: 'pratiche', label: 'Pratiche e colori' }, { id: 'fiscale', label: 'Fiscale' }, { id: 'backup', label: 'Backup e sicurezza' }]} />
+      <Tabs<Tab> value={tab} onChange={setTab} tabs={[{ id: 'generale', label: 'Generale' }, { id: 'studio', label: d.profilo === 'ditta' ? 'La tua attività' : 'Studio' }, { id: 'integrazioni', label: 'Integrazioni' }, { id: 'documenti', label: 'Documenti' }, ...(d.profilo === 'ditta' ? [] : [{ id: 'modello' as const, label: 'Modello PDF' }]), { id: 'avvisi', label: 'Avvisi' }, { id: 'pratiche', label: 'Pratiche e colori' }, { id: 'fiscale', label: 'Fiscale' }, { id: 'backup', label: 'Backup e sicurezza' }]} />
 
       {tab === 'generale' && (
         <div className="stack">
@@ -106,6 +107,12 @@ export default function Impostazioni() {
             <FormGrid>
               <Field label="Tema"><Segmented value={d.tema} onChange={(v) => { up('tema', v); run(() => api.setSettings({ tema: v })) }} options={[{ id: 'auto', label: 'Automatico' }, { id: 'chiaro', label: 'Chiaro' }, { id: 'scuro', label: 'Scuro' }]} /></Field>
             </FormGrid>
+            <h3 className="sub-title" style={{ marginTop: 12 }}>Colori dei pagamenti</h3>
+            <p className="muted small">Nello scadenzario di Pagamenti e nel grafico a torta di ogni {d.etichette.pratica.toLowerCase()}.</p>
+            <div className="colori-torta">
+              {STATI_MOVIMENTO.map((k) => <label key={k}><input type="color" value={coloriMovimento(d)[k]} onChange={(e) => up('colori_pagamenti', { ...d.colori_pagamenti, [k]: e.target.value })} aria-label={`Colore: ${NOMI_MOVIMENTO[k]}`} /> {NOMI_MOVIMENTO[k]}</label>)}
+              <Btn size="sm" variant="ghost" disabled={!Object.keys(d.colori_pagamenti || {}).length} onClick={() => up('colori_pagamenti', {})}>Colori predefiniti</Btn>
+            </div>
             <label className="check big"><input type="checkbox" checked={d.vista_compatta} onChange={(e) => up('vista_compatta', e.target.checked)} /> <span><b>Vista compatta</b><small>Riduce gli spazi delle liste per mostrare più informazioni.</small></span></label>
             <label className="check big"><input type="checkbox" checked={d.resta_in_background} onChange={(e) => up('resta_in_background', e.target.checked)} /> <span><b>Resta attiva in background alla chiusura della finestra</b><small>Necessario per ricevere gli avvisi anche quando la finestra è chiusa. Per uscire usa il menu dell'icona nella barra di sistema.</small></span></label>
             <label className="check big"><input type="checkbox" checked={d.avvia_al_login} onChange={(e) => up('avvia_al_login', e.target.checked)} /> <span><b>Avvia TIO all'accesso al computer</b><small>Così gli avvisi funzionano fin dall'accensione (Mac e Windows).</small></span></label>
@@ -135,7 +142,7 @@ export default function Impostazioni() {
 
       {tab === 'integrazioni' && <div className="stack"><CalendariPanel /><ImportPanel /></div>}
 
-      {tab === 'modello' && (
+      {tab === 'modello' && d.profilo !== 'ditta' && (
         <section className="card pad-lg largo">
           <h2>Modello dei documenti PDF</h2>
           <p className="muted small">Personalizza testi, immagini e font della nota pro forma. L’anteprima mostra il foglio A4 intero e si aggiorna mentre lavori. Ricordati di salvare.</p>

@@ -138,17 +138,17 @@ export function Empty({ icon, title, text, action }: { icon?: ReactNode; title: 
   return (
     <div className="empty">
       {icon && <div className="empty-icon">{icon}</div>}
-      <h3>{title}</h3>
+      <h2 className="empty-title">{title}</h2>
       {text && <p className="muted">{text}</p>}
       {action}
     </div>
   )
 }
 
-export function PageHeader({ title, subtitle, actions, back, eyebrow }: { title: ReactNode; subtitle?: ReactNode; actions?: ReactNode; back?: ReactNode; eyebrow?: ReactNode }) {
+export function PageHeader({ title, subtitle, actions, back }: { title: ReactNode; subtitle?: ReactNode; actions?: ReactNode; back?: ReactNode }) {
   return (
     <header className="page-head">
-      <div className="page-head-main">{back}<div>{eyebrow && <p className="page-eyebrow">{eyebrow}</p>}<h1>{title}</h1>{subtitle && <p className="muted page-subtitle">{subtitle}</p>}</div></div>
+      <div className="page-head-main">{back}<div><h1>{title}</h1>{subtitle && <p className="muted page-subtitle">{subtitle}</p>}</div></div>
       <div className="page-head-actions">{actions}</div>
     </header>
   )
@@ -158,7 +158,7 @@ export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { id: 
   return (
     <div className="tabs" role="tablist">
       {tabs.map((t) => (
-        <button key={t.id} role="tab" aria-selected={value === t.id} className={value === t.id ? 'on' : ''} onClick={() => onChange(t.id)}>
+        <button type="button" key={t.id} role="tab" aria-selected={value === t.id} className={value === t.id ? 'on' : ''} onClick={() => onChange(t.id)}>
           {t.label}{t.count ? <span className="tab-count">{t.count}</span> : null}
         </button>
       ))}
@@ -170,7 +170,7 @@ export function Segmented<T extends string>({ options, value, onChange, disabled
   return (
     <div className="segmented" role="group">
       {options.map((o) => (
-        <button key={o.id} disabled={disabled} title={o.title} aria-label={o.title} className={value === o.id ? 'on' : ''} aria-pressed={value === o.id} onClick={() => onChange(o.id)}>{o.label}</button>
+        <button type="button" key={o.id} disabled={disabled} title={o.title} aria-label={o.title} className={value === o.id ? 'on' : ''} aria-pressed={value === o.id} onClick={() => onChange(o.id)}>{o.label}</button>
       ))}
     </div>
   )

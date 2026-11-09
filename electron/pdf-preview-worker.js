@@ -6,11 +6,11 @@ async function render() {
   const task = pdfjs.getDocument({ data: new Uint8Array(workerData.pdf), isEvalSupported: false, useSystemFonts: false, disableFontFace: true, maxImageSize: 4000000 })
   try {
     const doc = await task.promise
-    if (doc.numPages > 30) throw new Error('Il modello di esempio supera 30 pagine. Riduci testi e immagini.')
+    if (doc.numPages > 300) throw new Error('Il documento supera 300 pagine: l’anteprima non è disponibile.')
     const pagina = Math.min(workerData.pagina, doc.numPages)
     const page = await doc.getPage(pagina)
-    const viewport = page.getViewport({ scale: 1.5 })
-    if (viewport.width * viewport.height > 2000000) throw new Error('Formato della pagina non supportato.')
+    const viewport = page.getViewport({ scale: workerData.alta ? 2.6 : 1.5 })
+    if (viewport.width * viewport.height > 6000000) throw new Error('Formato della pagina non supportato.')
     const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height))
     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise
     return { immagine: canvas.toDataURL('image/png'), pagina, pagine: doc.numPages }

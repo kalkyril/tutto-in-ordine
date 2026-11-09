@@ -180,6 +180,7 @@ function restore(srcDir, password = '') {
   try {
     prepare(srcDir, staging, password); verifyDocuments(staging) // nessuna modifica all’archivio attivo prima di questo punto
     const safeParent = path.join(dataDir, '_copie-di-sicurezza'), safety = run(safeParent, { prefix: 'prima-del-ripristino' })
+    try { prune(safeParent, 'prima-del-ripristino', 3) } catch { /* resta qualche copia in più, nessun danno */ } // le tre più recenti bastano: ognuna è un archivio intero
     const dbTarget = path.join(dataDir, 'mngmnt.db'), docsTarget = path.join(dataDir, 'documenti'), oldDb = path.join(staging, '_precedente.db'), oldDocs = path.join(staging, '_precedenti-documenti')
     // Il vecchio journal non deve accompagnare il nuovo archivio. Nessuna sostituzione con lettori attivi.
     if (db.getDb().prepare('PRAGMA wal_checkpoint(TRUNCATE)').get().busy) throw new Error('Archivio in uso da un’altra operazione: riprova il ripristino tra poco')

@@ -5,8 +5,8 @@ import { RefreshCw } from 'lucide-react'
 
 interface Info { operazione: string; fase?: string; fatti?: number; totale?: number; pratica?: string; pratiche?: number; totalePratiche?: number; fine?: boolean }
 
-const NOMI: Record<string, string> = { sincronizza: 'Ricerca dei file spostati', cartella: 'Collegamento della cartella', cliens: 'Sincronizzazione con Cliens' }
-const FASI: Record<string, string> = { cerco: 'file trovati', controllo: 'documenti controllati', confronto: 'file confrontati', collego: 'file collegati', leggo: 'file letti', salvo: 'salvataggio' }
+const NOMI: Record<string, string> = { sincronizza: 'Ricerca dei file spostati', cartella: 'Collegamento della cartella', cliens: 'Sincronizzazione con Cliens', comprimi: 'Compressione del PDF' }
+const FASI: Record<string, string> = { cerco: 'file trovati', controllo: 'documenti controllati', confronto: 'file confrontati', collego: 'file collegati', leggo: 'file letti', salvo: 'salvataggio', immagini: 'immagini ricompresse', lettura: 'lettura', flussi: 'compressione del testo', scrittura: 'scrittura' }
 
 export function Avanzamento() {
   const [info, setInfo] = useState<Info | null>(null)

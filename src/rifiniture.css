@@ -1,0 +1,73 @@
+/* Rifiniture dalla revisione dell'interfaccia (1.0.2): finestre strette e testi lunghi, controlli e allineamenti,
+   righe senza bordi colorati, titoli bilanciati. Caricato per ultimo: corregge, non ridisegna. */
+
+/* ---------- testi lunghi senza spazi (ragioni sociali, luoghi, email) ---------- */
+/* dentro l'area di lavoro e nelle finestre una parola lunghissima va a capo invece di uscire dal riquadro */
+.content, .modal-body { overflow-wrap: anywhere; }
+.content table, .modal-body table { overflow-wrap: break-word; }
+.pcard, .pcard-body, .row-main, .contact .grow, .plain-row .grow, .dash-card, .card { min-width: 0; }
+/* i titoli negli elenchi si fermano a tre righe; il titolo intero resta nella scheda e nel suggerimento */
+.pcard h2, .dashboard .plain-row .grow > b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.dashboard .plain-row > :not(.grow) { flex: none; }
+.dashboard .plain-row .grow { min-width: 0; }
+.pratica-chip { min-width: 0; }
+.pratica-chip span { min-width: 0; }
+.row-sub { overflow-wrap: anywhere; }
+
+/* ---------- Panoramica nella finestra minima e con il testo ingrandito ---------- */
+@media (max-height: 680px), (max-width: 900px) {
+  .dashboard-board { grid-template-columns: minmax(0, 1fr); }
+}
+/* i numeri in fila restano allineati anche quando un'etichetta va su più righe */
+.fascia-numeri .kpi { justify-content: flex-start; }
+.fascia-numeri .kpi b { margin-top: auto; }
+.kpis.fascia-numeri .kpi span { min-height: 0; }
+/* colonne che scorrono: l'ultima riga sfuma invece di sembrare tagliata a metà (lo spazio in fondo fa vedere l'ultima riga intera) */
+@media (min-height: 681px) and (min-width: 901px) {
+  .dash-body { padding-bottom: 18px; -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent); }
+}
+
+/* ---------- controlli: un'altezza sola per campi, menu e pulsanti affiancati ---------- */
+:root { --altezza-controllo: 36px; }
+:where(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]):not(.round), select) { height: var(--altezza-controllo); }
+/* tabelle di voci, righe dell'intestazione e barre degli strumenti restano compatte */
+:is(.table.voci, .riga-ed, .editor-barra, .anon-pop, .quick-add, .search-box) :is(input, select), select.spesa-extra { height: auto; }
+/* pulsante accanto a un campo (Cliente +, rimuovi avviso, aggiungi tipologia): stessa altezza del campo */
+:is(.row, .stato-row):has(> :is(input:not([type=checkbox]):not([type=radio]), select, .field)) > :is(.btn, .icon-btn:not(.tiny)) { height: var(--altezza-controllo); min-height: var(--altezza-controllo); }
+:is(.row, .stato-row):has(> :is(input:not([type=checkbox]):not([type=radio]), select)) > .icon-btn:not(.tiny) { width: var(--altezza-controllo); }
+.stato-row input[type=color] { height: var(--altezza-controllo); }
+
+/* ---------- bersagli troppo piccoli (minimo 24×24, come chiedono WCAG 2.5.8 e le linee guida di Apple) ---------- */
+/* interruttori fatti solo di un'icona (vista Schede/Elenco/Per stato, allineamento del testo) */
+.segmented button:has(> svg:only-child) { min-width: 32px; min-height: 30px; padding-inline: 8px; justify-content: center; }
+.segmented:has(> button > svg:only-child) { gap: 4px; }
+/* «×» per togliere un'etichetta o un colore */
+.chip.static button { min-width: 24px; min-height: 24px; margin-block: -4px; border-radius: 50%; }
+.chip.static button:hover { background: var(--surface-2); color: var(--text); }
+.pal-item .icon-btn.tiny { width: 24px; height: 24px; top: -10px; right: -10px; opacity: 0; transition: opacity var(--dur-fast) var(--ease-out); }
+/* sedici «×» sempre visibili coprivano la tavolozza: compaiono sul colore indicato col mouse o raggiunto con Tab */
+.pal-item:hover .icon-btn.tiny, .pal-item:focus-within .icon-btn.tiny { opacity: 1; }
+@media (prefers-contrast: more), (hover: none) { .pal-item .icon-btn.tiny { opacity: 1; } }
+/* menu «+ Spesa extra…»: la voce più lunga non deve allargarlo oltre il riquadro */
+select.spesa-extra { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
+.palette-edit { gap: 12px; padding-top: 6px; }
+
+/* ---------- righe di scadenze e compiti nelle colonne della Panoramica ---------- */
+.row-item:hover { background: var(--surface-2); }
+.dash-body .row-item { margin-block: 0; padding: 9px 8px; }
+
+/* ---------- testo d'esempio nei campi: contrasto almeno 4,5:1 anche sul fondo grigio ---------- */
+::placeholder { color: var(--muted); opacity: 1; }
+
+/* ---------- titoli e testi brevi senza una parola sola sull'ultima riga ---------- */
+h1, h2, h3, .row-title, .pcard h2, .empty-title { text-wrap: balance; }
+p, .muted, .hint, .row-sub, .page-subtitle { text-wrap: pretty; }
+
+/* ---------- superfici del browser: selezione del testo nel colore dell'app ---------- */
+::selection { background: color-mix(in srgb, var(--accent) 24%, transparent); }
+
+/* ---------- movimento ridotto: niente spostamenti, ma le dissolvenze restano (aiutano a capire cosa è comparso) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .modal, .toast { animation: fade var(--dur-fast) linear !important; }
+  .overlay { animation: fade var(--dur-fast) linear !important; }
+}

@@ -140,7 +140,7 @@ export default function Pratiche() {
                     {st && st.late > 0 && <span className="rel rel-late"><AlertTriangle size={11} /> {st.late} in ritardo</span>}
                   </div>
                   <div className="pcard-foot">
-                    {st?.nextScad ? <span className={`next rel-${rel!.tone}`} title={st.nextScad.titolo}>{fmtDate(st.nextScad.data_ora)} · {st.nextScad.titolo}</span> : <span className="muted small">Nessuna scadenza</span>}
+                    {st?.nextScad ? <span className={`next rel-${rel!.tone}`} title={st.nextScad.titolo}>{fmtDate(st.nextScad.data_ora)} · {st.nextScad.titolo}</span> : <span className="muted small">{st?.late ? 'Nessuna scadenza in arrivo' : 'Nessuna scadenza'}</span>}
                     {st && st.todoTotal > 0 && <span className="muted small todo-count"><CheckSquare size={12} /> {st.todoTotal - st.todoOpen}/{st.todoTotal}</span>}
                   </div>
                 </div>
@@ -215,9 +215,9 @@ export default function Pratiche() {
                 }}>
                 <header><ColorDot color={s.colore} /> <b>{s.nome}</b> <span className="tab-count">{col.length}</span></header>
                 {col.slice(0, limits[s.nome] || 60).map((p) => (
-                  <div key={p.id} data-pratica-id={p.id} className="kcard" draggable onContextMenu={menuPratica(p)} style={{ borderLeftColor: p.colore, background: 'var(--surface)' }}
+                  <div key={p.id} data-pratica-id={p.id} className="kcard" draggable onContextMenu={menuPratica(p)}
                     onDragStart={(e) => e.dataTransfer.setData('text/pratica', String(p.id))} onClick={() => open(p)}>
-                    <span className="muted small">{p.numero}</span>
+                    <span className="muted small kcard-numero"><ColorDot color={p.colore} size={9} />{p.numero}</span>
                     <b>{p.titolo}</b>
                     {p.cliente_id && <span className="muted small">{anagraficaById.get(p.cliente_id)?.denominazione}</span>}
                     {stats.get(p.id)?.nextScad && <span className={`rel rel-${relative(stats.get(p.id)!.nextScad!.data_ora).tone}`}>{fmtDate(stats.get(p.id)!.nextScad!.data_ora)}</span>}

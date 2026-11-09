@@ -26,7 +26,7 @@ function attach({ getWindow, db }) {
       await sleep(900)
       db.setSettings({ onboarding_fatto: true, profilo: 'avvocato', studio: { nome: 'Studio Prova' } })
       await js('location.reload()'); await sleep(1500)
-      await clickText('.nav-item', 'Parcelle'); await sleep(500)
+      await clickText('.nav-item', 'Pagamenti'); await clickText('.tabs button', 'Parcelle'); await sleep(500)
       await clickText('button', 'Nuovo documento'); await sleep(2500)
 
       // ---- finestra come quella dell'utente (1220×772): parcella intera, senza scorrere e, sul Mac, sotto i pulsanti della finestra ----
@@ -145,7 +145,7 @@ function attach({ getWindow, db }) {
       check('la parcella salva il calcolo con aumenti e riduzioni', par && det.dettaglio?.ambito === 'civile' && det.dettaglio.aumenti?.length === 1 && det.dettaglio.riduzioni?.length === 1 && det.state?.competenza === 110, JSON.stringify(det.dettaglio?.aumenti))
       check('importi: 5.077 + 30% = 6.600,10; −10% → 5.940,09', Math.abs(par?.compensi - 5940.09) < 0.005, String(par?.compensi))
       await sleep(500)
-      await clickText('.nav-item', 'Parcelle'); await sleep(500)
+      await clickText('.nav-item', 'Pagamenti'); await clickText('.tabs button', 'Parcelle'); await sleep(500)
       await js(`document.querySelector('.table tbody tr')?.click()`); await sleep(2500)
       const stato = await attendi(async () => (await compensoTotale()) === '5.940,09', 8000)
       check('riaprendo la parcella il calcolo è ripristinato identico (competenza, parti, riduzione)', stato, String(await compensoTotale()))
@@ -154,6 +154,6 @@ function attach({ getWindow, db }) {
       console.log(`\nRISULTATO: ${results.length - bad.length}/${results.length} controlli superati`)
     } catch (e) { console.log('ERRORE', e, e && e.stack) } finally { setTimeout(() => process.exit(0), 300) }
   })
-  wc.on('console-message', (_e, level, message) => { if (level >= 2) console.log('[renderer]', message) })
+  wc.on('console-message', (e) => { if (e.level === 'warning' || e.level === 'error') console.log('[renderer]', e.message) }) // API di Electron con l'oggetto evento (gli argomenti separati sono deprecati)
 }
 module.exports = { attach }

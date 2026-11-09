@@ -13,7 +13,7 @@ function attach({getWindow,db}){
   const input='Onorari\n€ 1.000,00\nSpese generali (15%)\n€ 150,00\nCassa Avvocati (4%)\n€ 46,00\nIVA 22%\n€ 263,12\nRitenuta d’acconto 20%\n€ 230,00\nNetto a pagare\n€ 1.229,12'
   const xml='<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+input.split('\n').map(t=>'<w:p><w:r><w:t>'+t+'</w:t></w:r></w:p>').join('')+'</w:body></w:document>'
   const file=path.join(db.getDataDir(),'prova-import.docx');fs.writeFileSync(file,creaZip([{nome:'word/document.xml',dati:Buffer.from(xml)}]));process.env.MNGMNT_TEST_PROFORMA_FILE=file
-  await click('.nav-item','Parcelle');await sleep(400);await click('.page-head button','Importa PDF / Word');await sleep(800)
+  await click('.nav-item','Pagamenti');await sleep(900);await click('.tabs button','Parcelle');await sleep(400);await click('.azioni-sezione button','Importa PDF / Word');await sleep(800)
   check('anteprima importa Word reale tramite IPC',await js("document.querySelector('.modal h2')?.textContent.includes('Verifica')"))
   check('netto originale e ricalcolato coincidono',await js("document.querySelector('.modal')?.textContent.includes('I totali coincidono')"))
   check('nessuna scrittura prima di aprire la bozza',db.list('parcelle').length===0)
@@ -41,7 +41,7 @@ function attach({getWindow,db}){
   // Una discrepanza da acconto rimane visibile; il bollo predefinito non viene aggiunto al documento importato.
   const second='Onorari € 100,00\nAcconto € 20,00\nNetto a pagare € 80,00'
   fs.writeFileSync(file,creaZip([{nome:'word/document.xml',dati:Buffer.from('<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+second.split('\n').map(t=>'<w:p><w:r><w:t>'+t+'</w:t></w:r></w:p>').join('')+'</w:body></w:document>')}]))
-  await click('.page-head button','Importa PDF / Word');await sleep(500)
+  await click('.azioni-sezione button','Importa PDF / Word');await sleep(500)
   check('acconto non riconciliato segnalato nell’anteprima',await js("document.querySelector('.modal')?.textContent.includes('acconti o anticipi')"))
   await click('.modal button','Apri bozza');await sleep(250)
   check('bollo assente nell’originale non aggiunto dal valore predefinito',await js("document.querySelector('.totals-table')?.textContent.includes('100,00')&&!document.querySelector('.totals-table')?.textContent.includes('102,00')"))

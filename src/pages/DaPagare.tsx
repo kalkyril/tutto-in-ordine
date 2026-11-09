@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
-import { CheckCircle2, Download, HandCoins, Plus, RotateCcw } from 'lucide-react'
+import { CheckCircle2, Download, HandCoins, Paperclip, Plus, RotateCcw, X } from 'lucide-react'
 import { api } from '../api'
 import { useData } from '../store'
 import { useNav } from '../nav'
-import { Btn, Empty, PageHeader, Segmented, useAction, useFeedback } from '../components/ui'
+import { Btn, Empty, Modal, PageHeader, Segmented, useAction, useFeedback } from '../components/ui'
 import { GestioneForm, useGestione, type Costo } from '../components/GestioneAttivita'
 import { usePagination } from '../components/Pagination'
 import { fmtDate, todayStr } from '../lib/dates'
@@ -17,7 +17,7 @@ const traGiorni = (n: number) => { const d = new Date(); d.setDate(d.getDate() +
  * Da pagare: prestazioni, consulenze, spese extra e fatture dei fornitori che lo studio o l'attività deve pagare.
  * Usa gli stessi costi di Parcelle › Costi e fornitori (tabella `costi`), con scadenza e stato del pagamento.
  */
-export default function DaPagare() {
+export default function DaPagare({ incorporata = false }: { incorporata?: boolean }) {
   const d = useGestione()
   const { anagraficaById, praticaById, settings } = useData()
   const { go } = useNav()
@@ -26,6 +26,10 @@ export default function DaPagare() {
   const L = settings.etichette
   const [filtro, setFiltro] = useState<Filtro>('da_pagare')
   const [form, setForm] = useState<Partial<Costo> | null>(null)
+  // appena una voce diventa «Pagata» si propone di allegare la contabile (ricevuta del bonifico)
+  const [chiediContabile, setChiediContabile] = useState<Costo | null>(null)
+  const nomeContabile = (x: Costo) => { try { return x.contabile ? JSON.parse(x.contabile).nome as string : '' } catch { return '' } }
+  const allega = async (x: Costo) => { const r = await run(() => api.allegaContabile(x.id)); if (r) { toast(`Contabile allegata a «${x.descrizione}»`); setChiediContabile(null) } }
   const oggi = todayStr(), entro30 = traGiorni(30), anno = oggi.slice(0, 4)
 
   const aperte = d.costi.filter((x) => !x.pagata)
@@ -40,7 +44,7 @@ export default function DaPagare() {
   }, [d.costi, filtro])
   const { visible, controls } = usePagination(righe, filtro)
 
-  const segna = (x: Costo, pagata: boolean) => run(async () => { await api.gestione('costo', { ...x, pagata: pagata ? 1 : 0 }); toast(pagata ? `«${x.descrizione}» segnata come pagata` : `«${x.descrizione}» di nuovo da pagare`) })
+  const segna = async (x: Costo, pagata: boolean) => { const ok = await run(async () => { await api.gestione('costo', { ...x, pagata: pagata ? 1 : 0 }); toast(pagata ? `«${x.descrizione}» segnata come pagata` : `«${x.descrizione}» di nuovo da pagare`); return true }); if (ok && pagata && !x.contabile) setChiediContabile(x) }
   const elimina = async (x: Costo) => { if (await confirm({ title: 'Eliminare la voce?', text: `«${x.descrizione}» (${money(x.importo)}) verrà eliminata.`, ok: 'Elimina', danger: true })) await run(() => api.gestione('eliminaCosto', { id: x.id })) }
   const esporta = () => {
     const rows = righe.map((x) => [x.descrizione, x.categoria, anagraficaById.get(x.fornitore_id || 0)?.denominazione, x.importo.toFixed(2).replace('.', ','), x.scadenza, x.pagata ? 'Pagata' : 'Da pagare', fmtDate(x.data), praticaById.get(x.pratica_id || 0)?.titolo, x.recuperabile ? 'Sì' : ''])
@@ -53,12 +57,11 @@ export default function DaPagare() {
 
   return (
     <div className="page da-pagare">
-      <PageHeader title="Da pagare"
-        subtitle={settings.profilo === 'avvocato' ? 'Domiciliatari, consulenti, periti, spese extra e fornitori dello studio: cosa devi pagare e entro quando.' : 'Fornitori, collaboratori, consulenze, spese extra e imposte: cosa devi pagare e entro quando.'}
-        actions={<>
+      {(() => { const azioni = <>
           <Btn variant="ghost" onClick={esporta} disabled={!righe.length}><Download size={16} /> Esporta CSV</Btn>
           <Btn variant="primary" onClick={() => setForm({ categoria: 'Prestazioni e consulenze' })}><Plus size={16} /> Nuova voce da pagare</Btn>
-        </>} />
+        </>
+        return incorporata ? <div className="toolbar azioni-sezione">{azioni}</div> : <PageHeader title="Da pagare" subtitle={settings.profilo === 'avvocato' ? 'Domiciliatari, consulenti, periti, spese extra e fornitori dello studio: cosa devi pagare e entro quando.' : 'Fornitori, collaboratori, consulenze, spese extra e imposte: cosa devi pagare e entro quando.'} actions={azioni} /> })()}
       {d.errore && <p role="alert" className="stato-err">{d.errore}</p>}
       <div className="kpis fascia-numeri">
         <div className="kpi static"><span>Da pagare</span><b>{money(somma(aperte))}</b></div>
@@ -78,11 +81,12 @@ export default function DaPagare() {
             <td>{x.pratica_id ? <button type="button" className="link-btn" onClick={() => go({ page: 'pratica', id: x.pratica_id! })}>{praticaById.get(x.pratica_id)?.titolo}</button> : 'Generale'}</td>
             <td className="n nowrap">{money(x.importo)}</td>
             <td className="nowrap">{x.scadenza ? fmtDate(x.scadenza) : '—'}</td>
-            <td>{stato(x)}</td>
+            <td>{stato(x)}{nomeContabile(x) && <><br /><span className="row contabile-chip"><button type="button" className="link-btn small" onClick={() => run(() => api.apriContabile(x.id))} title={`Apri la contabile ${nomeContabile(x)}`}><Paperclip size={12} aria-hidden /> <span>{nomeContabile(x)}</span></button><button type="button" className="icon-btn" aria-label={`Togli la contabile ${nomeContabile(x)}`} title="Togli la contabile" onClick={async () => { if (await confirm({ title: 'Togliere la contabile?', text: `La copia di «${nomeContabile(x)}» salvata in TIO verrà eliminata (il file originale resta dov'era).`, ok: 'Togli', danger: true })) run(() => api.togliContabile(x.id)) }}><X size={12} /></button></span></>}</td>
             <td><div className="row wrap">
               {x.pagata
                 ? <Btn size="sm" variant="ghost" onClick={() => segna(x, false)} title="Rimetti tra le voci da pagare"><RotateCcw size={14} /> Riapri</Btn>
                 : <Btn size="sm" onClick={() => segna(x, true)}><CheckCircle2 size={14} /> Pagata</Btn>}
+              {!!x.pagata && <Btn size="sm" variant="ghost" onClick={() => allega(x)} title="Allega la ricevuta del pagamento (PDF o immagine)"><Paperclip size={14} /> {x.contabile ? 'Sostituisci contabile' : 'Contabile…'}</Btn>}
               <Btn size="sm" variant="ghost" onClick={() => setForm(x)}>Modifica</Btn>
               <Btn size="sm" variant="ghost" onClick={() => elimina(x)}>Elimina</Btn>
             </div></td>
@@ -94,6 +98,10 @@ export default function DaPagare() {
         {controls}
         <p className="muted small">{settings.profilo === 'avvocato' ? 'Le stesse voci servono per la redditività delle pratiche.' : `Le stesse voci compaiono in ${L.parcelle} › Costi e fornitori e nella redditività dei lavori.`} «Da riaddebitare» ricorda un rimborso da chiedere al cliente: aggiungilo come spesa extra nel documento.</p>
       </section>
+      {chiediContabile && <Modal title="Allegare la contabile?" subtitle={`«${chiediContabile.descrizione}» è segnata come pagata (${money(chiediContabile.importo)})`} width={480} onClose={() => setChiediContabile(null)} protectChanges={false}
+        footer={<><Btn variant="ghost" onClick={() => setChiediContabile(null)}>Non ora</Btn><Btn variant="primary" onClick={() => allega(chiediContabile)}><Paperclip size={15} /> Scegli il file…</Btn></>}>
+        <p>Puoi allegare la ricevuta del bonifico o del pagamento (PDF o immagine): TIO ne salva una copia nella cartella dati, inclusa nei backup. Potrai aggiungerla anche dopo con «Contabile…».</p>
+      </Modal>}
       {form && <GestioneForm tipo="costi" titolo={form.id ? 'Voce da pagare' : 'Nuova voce da pagare'} iniziale={form} onClose={() => setForm(null)} />}
     </div>
   )

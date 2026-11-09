@@ -5,8 +5,47 @@ const db = require('../db')
 const doctext = require('../doctext')
 const { praticaDir, docPath } = require('./percorsi')
 
-module.exports = function registra({ handle, changed, onSettings }) {
+module.exports = function registra({ handle, changed, onSettings, getWindow, autorizza }) {
+  // 1.0.2: contabile del pagamento (PDF o immagine) allegata a una voce da pagare. Il file si copia nella cartella dati
+  // (documenti/contabili), così entra nei backup; eliminando la voce o sostituendo la contabile la copia si toglie.
+  const path = require('node:path')
+  const cartellaContabili = () => path.join(db.getDataDir(), 'documenti', 'contabili')
+  const costo = (id) => { const r = db.getDb().prepare('SELECT * FROM costi WHERE id=?').get(require('../validation').id(id)); if (!r) throw new Error('Voce non trovata'); return r }
+  const contabileDi = (r) => { try { const c = JSON.parse(r.contabile || 'null'); return c && typeof c.file === 'string' && /^[\w.-]+$/.test(c.file) ? c : null } catch { return null } }
+  const togliFile = (c) => { if (c) try { fs.rmSync(path.join(cartellaContabili(), c.file), { force: true }) } catch { /* resta un file orfano, nessun danno */ } }
+  handle('app:contabile', async (azione, id, percorso) => {
+    const r = costo(id), attuale = contabileDi(r)
+    if (azione === 'apri' || azione === 'mostra') {
+      if (!attuale) throw new Error('Nessuna contabile allegata')
+      const file = path.join(cartellaContabili(), attuale.file)
+      if (!fs.existsSync(file)) throw new Error('Il file della contabile non si trova più nella cartella dati')
+      const { shell } = require('electron')
+      if (azione === 'mostra') { shell.showItemInFolder(file); return true }
+      const err = await shell.openPath(file); if (err) throw new Error(err); return true
+    }
+    if (azione === 'togli') { togliFile(attuale); db.getDb().prepare('UPDATE costi SET contabile=NULL WHERE id=?').run(r.id); changed('gestione'); return true }
+    if (azione !== 'allega') throw new Error('Operazione non riconosciuta')
+    let file = typeof percorso === 'string' && percorso ? (process.env.MNGMNT_TEST ? percorso : autorizza(percorso)) : null
+    if (!file) {
+      const { dialog } = require('electron')
+      const x = await dialog.showOpenDialog(getWindow(), { title: 'Allega la contabile del pagamento', message: 'PDF o immagine della ricevuta del bonifico: TIO ne salva una copia nella cartella dati.', properties: ['openFile'], filters: [{ name: 'PDF e immagini', extensions: ['pdf', 'png', 'jpg', 'jpeg', 'webp', 'heic', 'tif', 'tiff'] }, { name: 'Tutti i file', extensions: ['*'] }] })
+      if (x.canceled || !x.filePaths[0]) return null
+      file = x.filePaths[0]
+    }
+    const st = fs.statSync(file)
+    if (!st.isFile()) throw new Error('Non è un file')
+    if (st.size > 30 * 1024 * 1024) throw new Error('La contabile supera i 30 MB')
+    const { safeName } = require('../files')
+    const nome = safeName(path.basename(file)), interno = `${r.id}-${require('node:crypto').randomUUID().slice(0, 8)}${path.extname(nome).toLowerCase().replace(/[^.\w]/g, '')}`
+    fs.mkdirSync(cartellaContabili(), { recursive: true, mode: 0o700 })
+    fs.copyFileSync(file, path.join(cartellaContabili(), interno))
+    db.getDb().prepare('UPDATE costi SET contabile=? WHERE id=?').run(JSON.stringify({ nome, file: interno, byte: st.size }), r.id)
+    togliFile(attuale)
+    changed('gestione')
+    return { nome }
+  })
   handle('app:gestione', (azione, dati) => {
+    if (azione === 'eliminaCosto') { try { togliFile(contabileDi(costo(dati?.id))) } catch { /* voce già eliminata: ci pensa gestione */ } }
     const r = require('../gestione').esegui(azione, dati)
     if (azione !== 'leggi') changed('gestione', 'parcelle', 'pratiche', 'todos')
     return r

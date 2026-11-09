@@ -41,7 +41,7 @@ export function EventoEsternoRow({ e, onOpen }: { e: EventoEsterno; onOpen: (e: 
   const p = e.pratica_id ? praticaById.get(e.pratica_id) : null
   const r = relative(e.inizio)
   return (
-    <div className="row-item ext" style={{ borderLeftColor: cal?.colore || 'var(--border-strong)' }}>
+    <div className="row-item ext">
       <div className="row-icon" style={{ background: 'transparent', color: cal?.colore }}><Lock size={15} /></div>
       <div className="row-main" onClick={() => onOpen(e)}>
         <div className="row-title">{e.titolo}</div>

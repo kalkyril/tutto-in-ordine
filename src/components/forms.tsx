@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, Plus, Trash2 } from 'lucide-react'
 import { api } from '../api'
 import { useData } from '../store'
@@ -8,7 +8,8 @@ import { Btn, ColorPicker, Field, FormGrid, Input, Modal, Segmented, Select, Tex
 import { PROMEMORIA_OPZIONI, nuovo as nuovoNome, tipiScadenza } from '../lib/defaults'
 import { todayStr } from '../lib/dates'
 import { normalizeUrl, parseNumber } from '../lib/format'
-import type { Anagrafica, Link, Pratica, Scadenza, Todo } from '../types'
+import type { Anagrafica, Link, Pratica, Recapiti, Recapito, Scadenza, Todo } from '../types'
+import { ETICHETTE_EMAIL, ETICHETTE_TELEFONO, TITOLI_PERSONA, leggiRecapiti, ruoliAnagrafica, scriviRecapiti } from '../lib/recapiti'
 
 /* ---------- Select pratica ---------- */
 export function PraticaSelect({ value, onChange, allowNone = true, noneLabel = '— Nessuna pratica —', id, ariaLabel }: { value: number | null | undefined; onChange: (v: number | null) => void; allowNone?: boolean; noneLabel?: string; id?: string; ariaLabel?: string }) {
@@ -24,29 +25,45 @@ export function PraticaSelect({ value, onChange, allowNone = true, noneLabel = '
 }
 
 /* ---------- Anagrafica ---------- */
+const FORMA_SOCIETARIA = /(?:^|[\s,.])(?:s\.?\s?r\.?\s?l|s\.?\s?p\.?\s?a|s\.?\s?n\.?\s?c|s\.?\s?a\.?\s?s|soc\.?\s*coop|società|societa|studio|associazione|fondazione|onlus|consorzio|comune\s+di|ente|spa|srl|snc|sas)(?:$|[\s,.])/i
 export function AnagraficaForm({ item, ruolo, onClose, onSaved }: { item?: Partial<Anagrafica>; ruolo?: Anagrafica['ruolo']; onClose: () => void; onSaved?: (a: Anagrafica) => void }) {
   const run = useAction()
-  const [f, setF] = useState<Partial<Anagrafica>>({ tipo: 'persona', ruolo: ruolo || 'cliente', ...item })
+  const { settings } = useData()
+  const ditta = settings.profilo === 'ditta'
+  const ruoli = ruoliAnagrafica(settings.profilo, settings.etichette)
+  // per le ditte una vecchia «controparte» si propone come fornitore; la scelta resta all'utente
+  const ruoloIniziale = item?.ruolo || ruolo || 'cliente'
+  const [f, setF] = useState<Partial<Anagrafica>>({ tipo: 'persona', ...item, ruolo: ditta && ruoloIniziale === 'controparte' ? 'fornitore' : !ditta && (ruoloIniziale === 'fornitore' || ruoloIniziale === 'collaboratore') ? 'altro' : ruoloIniziale })
+  const [rec, setRec] = useState<Recapiti>(() => { const r = leggiRecapiti(item); return { telefoni: r.telefoni.length ? r.telefoni : [{ etichetta: 'Cellulare', valore: '' }], email: r.email.length ? r.email : [{ etichetta: 'Personale', valore: '' }] } })
   const set = (k: keyof Anagrafica, v: any) => setF((x) => ({ ...x, [k]: v }))
+  // finché non si sceglie il tipo a mano, una ragione sociale («… S.r.l.», «Studio …», «… Soc. Coop.») lo imposta su Società / Ente
+  const tipoScelto = useRef(!!item?.tipo)
+  const setNome = (v: string) => setF((x) => ({ ...x, denominazione: v, ...(!tipoScelto.current && { tipo: FORMA_SOCIETARIA.test(v) ? 'azienda' : 'persona' }) }))
   const save = async () => {
     if (!f.denominazione?.trim()) return
-    const r = await run(() => api.save<Anagrafica>('anagrafica', { ...f, denominazione: f.denominazione!.trim() }), 'Salvato')
+    const r = await run(() => api.save<Anagrafica>('anagrafica', { ...f, ...scriviRecapiti(rec), denominazione: f.denominazione!.trim(), titolo: f.tipo === 'azienda' ? null : f.titolo?.trim() || null, sdi: f.sdi?.trim().toUpperCase() || null }), 'Salvato')
     if (r) { onSaved?.(r); onClose() }
   }
+  const datalistTitoli = useId()
   return (
-    <Modal title={f.id ? 'Modifica anagrafica' : 'Nuova anagrafica'} onClose={onClose} width={640}
+    <Modal title={f.id ? 'Modifica anagrafica' : 'Nuova anagrafica'} onClose={onClose} width={680}
       footer={<><Btn variant="ghost" onClick={onClose}>Annulla</Btn><Btn variant="primary" onClick={save} disabled={!f.denominazione?.trim()}>Salva</Btn></>}>
       <form onSubmit={(e) => { e.preventDefault(); save() }}>
         <FormGrid>
-          <Field label="Ruolo"><Segmented value={f.ruolo as string} onChange={(v) => set('ruolo', v)} options={[{ id: 'cliente', label: 'Cliente' }, { id: 'controparte', label: 'Controparte' }, { id: 'altro', label: 'Altro' }]} /></Field>
-          <Field label="Tipo"><Segmented value={f.tipo as string} onChange={(v) => set('tipo', v)} options={[{ id: 'persona', label: 'Persona fisica' }, { id: 'azienda', label: 'Società / Ente' }]} /></Field>
-          <Field label={f.tipo === 'azienda' ? 'Ragione sociale *' : 'Nome e cognome *'} span={2}><Input value={f.denominazione || ''} onChange={(e) => set('denominazione', e.target.value)} required /></Field>
+          <Field label="Ruolo"><Segmented value={f.ruolo as string} onChange={(v) => set('ruolo', v)} options={ruoli.map((r) => ({ id: r.id, label: r.label }))} /></Field>
+          <Field label="Tipo"><Segmented value={f.tipo as string} onChange={(v) => { tipoScelto.current = true; set('tipo', v) }} options={[{ id: 'persona', label: 'Persona fisica' }, { id: 'azienda', label: 'Società / Ente' }]} /></Field>
+          {f.tipo !== 'azienda' && <Field label="Titolo" hint="Facoltativo: Avv., Ing., Dott.…">
+            <Input list={datalistTitoli} value={f.titolo || ''} onChange={(e) => set('titolo', e.target.value)} placeholder="Nessuno" maxLength={30} />
+            <datalist id={datalistTitoli}>{TITOLI_PERSONA.map((t) => <option key={t} value={t} />)}</datalist>
+          </Field>}
+          <Field label={f.tipo === 'azienda' ? 'Ragione sociale *' : 'Nome e cognome *'} span={f.tipo === 'azienda' ? 2 : undefined}><Input value={f.denominazione || ''} onChange={(e) => setNome(e.target.value)} required /></Field>
           <Field label="Codice fiscale"><Input value={f.codice_fiscale || ''} onChange={(e) => set('codice_fiscale', e.target.value.toUpperCase())} /></Field>
           <Field label="Partita IVA"><Input value={f.partita_iva || ''} onChange={(e) => set('partita_iva', e.target.value)} /></Field>
-          <Field label="Email"><Input type="email" value={f.email || ''} onChange={(e) => set('email', e.target.value)} /></Field>
+          <Field label="Codice SDI" hint="Codice destinatario per la fattura elettronica (7 caratteri)"><Input value={f.sdi || ''} onChange={(e) => set('sdi', e.target.value.toUpperCase().replace(/\s/g, ''))} maxLength={7} placeholder="Es. M5UXCR1" /></Field>
           <Field label="PEC"><Input type="email" value={f.pec || ''} onChange={(e) => set('pec', e.target.value)} /></Field>
-          <Field label="Telefono"><Input value={f.telefono || ''} onChange={(e) => set('telefono', e.target.value)} /></Field>
-          <Field label="Indirizzo"><Input value={f.indirizzo || ''} onChange={(e) => set('indirizzo', e.target.value)} /></Field>
+          <ElencoRecapiti titolo="Telefoni" tipo="tel" etichette={ETICHETTE_TELEFONO} righe={rec.telefoni} onChange={(telefoni) => setRec((r) => ({ ...r, telefoni }))} />
+          <ElencoRecapiti titolo="Email" tipo="email" etichette={ETICHETTE_EMAIL} righe={rec.email} onChange={(email) => setRec((r) => ({ ...r, email }))} />
+          <Field label="Indirizzo" span={2}><Input value={f.indirizzo || ''} onChange={(e) => set('indirizzo', e.target.value)} /></Field>
           <Field label="CAP"><Input value={f.cap || ''} onChange={(e) => set('cap', e.target.value)} maxLength={5} /></Field>
           <Field label="Città / Provincia"><div className="row"><Input value={f.citta || ''} onChange={(e) => set('citta', e.target.value)} /><Input style={{ width: 70 }} maxLength={2} placeholder="PR" value={f.provincia || ''} onChange={(e) => set('provincia', e.target.value.toUpperCase())} /></div></Field>
           <Field label="Note" span={2}><Textarea value={f.note || ''} onChange={(e) => set('note', e.target.value)} /></Field>
@@ -55,6 +72,30 @@ export function AnagraficaForm({ item, ruolo, onClose, onSaved }: { item?: Parti
       </form>
     </Modal>
   )
+}
+
+/** Più telefoni o più email, ciascuno con un'etichetta: una di quelle proposte oppure un nome a piacere («Personalizzato»). */
+function ElencoRecapiti({ titolo, tipo, etichette, righe, onChange }: { titolo: string; tipo: 'tel' | 'email'; etichette: string[]; righe: Recapito[]; onChange: (r: Recapito[]) => void }) {
+  const upd = (i: number, patch: Partial<Recapito>) => onChange(righe.map((r, j) => (j === i ? { ...r, ...patch } : r)))
+  // un'etichetta che non è tra quelle proposte è personalizzata: si scrive nel campo accanto
+  const [libere, setLibere] = useState<Set<number>>(() => new Set(righe.map((r, i) => (r.etichetta && !etichette.includes(r.etichetta) ? i : -1)).filter((i) => i >= 0)))
+  return <fieldset className="recapiti" style={{ gridColumn: '1 / -1' }}>
+    <legend>{titolo}</legend>
+    {righe.map((r, i) => {
+      const libera = libere.has(i)
+      return <div key={i} className="recapito-riga">
+        <Select value={libera ? '__altro' : r.etichetta || etichette[0]} aria-label={`Etichetta ${titolo.toLowerCase()} ${i + 1}`} onChange={(e) => {
+          const v = e.target.value
+          setLibere((s) => { const n = new Set(s); if (v === '__altro') n.add(i); else n.delete(i); return n })
+          upd(i, { etichetta: v === '__altro' ? '' : v })
+        }}>{etichette.map((x) => <option key={x} value={x}>{x}</option>)}<option value="__altro">Personalizzato…</option></Select>
+        {libera && <Input style={{ width: 140, flex: 'none' }} value={r.etichetta} onChange={(e) => upd(i, { etichetta: e.target.value })} placeholder="Nome dell’etichetta" aria-label={`Nome dell'etichetta ${i + 1}`} maxLength={40} />}
+        <Input style={{ flex: 1, minWidth: 0, width: 'auto' }} type={tipo} value={r.valore} onChange={(e) => upd(i, { valore: e.target.value })} placeholder={tipo === 'tel' ? '+39 …' : 'nome@esempio.it'} aria-label={`${titolo} ${i + 1}`} />
+        <button type="button" className="icon-btn" aria-label={`Togli ${titolo.toLowerCase()} ${i + 1}`} title="Togli" onClick={() => { onChange(righe.filter((_, j) => j !== i)); setLibere((s) => new Set([...s].filter((x) => x !== i).map((x) => (x > i ? x - 1 : x)))) }}><Trash2 size={14} /></button>
+      </div>
+    })}
+    <Btn type="button" size="sm" variant="ghost" onClick={() => onChange([...righe, { etichetta: etichette[righe.length % etichette.length] || etichette[0], valore: '' }])}><Plus size={14} /> Aggiungi {tipo === 'tel' ? 'un telefono' : 'un’email'}</Btn>
+  </fieldset>
 }
 
 /* ---------- Pratica ---------- */

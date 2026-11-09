@@ -86,7 +86,12 @@
           <li><a href="#scadenze-fiscali">Scadenze fiscali</a></li>
         </ol>
       </li>
-      <li><a href="#da-pagare">10. Da pagare</a></li>
+      <li><a href="#da-pagare">10. Pagamenti e da pagare</a>
+        <ol>
+          <li><a href="#scadenzario">Scadenzario</a></li>
+          <li><a href="#contabile">Contabile del pagamento</a></li>
+        </ol>
+      </li>
       <li><a href="#collegamenti">11. Collegamenti</a></li>
       <li class="gruppo" aria-hidden="true">Strumenti</li>
       <li><a href="#documenti">12. Documenti</a>
@@ -96,6 +101,7 @@
           <li><a href="#campi">I campi automatici</a></li>
           <li><a href="#crea-documento">Creare un documento</a></li>
           <li><a href="#modelli-word">Modelli Word</a></li>
+          <li><a href="#comprimi-pdf">Comprimi PDF</a></li>
         </ol>
       </li>
       <li><a href="#anonimizza">13. Anonimizza</a>
@@ -232,8 +238,8 @@
   <thead><tr><th>Gruppo</th><th>Sezioni</th></tr></thead>
   <tbody>
     <tr><td>Lavoro</td><td><a href="#panoramica">Panoramica</a>, <a href="#pratiche">Pratiche</a>, <a href="#agenda">Agenda</a>, <a href="#compiti">Compiti</a>. Accanto ad Agenda un numero rosso conta le scadenze in ritardo, accanto a Compiti quelli da fare.</td></tr>
-    <tr><td>Gestione</td><td><a href="#anagrafica">Anagrafica</a>, <a href="#parcelle">Parcelle</a>, <a href="#da-pagare">Da pagare</a>, <a href="#collegamenti">Collegamenti</a>.</td></tr>
-    <tr><td>Strumenti</td><td><a href="#documenti">Documenti</a> e <a href="#anonimizza">Anonimizza</a>.</td></tr>
+    <tr><td>Gestione</td><td><a href="#anagrafica">Anagrafica</a>, <a href="#da-pagare">Pagamenti</a> (scadenzario, <a href="#parcelle">incassi</a> e da pagare), <a href="#collegamenti">Collegamenti</a>.</td></tr>
+    <tr><td>Strumenti</td><td><a href="#documenti">Documenti</a>, <a href="#anonimizza">Anonimizza</a> e <a href="#comprimi-pdf">Comprimi PDF</a>.</td></tr>
     <tr><td>In fondo</td><td><a href="#impostazioni">Impostazioni</a>.</td></tr>
   </tbody>
 </table></div>
@@ -328,7 +334,9 @@
 <p>L’esportazione dei fascicoli di Cliens Cube (<code>EXPORT_FASCICOLI.csv</code>) e l’elenco delle pratiche di Cliens Più (XLS o CSV) si importano da <span class="percorso">Impostazioni › Integrazioni › Importa i dati esistenti</span>: TIO riconosce cliente, controparte (anche dall’oggetto «ROSSI MARIO c/ BIANCHI SRL»), autorità, RG e giudice, conserva nelle note le colonne senza un campo e, riimportando, completa i campi vuoti senza creare doppioni. Quando cliente e controparte vengono dall’intestazione, prima di importare scegli <strong>chi è il cliente</strong>: la prima parte (di regola), la seconda (se assisti il convenuto) oppure <em>Decido riga per riga</em>, con l’elenco delle pratiche e una casella «Inverti» per ciascuna.</p>
 
 <h3 id="attivita-spese">Attività, ore e spese</h3>
-<p>In <strong>Attività e spese</strong> registri le ore lavorate (data, durata, descrizione, tariffa oraria) e le spese anticipate (con o senza IVA), anche con un allegato. Quando prepari un documento contabile dal lavoro, ore e spese non ancora fatturate si possono importare come voci; se elimini il documento tornano «da fatturare».</p>
+<p>In <strong>Attività e spese</strong> registri le ore lavorate (data, durata, descrizione, tariffa oraria) e le spese anticipate (con o senza IVA), anche con un allegato. Nel menu della <strong>tariffa oraria</strong> scegli <strong>Inserisci</strong> per scriverla subito o <strong>Da decidere</strong> per fissarla dopo: l’attività conta le ore e, nel documento contabile, diventa una voce a 0 € con la nota «tariffa oraria da decidere», da completare. Quando prepari un documento contabile dal lavoro, ore e spese non ancora fatturate si possono importare come voci; se elimini il documento tornano «da fatturare».</p>
+
+<p>Nella scheda <strong>Parcelle</strong> (per professionisti e ditte <strong>Fatture e pagamenti</strong>) di ogni lavoro, <strong>Valore della pratica</strong> riassume fatture incassate e da incassare, voci pagate e da pagare collegate al lavoro, con un <strong>grafico a torta</strong> e il margine previsto. I colori del grafico si scelgono in <span class="percorso">Impostazioni › Generale › Aspetto</span>.</p>
 
 <h3 id="budget">Budget e consegna</h3>
 <p>Con <strong>Modifica budget</strong> imposti ore previste, importo concordato e data di consegna. TIO confronta ore registrate e costi con il preventivato e segnala quando il budget ore è superato. Il residuo è una stima operativa, non l’utile fiscale.</p>
@@ -391,9 +399,12 @@
 <!-- ================================================================ 8 -->
 <section class="capitolo" id="anagrafica">
 <h2><span class="num">8.</span>Anagrafica</h2>
-<p>Clienti, controparti, fornitori e altri contatti, persone o società, con dati fiscali (codice fiscale, partita IVA), indirizzo, email, PEC, telefono e note.</p>
+<p>Clienti, controparti, fornitori e altri contatti, persone o società, con dati fiscali (codice fiscale, partita IVA, <strong>codice SDI</strong>), indirizzo, PEC e note.</p>
 <ul>
-  <li>Per la <a href="#fattura-elettronica">fattura elettronica</a> TIO ricorda il <strong>codice destinatario</strong> e la PEC di ogni cliente.</li>
+  <li><strong>Ruolo:</strong> per lo studio legale Cliente, Controparte o Altro; per professionisti e ditte <strong>Cliente, Fornitore, Collaboratore o Altro</strong>. Cambiare ruolo o tipo non salva più il contatto: si salva solo con <strong>Salva</strong>.</li>
+  <li><strong>Titolo</strong> (facoltativo, solo persone fisiche): Avv., Ing., Dott.… o quello che vuoi; compare davanti al nome e nel campo <code>{{destinatario.nome_completo}}</code>.</li>
+  <li><strong>Più telefoni e più email</strong>, ognuno con la sua etichetta: Cellulare, Fisso, Ufficio… oppure <strong>Personalizzato</strong> con il nome che scegli. Il primo di ogni elenco è quello principale.</li>
+  <li>Per la <a href="#fattura-elettronica">fattura elettronica</a> TIO propone il <strong>codice SDI</strong> dell’anagrafica e ricorda codice e PEC usati per ogni cliente.</li>
   <li>Dalla scheda di un contatto vedi i suoi lavori e i suoi documenti contabili.</li>
   <li><strong>Conflitto di interessi</strong> <small>(studi legali)</small>: se una persona compare come cliente in una pratica e come controparte in un’altra, TIO lo segnala.</li>
 </ul>
@@ -454,7 +465,7 @@
 
 <h3 id="pdf-documento">Il PDF</h3>
 <p><strong>Anteprima</strong>, in basso a destra, mostra il documento come sarà nel PDF, comprese le modifiche non ancora salvate. Con <strong>Titolo e font</strong> (o <strong>Titolo, intestazione e piè di pagina</strong> nella nota pro forma) scegli testo, font, dimensione, stile e allineamento del titolo di nota pro forma, fattura, preventivo e nota di credito.</p>
-<p><strong>Salva PDF…</strong> crea il documento con la tua intestazione, il logo e il piè di pagina. L’aspetto si imposta una volta in <span class="percorso">Impostazioni › Modello PDF</span>, con anteprima: posizione e dimensione del logo, testi, caratteri. «Ripristina» ricostruisce il modello dai dati dello studio o dell’attività.</p>
+<p><strong>Salva PDF…</strong> crea il documento con la tua intestazione, il logo e il piè di pagina. L’aspetto si imposta una volta in <span class="percorso">Impostazioni › Modello PDF</span> (studi legali; professionisti e ditte usano intestazione e piè di pagina dei modelli di <a href="#documenti">Documenti</a> e «Titolo e font» nel documento), con anteprima: posizione e dimensione del logo, testi, caratteri. «Ripristina» ricostruisce il modello dai dati dello studio o dell’attività.</p>
 <p>Con <strong>Importa PDF / Word</strong> puoi anche caricare il riepilogo di una parcella preparato altrove: TIO legge le voci e ricalcola i totali, segnalando le differenze.</p>
 
 <h3 id="fattura-elettronica">Fattura elettronica XML</h3>
@@ -507,16 +518,22 @@
 
 <!-- ================================================================ 10 -->
 <section class="capitolo" id="da-pagare">
-<h2><span class="num">10.</span>Da pagare</h2>
-<p>Sotto Parcelle, <strong>Da pagare</strong> è l’elenco di ciò che devi pagare tu: prestazioni e consulenze, domiciliazioni e sostituzioni, consulenti tecnici, spese extra, fornitori, imposte e contributi.</p>
+<h2><span class="num">10.</span>Pagamenti e da pagare</h2>
+<p>Nella barra laterale <strong>Pagamenti</strong> (<kbd>⌘</kbd><kbd>6</kbd>) riunisce in tre schede tutto il denaro dell’attività: <strong>Scadenzario</strong>, <strong>Incassi</strong> (per lo studio legale <strong>Parcelle</strong>: documenti contabili, preventivi e incassi, descritti nel <a href="#parcelle">capitolo 9</a>) e <strong>Da pagare</strong>.</p>
+
+<h3 id="scadenzario">Scadenzario</h3>
+<p>Il giro del denaro mese per mese: per ogni mese gli incassi ricevuti, quelli attesi (alla scadenza di pagamento del documento, o 30 giorni dopo l’emissione), le voci pagate e quelle da pagare, con i totali e il <strong>saldo previsto</strong>. In alto i totali dell’anno; i filtri mostrano solo entrate, solo uscite o ciò che è ancora aperto. Le scadenze passate degli anni precedenti restano in cima finché non le sistemi. <strong>Esporta CSV</strong> salva lo scadenzario dell’anno.</p>
+
+<h3 id="contabile">Da pagare e contabile del pagamento</h3>
+<p><strong>Da pagare</strong> è l’elenco di ciò che devi pagare tu: prestazioni e consulenze, domiciliazioni e sostituzioni, consulenti tecnici, spese extra, fornitori, imposte e contributi.</p>
 <ul>
   <li>In alto i totali: <strong>da pagare</strong>, <strong>scadute</strong>, <strong>entro 30 giorni</strong>, <strong>pagate nell’anno</strong>.</li>
   <li>Le voci scadute sono in cima, in rosso; poi in ordine di scadenza.</li>
-  <li><strong>Pagata</strong> sposta la voce tra le pagate; <strong>Riapri</strong> la rimette da pagare. I filtri mostrano da pagare, pagate o tutte.</li>
+  <li><strong>Pagata</strong> sposta la voce tra le pagate e propone di <strong>allegare la contabile</strong> (la ricevuta del bonifico, PDF o immagine): TIO ne salva una copia nella cartella dati, inclusa nei backup. Con <strong>Contabile…</strong> la aggiungi o la sostituisci dopo; un clic sul nome la apre. <strong>Riapri</strong> rimette la voce da pagare.</li>
   <li>Ogni voce può avere fornitore, lavoro collegato, categoria e «da riaddebitare al cliente».</li>
   <li><strong>Esporta CSV</strong> per Excel o il commercialista.</li>
 </ul>
-<p>Le voci sono gli stessi costi di Parcelle › Costi e fornitori e contano nella redditività dei lavori.</p>
+<p>Le voci sono gli stessi costi di Incassi › Costi e fornitori e contano nella redditività dei lavori e nel grafico del valore della pratica.</p>
 <a class="torna" href="#inizio">↑ Torna all’inizio</a>
 </section>
 
@@ -542,11 +559,14 @@
 <h3 id="editor-modello">Modificare un modello</h3>
 <p>Il modello ha quattro schede:</p>
 <ul>
-  <li><strong>Contenuto</strong>: il testo, con titoli, grassetto, corsivo, sottolineato, elenchi;</li>
-  <li><strong>Intestazione</strong> e <strong>Piè di pagina</strong>: righe, logo, dimensione e allineamento;</li>
-  <li><strong>Impaginazione</strong>: carattere e dimensione del testo, margini della pagina (in alto, in basso, ai lati), luogo e data, numeri di pagina.</li>
+  <li><strong>Contenuto</strong>: il testo, con un editor quasi da programma di videoscrittura: stili di paragrafo (titolo, sottotitolo, titoletto, paragrafo, citazione), dimensione del testo (fino a 72 pt), grassetto, corsivo, sottolineato, barrato, colore ed evidenziatore, elenchi, <strong>tabelle</strong> (con riga d’intestazione che si ripete su ogni pagina), <strong>immagini</strong> (anche incollate o trascinate), <strong>interruzioni di pagina</strong>, annulla e ripeti;</li>
+  <li><strong>Intestazione</strong> e <strong>Piè di pagina</strong>: righe, logo, dimensione (anche <strong>Grandissima</strong>), grassetto, corsivo, <strong>sottolineato</strong> e allineamento;</li>
+  <li><strong>Impaginazione</strong>: carattere e dimensione del testo (fino a 28 pt), margini della pagina, <strong>firma</strong>, luogo e data (in alto o in basso, a destra o a sinistra), numeri di pagina.</li>
 </ul>
-<p><strong>Disposizione del testo</strong>: a sinistra, al centro, a destra o giustificato, per tutto il documento o per il singolo paragrafo. <strong>Tutto su due colonne</strong> mette l’intero testo su due colonne; selezionando alcuni paragrafi, <strong>Due colonne</strong> lo fa solo per quella parte.</p>
+<p><strong>Capitoli e titoli:</strong> incollando un testo da Word o da una pagina web TIO conserva titoli, elenchi e tabelle; incollando testo semplice (da un PDF o da un’email) riconosce da solo capitoli («CAPITOLO 1», «Art. 3», «1.2 Oggetto», righe in maiuscolo), elenchi e tabelle. Il pulsante con la bacchetta <strong>Riconosci titoli e capitoli</strong> lo fa sul testo già scritto e l’<strong>indice</strong> elenca i capitoli: un clic porta al punto giusto.</p>
+<p><strong>Firma:</strong> in <span class="percorso">Impaginazione › Firma</span> carichi la foto o la scansione della firma (meglio su fondo bianco o trasparente); compare dove scrivi <code>{{firma}}</code>, con l’altezza e l’allineamento scelti.</p>
+<p><strong>Anteprima:</strong> oltre all’anteprima A4 accanto al modello, il pulsante <strong>Anteprima</strong> la apre a tutta finestra, pagina per pagina, con lo zoom fino al 300% (<kbd>⌘</kbd><kbd>+</kbd> e <kbd>⌘</kbd><kbd>−</kbd>, Ctrl su Windows): pensata per chi vede poco. C’è anche nella finestra «Crea documento», con i campi già compilati.</p>
+<p><strong>Disposizione del testo</strong>: a sinistra, al centro, a destra o giustificato. Per tutto il documento si sceglie nella scheda <strong>Impaginazione</strong>, insieme a margini e carattere; per il singolo paragrafo, dalla barra dell’editor nella scheda Contenuto. <strong>Tutto su due colonne</strong> mette l’intero testo su due colonne; selezionando alcuni paragrafi, <strong>Due colonne</strong> lo fa solo per quella parte.</p>
 <p><strong>Caratteri:</strong> oltre a quelli di serie (anche <em>Palace Script MT</em>, il corsivo calligrafico di Office) puoi <strong>importare un font da file</strong> (TTF, OTF, WOFF, incorporato nel PDF) o scegliere un <strong>font del computer</strong> dall’elenco dei caratteri installati. Nei file Word i font del computer si vedono solo dove sono installati.</p>
 <p>L’anteprima A4 a destra mostra il risultato; le modifiche si salvano da sole.</p>
 
@@ -562,7 +582,8 @@
     <tr><td><code>{{oggi}}</code></td><td>la data di oggi</td></tr>
   </tbody>
 </table></div>
-<p>Puoi anche inventare i tuoi campi, come <code>{{importo}}</code> o <code>{{consegna}}</code>: quando crei il documento TIO te li chiede.</p>
+<p>Puoi anche inventare i tuoi campi con <strong>Inserisci campo… › + Nuovo campo personalizzato…</strong>, per esempio «entro <code>{{n.giorni}}</code> giorni» o «compenso di € <code>{{compenso}}</code>»: restano nel menu del modello e quando crei il documento TIO te li chiede.</p>
+<p>Due campi speciali: <code>{{firma}}</code> (l’immagine della firma) e <code>{{corpo.documento}}</code>, il posto per un <strong>testo lungo</strong> da incollare quando crei il documento: atti, relazioni, contratti con titoli, capitoli, tabelle e immagini, dentro la tua carta intestata. Mettilo da solo su una riga del modello.</p>
 
 <h3 id="crea-documento">Creare un documento</h3>
 <figure><img src="img/strumento-crea.webp" width="1600" height="1012" loading="lazy" alt="La finestra Crea documento con il lavoro scelto e i formati disponibili"><figcaption>«Crea documento»: lavoro, destinatario, formato e nome del file.</figcaption></figure>
@@ -572,6 +593,7 @@
   <li>Scegli il formato: <strong>Word</strong>, <strong>PDF</strong>, <strong>OpenDocument</strong>, <strong>RTF</strong>, <strong>pagina web</strong>, <strong>Markdown</strong> o <strong>testo semplice</strong>.</li>
   <li>Con «Salva nella cartella della pratica» il file finisce nella cartella del lavoro ed è collegato ai suoi documenti.</li>
 </ol>
+<p>Se il modello contiene <code>{{corpo.documento}}</code>, la finestra mostra anche l’editor <strong>Testo del documento</strong>: incolla lì il testo lungo. <strong>Anteprima</strong> mostra il risultato prima di salvare.</p>
 <p>Dalla scheda <strong>Documenti</strong> di un lavoro, <strong>Da modello…</strong> fa lo stesso senza passare dallo strumento, con il lavoro già scelto.</p>
 
 <h3 id="modelli-word">Modelli Word</h3>
@@ -587,6 +609,15 @@
   <li>Per cambiare il modello usa <strong>Sostituisci il file Word…</strong>: nome e documenti già creati restano. <strong>Salva una copia del modello…</strong> lo riporta su disco.</li>
   <li>Dai modelli Word si crea un file Word con la stessa impaginazione; se ti serve il PDF, salvalo da Word.</li>
 </ul>
+
+<h3 id="comprimi-pdf">Comprimi PDF</h3>
+<p>Lo strumento <strong>Comprimi PDF</strong>, nella barra laterale sotto Anonimizza, rende più leggeri i PDF pesanti (scansioni, foto, allegati) per PEC, email e depositi telematici. Tutto avviene sul computer: nessun file viene inviato.</p>
+<ol class="passi">
+  <li>Scegli il livello: <strong>Minima</strong> (qualità quasi identica), <strong>Media</strong> (consigliata per PEC e depositi) o <strong>Massima</strong> (il file più leggero; toglie anche miniature e metadati).</li>
+  <li>Trascina i PDF nel riquadro oppure premi <strong>Scegli i PDF…</strong>; puoi comprimerne più di uno alla volta.</li>
+  <li>Premi <strong>Comprimi</strong>: accanto all’originale compare «… (compresso).pdf», con il peso prima e dopo. Con «Chiedi dove salvare ogni file» scegli tu la cartella.</li>
+</ol>
+<p>L’originale non si tocca. Il testo resta selezionabile e ricercabile: si ricomprimono foto e scansioni, si comprimono le parti lasciate senza compressione e si tolgono i dati rimasti da vecchi salvataggi. Se non si guadagna nulla, la copia è identica all’originale. I PDF protetti da password non si possono comprimere; un PDF firmato digitalmente va compresso <em>prima</em> della firma.</p>
 <a class="torna" href="#inizio">↑ Torna all’inizio</a>
 </section>
 
@@ -671,7 +702,7 @@
     <tr><td>Studio / La tua attività</td><td>Nome, titolare, intestazione, indirizzo e domicilio fiscale, partita IVA e codice fiscale, email, PEC, telefono, banca e IBAN: compaiono nei documenti.</td></tr>
     <tr><td>Integrazioni</td><td>Calendari collegati, importazione di dati e cartelle di documenti.</td></tr>
     <tr><td>Documenti</td><td>Dove TIO salva i documenti che crea, dove cerca i file spostati, sincronizzazione dei collegamenti.</td></tr>
-    <tr><td>Modello PDF</td><td>Aspetto dei PDF di parcelle, fatture e preventivi, con anteprima.</td></tr>
+    <tr><td>Modello PDF</td><td>Aspetto dei PDF di parcelle, note pro forma e preventivi, con anteprima (solo studio legale).</td></tr>
     <tr><td>Avvisi</td><td>Promemoria predefiniti, notifiche del sistema, riepilogo giornaliero, notifiche riservate (senza dettagli).</td></tr>
     <tr><td>Pratiche e colori</td><td>Etichette (Pratica, Cliente, Controparte…), stati, tipologie e colori.</td></tr>
     <tr><td>Fiscale</td><td>Aliquote predefinite: spese generali, contributo previdenziale (nome, percentuale, se entra nella base della ritenuta), IVA, ritenuta, bollo, tariffa oraria predefinita.</td></tr>
@@ -744,7 +775,7 @@
     <tr><td><kbd>⌘</kbd><kbd>3</kbd></td><td><kbd>Ctrl</kbd><kbd>3</kbd></td><td>Agenda</td></tr>
     <tr><td><kbd>⌘</kbd><kbd>4</kbd></td><td><kbd>Ctrl</kbd><kbd>4</kbd></td><td>Compiti</td></tr>
     <tr><td><kbd>⌘</kbd><kbd>5</kbd></td><td><kbd>Ctrl</kbd><kbd>5</kbd></td><td>Anagrafica</td></tr>
-    <tr><td><kbd>⌘</kbd><kbd>6</kbd></td><td><kbd>Ctrl</kbd><kbd>6</kbd></td><td>Parcelle</td></tr>
+    <tr><td><kbd>⌘</kbd><kbd>6</kbd></td><td><kbd>Ctrl</kbd><kbd>6</kbd></td><td>Pagamenti</td></tr>
     <tr><td><kbd>⌘</kbd><kbd>7</kbd></td><td><kbd>Ctrl</kbd><kbd>7</kbd></td><td>Collegamenti</td></tr>
     <tr><td><kbd>⌘</kbd><kbd>8</kbd></td><td><kbd>Ctrl</kbd><kbd>8</kbd></td><td>Documenti</td></tr>
     <tr><td><kbd>⌘</kbd><kbd>9</kbd></td><td><kbd>Ctrl</kbd><kbd>9</kbd></td><td>Anonimizza</td></tr>

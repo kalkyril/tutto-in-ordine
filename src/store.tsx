@@ -1,30 +1,31 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { api } from './api'
 import { DEFAULT_SETTINGS } from './lib/defaults'
-import type { Anagrafica, Calendario, Cronologia, Documento, EventoEsterno, Link, Nota, Notifica, Ora, Parcella, Pratica, Scadenza, Settings, Spesa, Todo } from './types'
+import type { Anagrafica, Calendario, Documento, EventoEsterno, Link, Nota, Notifica, Ora, Parcella, Pratica, Scadenza, Settings, Spesa, Todo } from './types'
 
 interface Data {
   ready: boolean
   loading: boolean; error: string | null
   anagrafica: Anagrafica[]; pratiche: Pratica[]; scadenze: Scadenza[]; todos: Todo[]; note: Nota[]
   documenti: Documento[]; link: Link[]; ore: Ora[]; spese: Spesa[]; parcelle: Parcella[]; notifiche: Notifica[]
-  calendari: Calendario[]; eventi: EventoEsterno[]; cronologia: Cronologia[]
+  calendari: Calendario[]; eventi: EventoEsterno[]
   settings: Settings
   praticaById: Map<number, Pratica>; anagraficaById: Map<number, Anagrafica>
   reload: () => void
 }
 
 const EMPTY: Omit<Data, 'praticaById' | 'anagraficaById' | 'reload'> = {
-  ready: false, loading: false, error: null, anagrafica: [], pratiche: [], scadenze: [], todos: [], note: [], documenti: [], link: [], ore: [], spese: [], parcelle: [], notifiche: [], calendari: [], eventi: [], cronologia: [],
+  ready: false, loading: false, error: null, anagrafica: [], pratiche: [], scadenze: [], todos: [], note: [], documenti: [], link: [], ore: [], spese: [], parcelle: [], notifiche: [], calendari: [], eventi: [],
   settings: DEFAULT_SETTINGS,
 }
 
 const Ctx = createContext<Data>(null as unknown as Data)
 export const useData = () => useContext(Ctx)
 
+// tabelle caricate per intero nella finestra; la cronologia no: cresce a ogni modifica e si legge per pratica (CronologiaCard)
 const TABLES: Record<string, string> = {
   anagrafica: 'denominazione COLLATE NOCASE', pratiche: 'id DESC', scadenze: 'data_ora', todos: 'ordine, id', note: 'id DESC',
-  documenti: 'id DESC', link: 'ordine, id', ore: 'data DESC, id DESC', spese: 'data DESC, id DESC', parcelle: 'anno DESC, progressivo DESC', notifiche: 'id DESC', calendari: 'nome COLLATE NOCASE', eventi_esterni: 'inizio', cronologia: 'id DESC',
+  documenti: 'id DESC', link: 'ordine, id', ore: 'data DESC, id DESC', spese: 'data DESC, id DESC', parcelle: 'anno DESC, progressivo DESC', notifiche: 'id DESC', calendari: 'nome COLLATE NOCASE', eventi_esterni: 'inizio',
 }
 
 export function mergeSettings(s: Record<string, any>): Settings {

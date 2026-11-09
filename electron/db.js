@@ -6,7 +6,7 @@ const crypto = require('node:crypto')
 const path = require('node:path')
 
 const validation = require('./validation')
-const SCHEMA_VERSION = 5
+const SCHEMA_VERSION = 6
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS anagrafica (
@@ -261,6 +261,11 @@ function open(dir, { restoring = false } = {}) {
     id INTEGER PRIMARY KEY AUTOINCREMENT, pratica_id INTEGER REFERENCES pratiche(id) ON DELETE CASCADE, titolo TEXT NOT NULL,
     frequenza TEXT NOT NULL, prossima TEXT NOT NULL, giorno INTEGER NOT NULL, attiva INTEGER NOT NULL DEFAULT 1);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_documento_preventivo ON parcelle(origine_preventivo_id) WHERE origine_preventivo_id IS NOT NULL;`)
+  // 1.0.2: titolo (Avv., Ing.…), codice SDI e recapiti in più (telefoni ed email con etichetta, JSON) in anagrafica;
+  // tariffa oraria «da decidere» nelle attività; contabile del pagamento allegata alle voci da pagare (JSON: nome e file interno)
+  { const c = db.prepare('PRAGMA table_info(anagrafica)').all().map((x) => x.name); for (const [nome, tipo] of [['titolo', 'TEXT'], ['sdi', 'TEXT'], ['recapiti', 'TEXT']]) if (!c.includes(nome)) db.exec(`ALTER TABLE anagrafica ADD COLUMN ${nome} ${tipo}`) }
+  if (!db.prepare('PRAGMA table_info(ore)').all().some((c) => c.name === 'tariffa_da_decidere')) db.exec('ALTER TABLE ore ADD COLUMN tariffa_da_decidere INTEGER NOT NULL DEFAULT 0')
+  if (!db.prepare('PRAGMA table_info(costi)').all().some((c) => c.name === 'contabile')) db.exec('ALTER TABLE costi ADD COLUMN contabile TEXT')
   if (!db.prepare('PRAGMA table_info(ricorrenze)').all().some((c) => c.name === 'lavorativo')) db.exec('ALTER TABLE ricorrenze ADD COLUMN lavorativo INTEGER NOT NULL DEFAULT 0')
   db.exec("UPDATE parcelle SET incassato = netto WHERE stato = 'pagata' AND incassato = 0")
   db.exec(`CREATE INDEX IF NOT EXISTS idx_parcelle_serie ON parcelle(anno,tipo,numero);
@@ -278,7 +283,33 @@ function open(dir, { restoring = false } = {}) {
     if (Object.keys(daSpostare).length) setSettings(daSpostare)
     pulisciRisorse()
   } catch (error) { console.error('Risorse dei modelli non spostate:', error.message) }
+  try { manutenzione() } catch (error) { console.error('Manutenzione dell’archivio non riuscita:', error.message) }
   return db
+}
+
+/**
+ * Manutenzione all'apertura, perché l'archivio non si appesantisca con gli anni e con gli aggiornamenti:
+ * - notifiche già lette più vecchie di 90 giorni tolte (e al massimo 500 in tutto);
+ * - i promemoria giornalieri già inviati più vecchi di 60 giorni dimenticati;
+ * - il file temporaneo dell'archivio (-wal) non resta più grande di 32 MB dopo un'operazione grossa;
+ * - se più di un quarto del file è spazio vuoto (dati cancellati, migrazioni) e sono almeno 4 MB, l'archivio si compatta;
+ * - statistiche delle tabelle aggiornate (PRAGMA optimize), per ricerche veloci anche su archivi grandi.
+ * Non tocca pratiche, documenti, cronologia né nient'altro che l'utente abbia scritto.
+ */
+function manutenzione({ ora = new Date() } = {}) {
+  const esito = { notifiche: 0, promemoria: 0, compattato: false, liberati: 0 }
+  db.exec('PRAGMA journal_size_limit = 33554432')
+  const limite = (giorni) => { const d = new Date(ora.getTime() - giorni * 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} 00:00:00` }
+  esito.notifiche += Number(db.prepare('DELETE FROM notifiche WHERE letta = 1 AND created_at < ?').run(limite(90)).changes)
+  esito.notifiche += Number(db.prepare('DELETE FROM notifiche WHERE id NOT IN (SELECT id FROM notifiche ORDER BY id DESC LIMIT 500)').run().changes)
+  esito.promemoria = Number(db.prepare("DELETE FROM alert_fired WHERE key LIKE 'digest:%' AND fired_at < ?").run(limite(60)).changes)
+  const pagine = db.prepare('PRAGMA page_count').get().page_count, vuote = db.prepare('PRAGMA freelist_count').get().freelist_count
+  const pagina = db.prepare('PRAGMA page_size').get().page_size
+  if (vuote * pagina >= 4 * 1024 * 1024 && vuote / Math.max(1, pagine) > 0.25) {
+    db.exec('VACUUM'); db.exec('PRAGMA wal_checkpoint(TRUNCATE)'); esito.compattato = true; esito.liberati = vuote * pagina
+  }
+  db.exec('PRAGMA optimize')
+  return esito
 }
 
 /**
@@ -679,7 +710,7 @@ function openForBackup(dir) {
 module.exports = { openForBackup,
   getRecoveryResult: () => recoveryResult,
   open, close, isolaArchivioDanneggiato, verificaIntegrita, getDb, getDataDir, list, get, save, remove, transaction, localNow,
-  getSettings, setSettings, risorse, espandiRisorse, nextPraticaNumero, nextParcellaNumero,
+  getSettings, setSettings, risorse, espandiRisorse, manutenzione, nextPraticaNumero, nextParcellaNumero,
   getParcella, saveParcella, reorderTodos, searchAll, TABLES, ripristina, senzaCronologia, scriviCronologia,
 }
 

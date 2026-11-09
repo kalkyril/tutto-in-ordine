@@ -1,7 +1,8 @@
 import type { Labels, Settings } from '../types'
 
 export const NOME_APP = 'TIO'
-export const COLORE_BRAND_PREDEFINITO = '#4338ca'
+// blu inchiostro: il colore delle firme e dei timbri sugli atti (fino alla 1.0.1 era un indaco generico)
+export const COLORE_BRAND_PREDEFINITO = '#24527a'
 
 export const PALETTE = [
   '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6',
@@ -52,7 +53,7 @@ export const DEFAULT_SETTINGS: Settings = {
   ora_default_giornata: 9,
   aliquote: { sg: 15, cpa: 4, iva: 22, rit: 20, bollo: 2 },
   tariffa_oraria: 150, tariffe_online: false,
-  brand_colore: '#4338ca', brand_logo: null, onboarding_fatto: false,
+  brand_colore: COLORE_BRAND_PREDEFINITO, brand_logo: null, onboarding_fatto: false,
   tema: 'auto',
   resta_in_background: true, avvia_al_login: false, notifiche_desktop: true, avvisa_ritardi: true, riepilogo_giornaliero: true,
   notifiche_riservate: true, vista_compatta: false, backup_documenti: true, backup_cifrato: false, backup_automatico: true, backup_cartella: '', backup_mantieni: 7, aggiornamenti_controllo: true,

@@ -12,7 +12,7 @@ import { money, parseNumber } from '../lib/format'
 import type { Ora, Parcella, Spesa } from '../types'
 
 interface Pagamento { id: number; parcella_id: number; data: string | null; importo: number; metodo: string; note: string }
-export interface Costo { id: number; pratica_id: number | null; fornitore_id: number | null; data: string; descrizione: string; categoria: string; importo: number; scadenza: string | null; pagata: number; recuperabile: number }
+export interface Costo { id: number; pratica_id: number | null; fornitore_id: number | null; data: string; descrizione: string; categoria: string; importo: number; scadenza: string | null; pagata: number; recuperabile: number; contabile?: string | null }
 interface Ricorrenza { id: number; pratica_id: number | null; titolo: string; frequenza: string; prossima: string; attiva: number; lavorativo?: number }
 interface Gestione { pagamenti: Pagamento[]; costi: Costo[]; ricorrenze: Ricorrenza[] }
 export function useGestione() {

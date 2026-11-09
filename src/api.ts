@@ -29,6 +29,11 @@ export interface SnapshotEliminato { token: string; t: string; riga: Record<stri
 
 export const api = {
   gestione: (azione: string, dati: Record<string, any> = {}): Promise<any> => inv('app:gestione', azione, dati),
+  // contabile del pagamento di una voce da pagare: copia nella cartella dati, aperta con il programma predefinito
+  allegaContabile: (costoId: number, percorso?: string): Promise<{ nome: string } | null> => inv('app:contabile', 'allega', costoId, percorso),
+  apriContabile: (costoId: number) => inv('app:contabile', 'apri', costoId),
+  mostraContabile: (costoId: number) => inv('app:contabile', 'mostra', costoId),
+  togliContabile: (costoId: number) => inv('app:contabile', 'togli', costoId),
   list: <T = any>(t: string, where?: Record<string, any>, order?: string): Promise<T[]> => inv('db:list', t, where, order),
   get: <T = any>(t: string, id: number): Promise<T | null> => inv('db:get', t, id),
   save: <T = any>(t: string, obj: Record<string, any>): Promise<T> => inv('db:save', t, obj),
@@ -117,7 +122,12 @@ export const api = {
   scaricaModelloWord: (id: string): Promise<string | null> => inv('modelli:scaricaWord', id),
   creaDaModelloWord: (o: { id: string; valori: Record<string, string>; nome: string; praticaId?: number | null }): Promise<{ percorso: string; mancanti: string[] } | null> => inv('modelli:creaDaWord', o),
   esportaDocumento: (o: { nome: string; formato: string; documento: unknown; praticaId?: number | null }): Promise<string | null> => inv('modelli:esporta', o),
-  previewPdf: (html: string, pagina = 1): Promise<{ immagine: string; pagina: number; pagine: number } | null> => inv('pdf:preview', html, pagina),
+  // Comprimi PDF (Strumenti): file nuovo accanto all'originale, che resta com'è
+  scegliPdfDaComprimere: (): Promise<{ percorso: string; nome: string; byte: number }[]> => inv('pdf:scegliDaComprimere'),
+  infoPdf: (percorso: string): Promise<{ percorso: string; nome: string; byte: number }> => inv('pdf:infoFile', percorso),
+  comprimiPdf: (percorso: string, livello: 'minima' | 'media' | 'massima', chiedi = false): Promise<EsitoCompressione | null> => inv('pdf:comprimi', percorso, livello, chiedi),
+  mostraPdfCompresso: (uscita: string, apri = false) => inv('pdf:mostraCompresso', uscita, apri),
+  previewPdf: (html: string, pagina = 1, alta = false): Promise<{ immagine: string; pagina: number; pagine: number } | null> => inv('pdf:preview', html, pagina, alta),
   // calendari esterni (sola lettura)
   salvaCalendario: (o: Record<string, any>) => inv('calendari:salva', o),
   eliminaCalendario: (id: number) => inv('calendari:elimina', id),
@@ -155,6 +165,7 @@ export const api = {
   restore: (password = '', verifyOnly = false): Promise<{ safety?: string; valido?: boolean; integritaFile?: boolean; documenti?: number; mancanti?: number; portabile?: boolean } | null> => inv('backup:restore', password, verifyOnly).then((result) => { if (result?.safety) window.dispatchEvent(new Event('archive-restored')); return result }),
 }
 
+export interface EsitoCompressione { prima: number; dopo: number; pagine: number; immagini: number; ricompresse: number; flussi: number; tolti: number; invariato: boolean; uscita: string; nome: string }
 export type SezioneDocumento = 'cliens' | 'locale' | 'condivisa'
 export interface RapportoCliens { praticaId: number; cliens: number; locali: number; condivisi: number; nuovi: number; uniti: number; toltiDaCliens: number; incompleto: boolean; cartellaCliens: boolean; cartellaLocale: boolean }
 export interface AbbinamentiCliens { cartella: string; abbinamenti: { nome: string; percorso: string; pratica: { id: number; numero: string; titolo: string; giaCollegata: boolean } | null }[] }

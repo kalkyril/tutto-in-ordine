@@ -112,7 +112,7 @@ function attach({ getWindow, db }) {
       db.saveParcella({ data: `${anno}-03-10`, pratica_id: pA.id, cliente_id: rossi.id, oggetto: 'Fase di studio', stato: 'emessa', compensi: 1000, netto: 1000, totale: 1000, voci: [{ tipo: 'compenso', descrizione: 'Studio', quantita: 1, importo: 1000 }] })
       db.saveParcella({ data: `${anno}-04-10`, pratica_id: pA.id, cliente_id: rossi.id, oggetto: 'Saldo', stato: 'pagata', compensi: 500, netto: 500, totale: 500, voci: [{ tipo: 'compenso', descrizione: 'Saldo', quantita: 1, importo: 500 }] })
       await js('location.reload()'); await sleep(1500)
-      await clickText('.nav-item', 'Parcelle'); await sleep(700)
+      await clickText('.nav-item', 'Pagamenti'); await clickText('.tabs button', 'Parcelle'); await sleep(700)
       await clickText('button', 'Prima nota'); await sleep(900)
       const csv = fs.readdirSync(out).find((f) => /^Prima-nota-\d+\.csv$/.test(f))
       check('prima nota CSV salvata', csv && fs.readFileSync(path.join(out, csv), 'utf8').startsWith('\uFEFFNumero;Data;Tipo'), csv)
@@ -175,6 +175,6 @@ function attach({ getWindow, db }) {
       console.log(`\nRISULTATO: ${results.length - bad.length}/${results.length} controlli superati`)
     } catch (e) { console.log('ERRORE', e, e && e.stack) } finally { setTimeout(() => process.exit(0), 300) }
   })
-  wc.on('console-message', (_e, level, message) => { if (level >= 2) console.log('[renderer]', message) })
+  wc.on('console-message', (e) => { if (e.level === 'warning' || e.level === 'error') console.log('[renderer]', e.message) }) // API di Electron con l'oggetto evento (gli argomenti separati sono deprecati)
 }
 module.exports = { attach }

@@ -14,7 +14,7 @@ export function modelloPredefinito(s: Settings): ModelloPdf {
     intestazione: [riga(st.intestazione || st.nome || 'Nome dello studio', { dimensione: 'grande', grassetto: true }), ...(contatti ? [riga(contatti, { dimensione: 'piccola' })] : [])],
     pagamento: st.iban ? [riga(`Pagamento: bonifico bancario IBAN ${st.iban}`, { grassetto: true, allineamento: 'sinistra' }), ...(st.banca ? [riga(st.banca, { allineamento: 'sinistra' })] : [])] : [],
     footer: [
-      ...(sede ? [riga(`Studio legale: ${sede}`, { dimensione: 'piccola' })] : []),
+      ...(sede ? [riga(`${s.profilo === 'ditta' ? 'Sede' : 'Studio legale'}: ${sede}`, { dimensione: 'piccola' })] : []),
       ...(st.domicilio_fiscale ? [riga(`Domicilio fiscale: ${st.domicilio_fiscale}`, { dimensione: 'piccola' })] : []),
       ...(fisc ? [riga(fisc, { dimensione: 'piccola' })] : []),
     ],

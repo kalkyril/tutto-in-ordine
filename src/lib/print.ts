@@ -58,17 +58,17 @@ const tipoTitolo = (t: string): TipoTitolo => (t === 'preventivo' || t === 'nota
 export function titoloDocumento(m: ModelloPdf, tipo: string, s: Pick<Settings, 'profilo'>, L: Pick<Labels, 'parcella'>): StileTitolo & { personalizzato: boolean } {
   const k = tipoTitolo(tipo), t = m.titoli?.[k]
   const base = titoloPredefinito(k, s, L)
-  return t && (t.testo || '').trim() ? { ...base, ...t, dimensione: Math.min(40, Math.max(10, Number(t.dimensione) || base.dimensione)), personalizzato: true } : { ...base, personalizzato: false }
+  return t && (t.testo || '').trim() ? { ...base, ...t, dimensione: Math.min(60, Math.max(10, Number(t.dimensione) || base.dimensione)), personalizzato: true } : { ...base, personalizzato: false }
 }
 export const stileTitoloCss = (t: StileTitolo, m: ModelloPdf) =>
   `text-align:${ALLIN[t.allineamento] || 'left'};font-size:${t.dimensione}pt;font-weight:${t.grassetto ? 700 : 400};font-style:${t.corsivo ? 'italic' : 'normal'};${t.font ? `font-family:${famigliaFont(t.font, m.fontPersonali)};` : ''}`
-const DIM: Record<string, string> = { grande: '18pt', media: '13pt', normale: '10pt', piccola: '9pt' }
+const DIM: Record<string, string> = { grandissima: '26pt', grande: '18pt', media: '13pt', normale: '10pt', piccola: '9pt' }
 const ALLIN: Record<string, string> = { sinistra: 'left', centro: 'center', destra: 'right' }
 
 /** Righe personalizzabili (intestazione, coordinate di pagamento, piè di pagina) → HTML. */
 export function righeHtml(righe: RigaModello[], modello?: ModelloPdf): string {
   return righe.filter((r) => r.testo.trim()).map((r) =>
-    `<div style="text-align:${ALLIN[r.allineamento] || 'left'};font-size:${DIM[r.dimensione] || DIM.normale};${r.font ? `font-family:${esc(famigliaFont(r.font, modello?.fontPersonali))};` : ''}font-weight:${r.grassetto ? 700 : 400};font-style:${r.corsivo ? 'italic' : 'normal'};line-height:1.3;min-height:1em">${esc(r.testo)}</div>`).join('')
+    `<div style="text-align:${ALLIN[r.allineamento] || 'left'};font-size:${DIM[r.dimensione] || DIM.normale};${r.font ? `font-family:${esc(famigliaFont(r.font, modello?.fontPersonali))};` : ''}font-weight:${r.grassetto ? 700 : 400};font-style:${r.corsivo ? 'italic' : 'normal'};${r.sottolineato ? 'text-decoration:underline;' : ''}line-height:1.3;min-height:1em">${esc(r.testo)}</div>`).join('')
 }
 const LOGO_VALIDO = /^data:image\/(png|jpeg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/
 const altezzaImmagine = (n: unknown, fallback: number, max: number) => Math.min(max, Math.max(16, Number(n) || fallback))
@@ -93,7 +93,7 @@ export function notaProFormaHtml(p: Parcella, voci: VoceParcella[], cliente: Ana
   const titolo = titoloDocumento(m, 'proforma', s, s.etichette)
   const footerImage = footerImmagineHtml(m)
   const footerContent = `<div class="footer-content">${footerImage}${righeHtml(m.footer, m)}</div>`
-  const footerRighe = m.footer.filter(r => r.testo.trim()).reduce((h, r) => h + ({ grande: 24, media: 17.34, normale: 13.34, piccola: 12 }[r.dimensione] || 13.34) * 1.3 * Math.max(1, Math.ceil(r.testo.length / 85)), 0)
+  const footerRighe = m.footer.filter(r => r.testo.trim()).reduce((h, r) => h + ({ grandissima: 34.67, grande: 24, media: 17.34, normale: 13.34, piccola: 12 }[r.dimensione] || 13.34) * 1.3 * Math.max(1, Math.ceil(r.testo.length / 85)), 0)
   const margineInferiore = Math.max(32, Math.ceil((footerRighe + (footerImage ? altezzaImmagine(m.immagineFooterAltezza, 36, 64) + 6 : 0)) * 25.4 / 96 + 18))
   const euro = (value: number) => `€ ${eur2(value)}`
   const row = (label: string, value: number, cls = '') => `<tr class="${cls}"><td>${esc(label)}</td><td class="amount">${euro(value)}</td></tr>`

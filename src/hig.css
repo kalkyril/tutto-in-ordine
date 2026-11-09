@@ -58,7 +58,6 @@
 .page-head-main { min-width: 0; }
 .page-head h1 { letter-spacing: -.035em; line-height: 1.2; overflow-wrap: anywhere; }
 .page-subtitle { margin-top: 6px; font-size: var(--fs-sm); line-height: 1.5; }
-.page-eyebrow { color: var(--muted); font-size: var(--fs-xs); font-weight: 600; margin-bottom: 9px; }
 
 /* Una sola azione dominante; stessi ingombri per le scelte della stessa famiglia. */
 .btn-md { min-height: 36px; }
@@ -76,7 +75,7 @@
 .card-head { margin-bottom: 14px; }
 .card-head h2 > svg { color: var(--muted); stroke-width: 1.75; }
 .sub-title { text-transform: none; letter-spacing: .01em; margin-top: 18px; margin-bottom: 8px; }
-.row-item { padding: 11px 12px; border-left-width: 3px; margin-block: 6px; }
+.row-item { padding: 11px 8px; }
 .row-actions { opacity: .85; }
 .plain-row { padding-block: 11px; }
 .empty-icon { opacity: 1; color: var(--accent); display: grid; place-items: center; padding: 14px; background: var(--accent-soft); border-radius: 18px; margin-bottom: 4px; }

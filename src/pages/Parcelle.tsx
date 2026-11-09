@@ -16,7 +16,7 @@ import type { Parcella } from '../types'
 type S = 'tutte' | 'bozza' | 'emessa' | 'pagata'
 type Vista = 'documenti' | 'solleciti' | 'pratiche' | AreaGestione
 
-export default function ParcellePage() {
+export default function ParcellePage({ incorporata = false }: { incorporata?: boolean }) {
   const { parcelle, anagraficaById, praticaById, settings, pratiche, ore, spese } = useData()
   const run = useAction()
   const [vista, setVista] = useState<Vista>('documenti')
@@ -47,12 +47,12 @@ export default function ParcellePage() {
   const copia = async (i: number) => { const t = testoSollecito(sol[i], settings.studio); try { await navigator.clipboard.writeText(`${t.oggetto}\n\n${t.corpo}`) } catch { /* appunti non disponibili */ } }
   return (
     <div className="page">
-      <PageHeader title={`${L.parcelle} e preventivi`} subtitle="Documenti PDF e XML FatturaPA, spese e incassi — l’invio allo SdI resta al tuo canale (Fatture e Corrispettivi, intermediario o commercialista)"
-        actions={<><select value={anno} onChange={(e) => setAnno(Number(e.target.value))} aria-label="Anno">{[...new Set([...anni, new Date().getFullYear()])].sort((a, b) => b - a).map((a) => <option key={a}>{a}</option>)}</select>
+      {(() => { const azioni = <><select value={anno} onChange={(e) => setAnno(Number(e.target.value))} aria-label="Anno">{[...new Set([...anni, new Date().getFullYear()])].sort((a, b) => b - a).map((a) => <option key={a}>{a}</option>)}</select>
           <Btn variant="ghost" onClick={esporta} title="Registro dei documenti dell'anno in CSV, per Excel o per il commercialista"><Download size={16} /> Prima nota (CSV)</Btn>
           {settings.profilo !== 'avvocato' && <Btn variant="ghost" title="Dati e voci dei documenti, da verificare e adattare al proprio servizio di fatturazione; nessun invio allo SdI" onClick={()=>run(async()=>{const completi=await Promise.all(doc.filter(p=>p.stato!=='annullata').map(p=>api.getParcella(p.id)));return api.salvaTesto(`Dati-fatturazione-${anno}.csv`,datiFatturazioneCsv(completi,anagraficaById))},'CSV salvato')}>Dati per servizio fiscale (CSV)</Btn>}
           <Btn variant="ghost" disabled={importing} onClick={async () => { setImporting(true); try { const data = await run(() => api.importaProforma()); if (data) setImported(data) } finally { setImporting(false) } }}><Upload size={16} /> {importing ? 'Lettura…' : 'Importa PDF / Word'}</Btn>
-          <Btn variant="primary" onClick={() => setEd({})}><Plus size={16} /> Nuovo documento</Btn></>} />
+          <Btn variant="primary" onClick={() => setEd({})}><Plus size={16} /> Nuovo documento</Btn></>
+        return incorporata ? <div className="toolbar azioni-sezione">{azioni}</div> : <PageHeader title={`${L.parcelle} e preventivi`} subtitle="Documenti PDF e XML FatturaPA, spese e incassi — l’invio allo SdI resta al tuo canale (Fatture e Corrispettivi, intermediario o commercialista)" actions={azioni} /> })()}
       <div className="kpis fascia-numeri">
         <div className="kpi static"><span>Emesso {anno}</span><b>{money(emesso)}</b></div>
         <div className="kpi static"><span>Incassato (netto)</span><b>{money(incassato)}</b></div>

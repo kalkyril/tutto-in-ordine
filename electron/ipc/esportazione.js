@@ -11,7 +11,7 @@ const { safeName } = require('../files')
 const docfile = require('../docfile')
 
 module.exports = function registra({ handle, changed, getWindow }) {
-  handle('pdf:preview', (html, pagina) => require('../pdf-preview').previewPdf(html, pagina))
+  handle('pdf:preview', (html, pagina, alta) => require('../pdf-preview').previewPdf(html, pagina, alta === true))
   handle('ics:export', async (praticaId) => {
     const r = await dialog.showSaveDialog(getWindow(), {
       title: 'Esporta calendario', defaultPath: path.join(app.getPath('documents'), praticaId ? 'pratica.ics' : 'TIO-agenda.ics'),

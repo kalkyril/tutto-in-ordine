@@ -40,7 +40,7 @@ function attach({ getWindow, db }) {
       await js(fs.readFileSync(require.resolve('axe-core/axe.min.js'),'utf8')+';true')
       for(const mode of ['chiaro','scuro']) {
         await theme(mode)
-        for(const [name,selector] of [['Panoramica','.dashboard'],['Pratiche','.pcard'],['Agenda','.cal-cell'],['Compiti','.row-item'],['Anagrafica','.contact'],['Parcelle','.table'],['Collegamenti','.page-head'],['Impostazioni','.tabs']]) {
+        for(const [name,selector] of [['Panoramica','.dashboard'],['Pratiche','.pcard'],['Agenda','.cal-cell'],['Compiti','.row-item'],['Anagrafica','.contact'],['Pagamenti','.tabs'],['Collegamenti','.page-head'],['Impostazioni','.tabs']]) {
           await click('.nav-item',name); await pageReady(name,selector); await sleep(150)
           await axe(name+'/'+mode)
           if(['Panoramica','Pratiche','Agenda','Impostazioni'].includes(name)) await shot(name.toLowerCase()+'-'+mode)

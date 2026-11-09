@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { AlignCenter, AlignLeft, AlignRight, ArrowDown, ArrowUp, Bold, ChevronLeft, ChevronRight, ImagePlus, Italic, Plus, RotateCcw, Trash2 } from 'lucide-react'
+import { AlignCenter, AlignLeft, AlignRight, ArrowDown, ArrowUp, Bold, ChevronLeft, ChevronRight, ImagePlus, Italic, Plus, RotateCcw, Trash2, Underline } from 'lucide-react'
 import { Btn, Field, useFeedback } from './ui'
 import { esempioNotaHtml, titoloPredefinito } from '../lib/print'
 import { modelloEffettivo, modelloPredefinito, riga } from '../lib/modello'
@@ -127,11 +127,12 @@ export function RigheEditor({ righe, titolo, opzioniFont, nuova, onChange }: { r
                 <input data-riga={i} value={r.testo} onChange={(e) => upd(i, { testo: e.target.value })} onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); inserisci(i + 1) } }} placeholder="Scrivi qui il testo…" aria-label={`${titolo}, riga ${i + 1}`} />
                 <select value={r.font || ''} onChange={e => upd(i, { font: e.target.value || undefined })} aria-label={`Font ${titolo.toLowerCase()}, riga ${i + 1}`} title="Font della riga: «Font» usa quello del documento"><option value="">Font</option>{opzioniFont}</select>
                 <select value={r.dimensione} onChange={(e) => upd(i, { dimensione: e.target.value as RigaModello['dimensione'] })} aria-label="Dimensione">
-                  <option value="grande">Grande</option><option value="media">Media</option><option value="normale">Normale</option><option value="piccola">Piccola</option>
+                  <option value="grandissima">Grandissima</option><option value="grande">Grande</option><option value="media">Media</option><option value="normale">Normale</option><option value="piccola">Piccola</option>
                 </select>
                 <div className="tool-group">
                   <button type="button" className={`tool ${r.grassetto ? 'on' : ''}`} onClick={() => upd(i, { grassetto: !r.grassetto })} aria-pressed={r.grassetto} title="Grassetto"><Bold size={14} /></button>
                   <button type="button" className={`tool ${r.corsivo ? 'on' : ''}`} onClick={() => upd(i, { corsivo: !r.corsivo })} aria-pressed={r.corsivo} title="Corsivo"><Italic size={14} /></button>
+                  <button type="button" className={`tool ${r.sottolineato ? 'on' : ''}`} onClick={() => upd(i, { sottolineato: !r.sottolineato })} aria-pressed={!!r.sottolineato} title="Sottolineato"><Underline size={14} /></button>
                 </div>
                 <div className="tool-group">
                   {([['sinistra', AlignLeft], ['centro', AlignCenter], ['destra', AlignRight]] as const).map(([a, Icon]) => (
@@ -221,7 +222,7 @@ function TitoliEditor({ settings, value, opzioniFont, onChange }: { settings: Se
         <span className="small riga-titolo-nome">{etichetta}</span>
         <input value={r.testo} onChange={(e) => upd(tipo, { testo: e.target.value })} placeholder={titoloPredefinito(tipo, settings, L).testo} aria-label={`Titolo: ${etichetta}`} />
         <select value={r.font || ''} onChange={(e) => upd(tipo, { font: e.target.value || undefined })} aria-label={`Font del titolo: ${etichetta}`} title="«Font» usa quello del documento"><option value="">Font</option>{opzioniFont}</select>
-        <select value={r.dimensione} onChange={(e) => upd(tipo, { dimensione: Number(e.target.value) })} aria-label={`Dimensione del titolo: ${etichetta}`}>{[12, 14, 16, 18, 20, 22, 24, 28, 32, 36].map((n) => <option key={n} value={n}>{n} pt</option>)}</select>
+        <select value={r.dimensione} onChange={(e) => upd(tipo, { dimensione: Number(e.target.value) })} aria-label={`Dimensione del titolo: ${etichetta}`}>{[12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 44, 54].map((n) => <option key={n} value={n}>{n} pt</option>)}</select>
         <div className="tool-group">
           <button type="button" className={`tool ${r.grassetto ? 'on' : ''}`} onClick={() => upd(tipo, { grassetto: !r.grassetto })} aria-pressed={r.grassetto} title="Grassetto"><Bold size={14} /></button>
           <button type="button" className={`tool ${r.corsivo ? 'on' : ''}`} onClick={() => upd(tipo, { corsivo: !r.corsivo })} aria-pressed={r.corsivo} title="Corsivo"><Italic size={14} /></button>

@@ -2,6 +2,53 @@
 
 Novità di ogni versione di TIO, dalla più recente. Come installare e usare TIO è spiegato nel [README](README.md).
 
+## Versione 1.0.2 — Pagamenti, documenti più completi, Comprimi PDF (in preparazione)
+
+Nuove funzioni chieste da chi usa TIO ogni giorno e revisione dell'interfaccia con le linee guida di Apple per le app desktop, WCAG 2.2 e una prova con dati estremi (nomi lunghissimi, parole senza spazi, caratteri non latini).
+
+- **Pagamenti:** «Documenti e incassi» (o «Parcelle») e «Da pagare» diventano un'unica voce della barra laterale, **Pagamenti** (⌘6), con tre schede:
+  - **Scadenzario**: mese per mese incassi ricevuti e attesi, voci pagate e da pagare, con i totali, il saldo previsto, i filtri (entrate, uscite, ancora aperti), le scadenze arretrate in cima ed esportazione CSV;
+  - **Incassi** (per lo studio legale «Parcelle») e **Da pagare**, come prima.
+- **Contabile del pagamento:** quando una voce da pagare diventa «Pagata» TIO propone di allegare la ricevuta (PDF o immagine); la copia sta nella cartella dati ed entra nei backup. «Contabile…» la aggiunge o la sostituisce dopo.
+- **Valore della pratica o commessa:** nella scheda «Parcelle» del lavoro (per professionisti e ditte «Fatture e pagamenti») fatture incassate e da incassare, voci pagate e da pagare, **grafico a torta** e margine previsto. I colori si scelgono in Impostazioni › Generale › Aspetto e valgono anche per lo scadenzario.
+- **Anagrafica:**
+  - corretto: in un contatto nuovo, scegliere Ruolo o Tipo salvava e chiudeva la finestra; ora si salva solo con «Salva» (i pulsanti a scelta non inviano più il modulo, in tutta l'app);
+  - **titolo** facoltativo delle persone fisiche (Avv., Ing., Dott.… o libero), mostrato davanti al nome;
+  - **più telefoni e più email**, ognuno con un'etichetta (Cellulare, Fisso, Ufficio… o personalizzata); il primo resta quello principale, compatibile con importazioni e versioni precedenti;
+  - **codice SDI**, proposto da solo nella fattura elettronica;
+  - per professionisti e ditte il ruolo è **Cliente, Fornitore, Collaboratore o Altro**.
+- **Attività:** la tariffa oraria ha il menu **Inserisci** / **Da decidere**; con «Da decidere» le ore diventano nel documento una voce a 0 € «tariffa oraria da decidere», da completare.
+- **Documenti:**
+  - l'editor del testo diventa quasi un programma di videoscrittura: titolo, sottotitolo, titoletto, paragrafo e citazione; dimensione del testo fino a 72 pt; barrato, colore, evidenziatore; **tabelle** (righe e colonne da aggiungere o togliere, riga d'intestazione ripetuta su ogni pagina); **immagini** (anche incollate o trascinate, ridotte e compresse); **interruzioni di pagina**; annulla e ripeti;
+  - **capitoli e titoli riconosciuti** nel testo incollato (da Word e pagine web con la loro struttura; da PDF, email e testo semplice: «CAPITOLO 1», «Art. 3», «1.2 Oggetto», righe in maiuscolo, elenchi, tabelle con tabulazioni o Markdown), pulsante «Riconosci titoli e capitoli» e **indice** cliccabile;
+  - **{{corpo.documento}}**: un testo lungo (atti, relazioni, contratti con capitoli, tabelle e immagini) da incollare quando crei il documento, dentro la tua carta intestata;
+  - **campi personalizzati** dal menu «Inserisci campo… › + Nuovo campo personalizzato…» («entro {{n.giorni}} giorni», «compenso di € {{compenso}}»), chiesti alla creazione del documento;
+  - **foto della firma** (Impaginazione › Firma) al posto di {{firma}};
+  - **luogo e data** in alto o in basso, a destra o a sinistra;
+  - **Anteprima** a tutta finestra, pagina per pagina, con lo zoom fino al 300%, anche in «Crea documento» con i campi compilati;
+  - dimensione **Grandissima** e **sottolineato** nelle righe di intestazione e piè di pagina (anche nel Modello PDF), titoli dei documenti fino a 54 pt, testo del corpo fino a 28 pt;
+  - Word, OpenDocument, RTF, HTML, Markdown e testo esportano tabelle, immagini, citazioni, interruzioni di pagina, colori, dimensioni e barrato; nei file Word ogni elenco numerato riparte da 1.
+- **Comprimi PDF** (nuovo strumento): PDF più leggeri per PEC, email e depositi, con tre livelli (minima, media, massima), più file alla volta, trascinandoli o scegliendoli. Tutto sul computer; il testo resta selezionabile; l'originale non si tocca e il file nuovo si chiama «… (compresso).pdf». Nelle prove: un manuale da 6,3 MB scende a 0,55 MB, uno da 209 MB e 4.234 pagine a 171 MB.
+- **Impostazioni:** per libero professionista e ditta individuale niente più scheda «Modello PDF» (intestazione e piè di pagina dei documenti si curano in Documenti); nel piè di pagina predefinito della ditta «Sede:» al posto di «Studio legale:».
+- **Peso:** la sola dipendenza nuova è pdf-lib (MIT): circa 3,9 MB installata e 0,4 MB nell'installer compresso, escluse le versioni per browser; la compressione lavora in un processo separato con un limite di memoria e si chiude a lavoro finito.
+- **Dati:** schema 6 con cinque colonne nuove (titolo, SDI e recapiti in anagrafica, tariffa da decidere nelle attività, contabile nelle voci da pagare), aggiunte da sole all'apertura; i backup delle versioni precedenti si ripristinano come prima.
+
+- **Finestre strette e testo ingrandito:** la Panoramica non scorre più di lato nella finestra minima (980 × 640) e allo zoom 125%; i numeri in cima restano allineati anche quando un'etichetta va su più righe; le colonne che scorrono sfumano in fondo invece di tagliare l'ultima voce a metà.
+- **Testi lunghi:** ragioni sociali, luoghi ed email senza spazi vanno a capo invece di uscire da schede, righe e dettagli; i titoli negli elenchi si fermano a tre righe e non coprono più lo stato.
+- **Controlli:** campi, menu e pulsanti affiancati hanno la stessa altezza (Cliente +, stati della pratica, avvisi, tipologie); i pulsanti fatti solo di un'icona e le «×» per togliere etichette e colori misurano almeno 24 × 24; nella tavolozza le «×» compaiono sul colore indicato o raggiunto con Tab.
+- **Righe di scadenze e compiti:** righe semplici, senza riquadro dentro il riquadro e senza bordo laterale colorato; l'urgenza la dicono l'etichetta («ieri», «oggi») e la data. Nella vista per stato il colore della pratica è un pallino accanto al numero.
+- **Documenti:** la disposizione di tutto il documento (allineamento, due colonne) passa nella scheda Impaginazione; nella scheda Contenuto resta solo la barra dell'editor per i singoli paragrafi. Nome e tipo del modello sono allineati.
+- **Pulsanti:** in Agenda e nella pratica «Calcola termine» ha lo stesso stile delle altre azioni secondarie; nella finestra del documento contabile «Titolo e font» sta a sinistra, le azioni sul documento a destra, poi Chiudi e Salva.
+- **Testi:** la scheda di una pratica con scadenze già passate dice «Nessuna scadenza in arrivo» (prima «Nessuna scadenza» accanto a «1 in ritardo»); in Anagrafica il tipo compare solo se indicato, e scrivendo una ragione sociale («… S.r.l.», «Studio …») il tipo passa da solo a Società / Ente.
+- **Accessibilità:** testo d'esempio nei campi con contrasto almeno 4,5:1; titoli in ordine anche nelle pagine vuote; niente etichetta sopra il titolo di Documenti e Anonimizza; con «riduci movimento» finestre e messaggi si dissolvono senza spostarsi.
+- **Rifiniture:** titoli bilanciati senza una parola sola sull'ultima riga, selezione del testo nel colore dell'app, il menu «+ Spesa extra…» non esce più dal suo riquadro.
+- **Leggera anche dopo anni e aggiornamenti:**
+  - la cronologia delle pratiche non si carica più tutta nella finestra a ogni modifica: si legge solo quella della pratica aperta (prima, con migliaia di righe, ogni salvataggio le rileggeva tutte);
+  - all'apertura l'archivio si mantiene da sé: notifiche già lette più vecchie di 90 giorni tolte (al massimo 500), promemoria giornalieri vecchi dimenticati, file temporaneo dell'archivio limitato a 32 MB, compattazione quando più di un quarto del file è spazio vuoto (per esempio dopo la conversione di logo e font della 1.0.1);
+  - dopo ogni aggiornamento si svuotano le cache del motore della finestra, che con ogni versione cambiano nome e non si riusano più, e si tolgono le cartelle temporanee rimaste da una chiusura improvvisa;
+  - delle copie di sicurezza fatte prima di un ripristino restano le tre più recenti (ognuna è un archivio intero).
+- **Colore principale predefinito:** blu inchiostro (#24527a) al posto dell'indaco, per chi installa da zero; chi ha già scelto un colore lo mantiene.
+
 ## Versione 1.0.1 — correzioni e nuove voci
 
 Correzioni emerse soprattutto su Windows (verificate anche su Mac) e alcune voci nuove.

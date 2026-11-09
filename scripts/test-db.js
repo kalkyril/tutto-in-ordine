@@ -140,5 +140,21 @@ assert.ok(backup.isBackup(bkVecchio)); backup.restore(bkVecchio); assert.equal(d
   assert.match(db.getSettings().modello_pdf.logo, /^tio-risorsa:[0-9a-f]{64}$/); assert.equal(db.getDb().prepare('SELECT count(*) n FROM risorse').get().n, 2)
   ok('logo incorporato da una versione precedente spostato nelle risorse all\'apertura')
 }
+// 1.0.2: manutenzione all'apertura, perché l'archivio non si appesantisca negli anni
+{
+  const D = db.getDb()
+  D.exec('DELETE FROM notifiche')
+  const ins = D.prepare('INSERT INTO notifiche(titolo, letta, created_at) VALUES(?, ?, ?)')
+  for (let i = 0; i < 700; i++) ins.run('n' + i, i % 2, i < 100 ? '2025-01-01 10:00:00' : '2026-11-08 10:00:00')
+  D.prepare("INSERT OR IGNORE INTO alert_fired(key, fired_at) VALUES('digest:2025-01-01', '2025-01-01 08:00:00'), ('late:s:1:2025-01-01', '2025-01-01 08:00:00')").run()
+  D.exec('CREATE TABLE zz(x TEXT)'); const z = D.prepare('INSERT INTO zz VALUES(?)'); for (let i = 0; i < 2000; i++) z.run('x'.repeat(4000)); D.exec('DROP TABLE zz'); D.exec('PRAGMA wal_checkpoint(TRUNCATE)')
+  const file = path.join(db.getDataDir(), 'mngmnt.db'), prima = fs.statSync(file).size
+  const e = db.manutenzione({ ora: new Date(2026, 10, 9) })
+  assert.equal(D.prepare('SELECT count(*) n FROM notifiche').get().n, 500); assert.ok(!D.prepare('SELECT 1 FROM notifiche WHERE letta = 1 AND created_at < ?').get('2026-08-01'))
+  assert.deepEqual(D.prepare("SELECT key FROM alert_fired WHERE key IN ('digest:2025-01-01','late:s:1:2025-01-01')").all().map((r) => r.key), ['late:s:1:2025-01-01'], 'gli avvisi di ritardo restano, i promemoria vecchi no')
+  assert.ok(e.compattato && fs.statSync(file).size < prima / 4, `${prima} → ${fs.statSync(file).size}`)
+  assert.equal(db.manutenzione().compattato, false, 'senza spazio vuoto non si compatta a ogni avvio')
+  ok('manutenzione: notifiche vecchie già lette tolte (massimo 500), promemoria vecchi dimenticati, archivio compattato quando è per più di un quarto vuoto')
+}
 db.close(); fs.rmSync(tmp, { recursive: true, force: true })
 console.log(`\n${n} test superati`)

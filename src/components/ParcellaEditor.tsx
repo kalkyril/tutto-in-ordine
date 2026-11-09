@@ -159,13 +159,14 @@ export function ParcellaEditor({ parcella, preset, onClose }: { parcella?: Parce
     <Modal title={parcella ? `${nomeDoc(f.tipo, L.parcella)} ${numero}` : `Nuov${f.tipo === 'preventivo' ? 'o preventivo' : f.tipo === 'proforma' ? 'a nota pro forma' : 'a ' + L.parcella.toLowerCase()}`}
       subtitle={!parcella && numero ? `Numero ${numero}` : undefined} onClose={onClose} width={usaCalcolo ? 1240 : 860}
       footer={<>
-        {parcella && <Btn variant="danger" onClick={del} aria-label="Elimina il documento" title="Elimina il documento" style={{ marginRight: 'auto' }}><Trash2 size={15} /></Btn>}
-        <Btn variant="ghost" onClick={onClose}>Chiudi</Btn>
-        <Btn variant="ghost" onClick={() => setModello(modelloEffettivo(settings))} title={f.tipo === 'proforma' ? 'Modifica titolo, intestazione, coordinate di pagamento e piè di pagina del PDF' : 'Modifica titolo, font, dimensione e allineamento del titolo del documento'}><LayoutTemplate size={15} /> {f.tipo === 'proforma' ? 'Intestazione e piè di pagina, titolo' : 'Titolo e font'}</Btn>
-        <Btn disabled={needsReview} onClick={pdf} title={f.pratica_id ? 'Si apre nella cartella locale della pratica; il PDF compare anche tra i documenti della pratica (nessuna seconda copia)' : 'Scegli la cartella del computer in cui salvare il PDF'}><Download size={15} /> {f.pratica_id ? 'Salva PDF nella cartella della pratica…' : 'Salva PDF…'}</Btn>
-        {f.tipo === 'parcella' && parcella && (parcella.stato === 'emessa' || parcella.stato === 'pagata') && <Btn variant="ghost" onClick={notaCredito} title="Storna per intero questa fattura con una nota di credito (TD04)"><Undo2 size={15} /> Nota di credito</Btn>}
-        {(f.tipo === 'parcella' || f.tipo === 'nota_credito') && <Btn disabled={needsReview} onClick={fatturaXml} title="File XML FatturaPA da caricare sul tuo canale verso lo SdI (TIO non lo invia)"><FileCode2 size={15} /> Fattura elettronica</Btn>}
+        {/* a sinistra: elimina e aspetto del documento; a destra le azioni sul documento, poi Chiudi e Salva (come nelle finestre di macOS e Windows) */}
+        {parcella && <Btn variant="danger" onClick={del} aria-label="Elimina il documento" title="Elimina il documento"><Trash2 size={15} /></Btn>}
+        <Btn variant="ghost" style={{ marginRight: 'auto' }} onClick={() => setModello(modelloEffettivo(settings))} title={f.tipo === 'proforma' ? 'Modifica titolo, intestazione, coordinate di pagamento e piè di pagina del PDF' : 'Modifica titolo, font, dimensione e allineamento del titolo del documento'}><LayoutTemplate size={15} /> {f.tipo === 'proforma' ? 'Intestazione e piè di pagina, titolo' : 'Titolo e font'}</Btn>
         <Btn onClick={apriAnteprima} title="Mostra il documento come sarà nel PDF, senza salvarlo"><Eye size={15} /> Anteprima</Btn>
+        <Btn disabled={needsReview} onClick={pdf} title={f.pratica_id ? 'Si apre nella cartella locale della pratica; il PDF compare anche tra i documenti della pratica (nessuna seconda copia)' : 'Scegli la cartella del computer in cui salvare il PDF'}><Download size={15} /> {f.pratica_id ? 'Salva PDF nella cartella della pratica…' : 'Salva PDF…'}</Btn>
+        {(f.tipo === 'parcella' || f.tipo === 'nota_credito') && <Btn disabled={needsReview} onClick={fatturaXml} title="File XML FatturaPA da caricare sul tuo canale verso lo SdI (TIO non lo invia)"><FileCode2 size={15} /> Fattura elettronica</Btn>}
+        {f.tipo === 'parcella' && parcella && (parcella.stato === 'emessa' || parcella.stato === 'pagata') && <Btn onClick={notaCredito} title="Storna per intero questa fattura con una nota di credito (TD04)"><Undo2 size={15} /> Nota di credito</Btn>}
+        <Btn variant="ghost" onClick={onClose}>Chiudi</Btn>
         <Btn variant="primary" onClick={async () => { if (await save()) onClose() }}>Salva</Btn>
       </>}>
       {importazione && <section className="card pad" aria-label="Verifica dei dati importati">

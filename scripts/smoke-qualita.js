@@ -37,7 +37,7 @@ function attach({ getWindow, db }) {
       })
       wc.send('data-changed', [...db.TABLES, 'settings']); await sleep(2500)
       const mem0 = await js('Math.round(performance.memory.usedJSHeapSize/1048576)')
-      const pagine = [['Panoramica', '.kpis'], ['Pratiche', '.pcard'], ['Agenda', '.cal-cell'], ['Compiti', '.row-item'], ['Anagrafica', '.contact'], ['Parcelle', '.table tbody tr'], ['Collegamenti', '.page-head']]
+      const pagine = [['Panoramica', '.kpis'], ['Pratiche', '.pcard'], ['Agenda', '.cal-cell'], ['Compiti', '.row-item'], ['Anagrafica', '.contact'], ['Pagamenti', '.tabs'], ['Collegamenti', '.page-head']]
       const tempi = []
       for (const [nav, sel] of pagine) { const t = await tempo(nav, sel); tempi.push(`${nav} ${t.toFixed(0)}ms`); check(`volumi UI: "${nav}" si apre in meno di 2 secondi con 3.000 pratiche e 12.000 scadenze/attività`, t < 2000, `(${t.toFixed(0)} ms)`) }
       console.log('   tempi:', tempi.join(' · '))
@@ -84,13 +84,13 @@ function attach({ getWindow, db }) {
       }
       for (const tema of ['chiaro', 'scuro']) {
         db.setSettings({ tema }); wc.send('data-changed', ['settings']); await sleep(900)
-        for (const nav of ['Panoramica', 'Pratiche', 'Agenda', 'Compiti', 'Anagrafica', 'Parcelle', 'Collegamenti', 'Impostazioni']) { await clickText('.nav-item', nav); await sleep(700); await analizza(`${nav}/${tema}`) }
+        for (const nav of ['Panoramica', 'Pratiche', 'Agenda', 'Compiti', 'Anagrafica', 'Pagamenti', 'Collegamenti', 'Impostazioni']) { await clickText('.nav-item', nav); await sleep(700); await analizza(`${nav}/${tema}`) }
         for (const tab of ['Studio', 'Integrazioni', 'Modello PDF', 'Avvisi', 'Pratiche e colori', 'Fiscale', 'Backup e sicurezza']) { await clickText('.tabs button', tab); await sleep(500); await analizza(`Impostazioni ${tab}/${tema}`) }
         await clickText('.tabs button', 'Integrazioni'); await sleep(400); await js(`document.querySelector('button[aria-label="Collega un calendario"]').click()`); await sleep(500); await analizza(`Modulo calendario/${tema}`); await js(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`); await require('./smoke-ui').discardAfterEscape(js); await sleep(300)
         // schermate con finestre modali
         await clickText('.nav-item', 'Pratiche'); await sleep(400)
         await clickText('button', 'Nuova pratica'); await sleep(500); await analizza(`Modulo pratica/${tema}`); await js(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`); await require('./smoke-ui').discardAfterEscape(js); await sleep(300)
-        await clickText('.nav-item', 'Parcelle'); await sleep(400); await clickText('button', 'Nuovo documento'); await sleep(2500); await analizza(`Editor parcella/${tema}`); await js(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`); await require('./smoke-ui').discardAfterEscape(js); await sleep(300)
+        await clickText('.nav-item', 'Pagamenti'); await clickText('.tabs button', 'Parcelle'); await sleep(400); await clickText('button', 'Nuovo documento'); await sleep(2500); await analizza(`Editor parcella/${tema}`); await js(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`); await require('./smoke-ui').discardAfterEscape(js); await sleep(300)
         await clickText('.nav-item', 'Pratiche'); await sleep(500); await js(`document.querySelector('.pcard h2').click()`); await sleep(600); await analizza(`Dettaglio pratica/${tema}`)
       }
       const elenco = Object.entries(gravi).sort((a, b) => ({ critical: 0, serious: 1, moderate: 2, minor: 3 }[a[1].impact] - { critical: 0, serious: 1, moderate: 2, minor: 3 }[b[1].impact]))
@@ -103,6 +103,6 @@ function attach({ getWindow, db }) {
       console.log(`\nRISULTATO: ${results.length - bad.length}/${results.length} controlli superati`)
     } catch (e) { console.log('ERRORE', e) } finally { setTimeout(() => process.exit(0), 300) }
   })
-  wc.on('console-message', (_e, level, message) => { if (level >= 2) console.log('[renderer]', message) })
+  wc.on('console-message', (e) => { if (e.level === 'warning' || e.level === 'error') console.log('[renderer]', e.message) }) // API di Electron con l'oggetto evento (gli argomenti separati sono deprecati)
 }
 module.exports = { attach }

@@ -38,7 +38,7 @@ function attach({ getWindow, db }) {
         await clickText('.tabs button', 'Modello PDF'); await sleep(500); await analizza('ModelloPDF', tema)
         await clickText('.nav-item', 'Pratiche'); await sleep(400); await js(`document.querySelector('.pcard h2').click()`); await sleep(600); await analizza('Dettaglio', tema)
         for (const tab of ['Compiti', 'Scadenze', 'Attività e spese', 'Note']) { await clickText('.tabs button', tab); await sleep(400); await analizza('Dettaglio ' + tab, tema) }
-        await clickText('.nav-item', 'Parcelle'); await sleep(400); await clickText('button', 'Nuovo documento'); await sleep(2500); await analizza('Editor', tema); await js(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`); await require('./smoke-ui').discardAfterEscape(js); await sleep(300)
+        await clickText('.nav-item', 'Pagamenti'); await clickText('.tabs button', 'Parcelle'); await sleep(400); await clickText('button', 'Nuovo documento'); await sleep(2500); await analizza('Editor', tema); await js(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`); await require('./smoke-ui').discardAfterEscape(js); await sleep(300)
         await js(`document.querySelector('.bell-btn').click()`); await sleep(400); await analizza('Notifiche', tema); await js(`document.body.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}))`)
       }
       // colori principali estremi scelti dall'utente
@@ -47,7 +47,7 @@ function attach({ getWindow, db }) {
         for (const tema of ['chiaro', 'scuro']) {
           db.setSettings({ tema }); wc.send('data-changed', ['settings']); await sleep(700)
           for (const nav of ['Panoramica', 'Pratiche', 'Agenda', 'Impostazioni']) { await clickText('.nav-item', nav); await sleep(450); await analizza(`${nav} [${colore}]`, tema) }
-          await clickText('.nav-item', 'Parcelle'); await sleep(300); await clickText('button', 'Nuovo documento'); await sleep(2200); await analizza(`Editor [${colore}]`, tema); await js(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`); await require('./smoke-ui').discardAfterEscape(js); await sleep(250)
+          await clickText('.nav-item', 'Pagamenti'); await clickText('.tabs button', 'Parcelle'); await sleep(300); await clickText('button', 'Nuovo documento'); await sleep(2200); await analizza(`Editor [${colore}]`, tema); await js(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`); await require('./smoke-ui').discardAfterEscape(js); await sleep(250)
         }
       }
       db.setSettings({ brand_colore: '#4338ca' })

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Braces, Columns2, Copy, Download, FilePlus2, FileUp, Italic, List, ListOrdered, Plus, Trash2, Underline, Wand2 } from 'lucide-react'
+import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Columns2, Copy, Download, Eye, FilePlus2, FileUp, PenLine, Plus, Trash2, Wand2 } from 'lucide-react'
 import { api, type InfoWord } from '../api'
 import { useData } from '../store'
 import { Btn, Field, Input, Modal, PageHeader, Segmented, Select, Tabs, useAction, useFeedback } from '../components/ui'
@@ -7,8 +7,10 @@ import { CreaDocumentoModal } from '../components/CreaDocumento'
 import { AnteprimaNota, ImmagineBlocco, RigheEditor } from '../components/ModelloPdfEditor'
 import { GestioneFont, OpzioniFont } from '../components/SceltaFont'
 import { modelloEffettivo } from '../lib/modello'
-import { CSS_ALLINEA, MARGINI_PREDEFINITI, campiDisponibili, duplicaModello, documentoHtml, modelliPredefiniti, modelloPersonalizzato, nuovoModello, predefinitiMancanti, pulisciHtml, rigaVuota, tipiDocumento, valoriCampi, type Campo } from '../lib/documento'
-import type { Allineamento, ModelloDocumento, Settings } from '../types'
+import { MARGINI_PREDEFINITI, NOMI_POSIZIONE_LD, campiDisponibili, duplicaModello, documentoHtml, modelliPredefiniti, modelloPersonalizzato, nuovoModello, predefinitiMancanti, rigaVuota, tipiDocumento, valoriCampi } from '../lib/documento'
+import { EditorTesto } from '../components/EditorTesto'
+import { AnteprimaGrande } from '../components/AnteprimaGrande'
+import type { Allineamento, ModelloDocumento, PosizioneLuogoData, Settings } from '../types'
 
 const tipiPer = tipiDocumento
 
@@ -64,7 +66,7 @@ export default function Documenti() {
 
   return (
     <div className="page documenti-pagina">
-      <PageHeader title="Documenti" eyebrow="Strumenti" subtitle="Modelli per lettere, preventivi e qualsiasi altro documento, con la tua intestazione e il tuo piè di pagina. Crea il file in Word, PDF e altri formati, già compilato con i dati dell’archivio."
+      <PageHeader title="Documenti" subtitle="Modelli per lettere, preventivi e qualsiasi altro documento, con la tua intestazione e il tuo piè di pagina. Crea il file in Word, PDF e altri formati, già compilato con i dati dell’archivio."
         actions={<>{stato && <span className="muted small" role="status">{stato === 'salvato' ? 'Modifiche salvate' : 'Salvataggio…'}</span>}{mancanti.length > 0 && <Btn variant="ghost" onClick={() => { salva([...modelli, ...mancanti], true); setScelto(mancanti[0].id); toast(mancanti.length === 1 ? 'Aggiunto un modello predefinito' : `Aggiunti ${mancanti.length} modelli predefiniti`) }} title="Rimette i modelli pronti che hai eliminato">Aggiungi i predefiniti</Btn>}<Btn variant="ghost" onClick={importaWord} title="Usa come modello un tuo documento Word, per esempio la carta intestata dello studio"><FileUp size={15} /> Importa da Word…</Btn><Btn variant="primary" onClick={() => setNuovo(true)}><Plus size={15} /> Nuovo modello</Btn></>} />
       {!modelli.length
         ? <ScegliTipo settings={settings} onScegli={(t) => aggiungi(nuovoModello(settings, t))} intro onDaZero={daZero} />
@@ -120,6 +122,7 @@ type Scheda = 'contenuto' | 'intestazione' | 'piede' | 'impaginazione'
 
 function Editor({ m, settings, schedaIniziale, onChange, onCrea, onDuplica, onElimina }: { m: ModelloDocumento; settings: Settings; schedaIniziale?: Scheda; onChange: (p: Partial<ModelloDocumento>) => void; onCrea: () => void; onDuplica: () => void; onElimina: () => void }) {
   const [scheda, setScheda] = useState<Scheda>(schedaIniziale || 'contenuto')
+  const [grande, setGrande] = useState(false)
   const opzioniFont = <OpzioniFont m={m} />
   const margini = { ...MARGINI_PREDEFINITI, ...m.margini }
   const setMargine = (k: keyof typeof margini, v: number) => onChange({ margini: { ...margini, [k]: Math.min(60, Math.max(5, Math.round(v) || MARGINI_PREDEFINITI[k])) } })
@@ -131,18 +134,12 @@ function Editor({ m, settings, schedaIniziale, onChange, onCrea, onDuplica, onEl
   return (
     <div className="documenti-editor">
       <div className="documenti-form">
-        <TestaModello m={m} settings={settings} onChange={onChange} onCrea={onCrea} onDuplica={onDuplica} onElimina={onElimina} />
+        <TestaModello m={m} settings={settings} onChange={onChange} onCrea={onCrea} onDuplica={onDuplica} onElimina={onElimina} onAnteprima={() => { setHtml(documentoHtml(m, { valori })); setGrande(true) }} />
         <Tabs value={scheda} onChange={setScheda} tabs={[{ id: 'contenuto', label: 'Contenuto' }, { id: 'intestazione', label: 'Intestazione' }, { id: 'piede', label: 'Piè di pagina' }, { id: 'impaginazione', label: 'Impaginazione' }]} />
         {scheda === 'contenuto' && <>
-          <div className="documenti-disposizione" role="group" aria-label="Disposizione del testo">
-            <span className="small">Disposizione del testo</span>
-            <Segmented value={m.allineamento || 'sinistra'} onChange={(allineamento: Allineamento) => onChange({ allineamento })} options={[
-              { id: 'sinistra', label: <AlignLeft size={15} aria-hidden />, title: 'Testo a sinistra' }, { id: 'centro', label: <AlignCenter size={15} aria-hidden />, title: 'Testo al centro' },
-              { id: 'destra', label: <AlignRight size={15} aria-hidden />, title: 'Testo a destra' }, { id: 'giustificato', label: <AlignJustify size={15} aria-hidden />, title: 'Testo giustificato' }]} />
-            <button type="button" className={`btn btn-soft btn-sm${m.colonne === 2 ? ' on' : ''}`} aria-pressed={m.colonne === 2} onClick={() => onChange({ colonne: m.colonne === 2 ? 1 : 2 })}><Columns2 size={15} aria-hidden /> Tutto su due colonne</button>
-            <span className="muted small">Dalla barra qui sotto puoi allineare i singoli paragrafi e mettere su due colonne solo una parte del testo.</span>
-          </div>
-          <EditorTesto valore={m.corpo} campi={campiDisponibili(settings)} allineamento={m.allineamento || 'sinistra'} colonne={m.colonne === 2 ? 2 : 1} onChange={(corpo) => onChange({ corpo })} />
+          <EditorTesto valore={m.corpo} campi={campiDisponibili(settings)} allineamento={m.allineamento || 'sinistra'} colonne={m.colonne === 2 ? 2 : 1} onChange={(corpo) => onChange({ corpo })}
+            opzioni={{ campiPersonali: m.campiPersonali, onNuovoCampo: (n) => onChange({ campiPersonali: [...new Set([...(m.campiPersonali || []), n])] }) }} />
+          {m.firma && !/\{\{\s*firma\s*\}\}/.test(m.corpo) && <p className="muted small">Hai caricato la foto della firma: scrivi {'{{firma}}'} nel testo dove deve comparire (menu «Inserisci campo» › Speciali › Firma).</p>}
         </>}
         {scheda === 'intestazione' && <section className="modello-blocco">
           <header><div><h3>Intestazione</h3><p className="muted small">Si ripete in cima a ogni pagina. Puoi usare i campi, per esempio {'{{studio.nome}}'}.</p></div></header>
@@ -157,10 +154,19 @@ function Editor({ m, settings, schedaIniziale, onChange, onCrea, onDuplica, onEl
         </section>}
         {scheda === 'impaginazione' && <>
           <section className="modello-blocco">
+            <header><div><h3>Disposizione del testo</h3><p className="muted small">Vale per tutto il documento. Nella scheda Contenuto, dalla barra dell’editor, puoi allineare i singoli paragrafi e mettere su due colonne solo una parte del testo.</p></div></header>
+            <div className="documenti-disposizione" role="group" aria-label="Disposizione del testo">
+              <Segmented value={m.allineamento || 'sinistra'} onChange={(allineamento: Allineamento) => onChange({ allineamento })} options={[
+              { id: 'sinistra', label: <AlignLeft size={15} aria-hidden />, title: 'Testo a sinistra' }, { id: 'centro', label: <AlignCenter size={15} aria-hidden />, title: 'Testo al centro' },
+              { id: 'destra', label: <AlignRight size={15} aria-hidden />, title: 'Testo a destra' }, { id: 'giustificato', label: <AlignJustify size={15} aria-hidden />, title: 'Testo giustificato' }]} />
+              <button type="button" className={`btn btn-soft btn-sm${m.colonne === 2 ? ' on' : ''}`} aria-pressed={m.colonne === 2} onClick={() => onChange({ colonne: m.colonne === 2 ? 1 : 2 })}><Columns2 size={15} aria-hidden /> Tutto su due colonne</button>
+            </div>
+          </section>
+          <section className="modello-blocco">
             <header><div><h3>Carattere</h3><p className="muted small">Font e dimensione del testo del documento. Su ogni riga di intestazione e piè di pagina puoi sceglierne un altro.</p></div></header>
             <div className="row wrap modello-font-controlli">
               <Field label="Carattere del documento"><Select value={m.fontDocumento || 'arial'} onChange={(e) => onChange({ fontDocumento: e.target.value })}>{opzioniFont}</Select></Field>
-              <Field label="Dimensione del testo"><Select value={String(m.corpoPt ?? 11)} onChange={(e) => onChange({ corpoPt: Number(e.target.value) })}>{[9, 10, 10.5, 11, 12, 13, 14].map((n) => <option key={n} value={n}>{String(n).replace('.', ',')} pt</option>)}</Select></Field>
+              <Field label="Dimensione del testo"><Select value={String(m.corpoPt ?? 11)} onChange={(e) => onChange({ corpoPt: Number(e.target.value) })}>{[9, 10, 10.5, 11, 12, 13, 14, 16, 18, 20, 24, 28].map((n) => <option key={n} value={n}>{String(n).replace('.', ',')} pt{n >= 18 ? ' · grandissimo' : n >= 14 ? ' · grande' : ''}</option>)}</Select></Field>
             </div>
             <GestioneFont value={m} righe={['intestazione', 'footer']} onChange={onChange} />
           </section>
@@ -173,28 +179,40 @@ function Editor({ m, settings, schedaIniziale, onChange, onCrea, onDuplica, onEl
             </div>
           </section>
           <section className="modello-blocco">
+            <header><div><h3>Firma</h3><p className="muted small">La foto o la scansione della tua firma (meglio su fondo bianco o trasparente). Compare dove scrivi {'{{firma}}'} nel testo.</p></div></header>
+            <ImmagineBlocco titolo="Firma" src={m.firma || null} altezza={m.firmaAltezza ?? 60} allineamento={m.firmaAllineamento === 'giustificato' ? 'sinistra' : m.firmaAllineamento || 'sinistra'} max={160} onChange={(firma, firmaAltezza, firmaAllineamento) => onChange({ firma, firmaAltezza, firmaAllineamento })} />
+            {m.firma && !/\{\{\s*firma\s*\}\}/.test(m.corpo) && <Btn size="sm" variant="ghost" onClick={() => onChange({ corpo: m.corpo + '<p>{{firma}}</p>' })}><PenLine size={14} /> Aggiungi {'{{firma}}'} in fondo al testo</Btn>}
+          </section>
+          <section className="modello-blocco">
             <header><h3>Pagina</h3></header>
-            <label className="check"><input type="checkbox" checked={m.mostraLuogoData} onChange={(e) => onChange({ mostraLuogoData: e.target.checked })} /> Luogo e data in alto a destra</label>
-            <input value={m.luogo} onChange={(e) => onChange({ luogo: e.target.value })} disabled={!m.mostraLuogoData} placeholder="Città, es. Modena" aria-label="Città per la data" style={{ maxWidth: 240 }} />
+            <label className="check"><input type="checkbox" checked={m.mostraLuogoData} onChange={(e) => onChange({ mostraLuogoData: e.target.checked })} /> Luogo e data</label>
+            <div className="row wrap">
+              <input value={m.luogo} onChange={(e) => onChange({ luogo: e.target.value })} disabled={!m.mostraLuogoData} placeholder="Città, es. Modena" aria-label="Città per la data" style={{ maxWidth: 240 }} />
+              <Select value={m.posizioneLuogoData || 'alto-destra'} disabled={!m.mostraLuogoData} onChange={(e) => onChange({ posizioneLuogoData: e.target.value as PosizioneLuogoData })} aria-label="Posizione di luogo e data" style={{ maxWidth: 220 }}>
+                {Object.entries(NOMI_POSIZIONE_LD).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </Select>
+            </div>
             <label className="check"><input type="checkbox" checked={m.numeriPagina} onChange={(e) => onChange({ numeriPagina: e.target.checked })} /> Numeri di pagina («Pagina 1 di 3»)</label>
             <p className="muted small">Intestazione e piè di pagina si modificano nelle loro schede. In Word, LibreOffice e RTF i font «del computer» devono essere installati sul computer che apre il file.</p>
           </section>
         </>}
       </div>
       <AnteprimaNota html={html} etichetta={m.nome} />
+      {grande && <AnteprimaGrande html={html} titolo={m.nome} onClose={() => setGrande(false)} />}
     </div>
   )
 }
 
-type AzioniModello = { m: ModelloDocumento; settings: Settings; onChange: (p: Partial<ModelloDocumento>) => void; onCrea: () => void; onDuplica: () => void; onElimina: () => void }
+type AzioniModello = { m: ModelloDocumento; settings: Settings; onChange: (p: Partial<ModelloDocumento>) => void; onCrea: () => void; onDuplica: () => void; onElimina: () => void; onAnteprima?: () => void }
 /** Nome (modificabile a piacere), tipo e azioni del modello: uguali per i modelli di TIO e per quelli Word. */
-function TestaModello({ m, settings, onChange, onCrea, onDuplica, onElimina }: AzioniModello) {
+function TestaModello({ m, settings, onChange, onCrea, onDuplica, onElimina, onAnteprima }: AzioniModello) {
   return <div className="documenti-testa">
-    <Field label="Nome del modello" hint="Scegli il nome che preferisci: compare nell’elenco e quando crei un documento"><Input className="documenti-titolo" value={m.nome} onChange={(e) => onChange({ nome: e.target.value })} placeholder="Es. Lettera al cliente" /></Field>
+    <Field label="Nome del modello"><Input className="documenti-titolo" value={m.nome} onChange={(e) => onChange({ nome: e.target.value })} placeholder="Es. Lettera al cliente" /></Field>
     <Field label="Tipo"><Select value={m.tipo} onChange={(e) => onChange({ tipo: e.target.value })}>{[...new Set([...tipiPer(settings).map((t) => t.tipo), m.tipo])].map((t) => <option key={t}>{t}</option>)}</Select></Field>
     <span className="grow" />
     <Btn size="sm" variant="ghost" onClick={onDuplica} title="Duplica il modello"><Copy size={14} /> Duplica</Btn>
     <Btn size="sm" variant="ghost" onClick={onElimina} title="Elimina il modello" aria-label="Elimina il modello"><Trash2 size={14} /></Btn>
+    {onAnteprima && <Btn onClick={onAnteprima} title="Anteprima grande del documento, pagina per pagina, con lo zoom"><Eye size={15} /> Anteprima</Btn>}
     <Btn variant="primary" onClick={onCrea}><Wand2 size={15} /> Crea documento…</Btn>
   </div>
 }
@@ -237,71 +255,5 @@ function EditorWord(p: AzioniModello) {
       <p className="preview-label muted small">Testo del modello{info ? ` · ${Math.round(info.dimensione / 1024)} KB` : ''}</p>
       <pre>{info?.anteprima || (errore ? '' : 'Lettura del modello…')}</pre>
     </aside>
-  </div>
-}
-
-/** Editor del corpo: paragrafi, titoli, elenchi, grassetto/corsivo/sottolineato, allineamento e campi da compilare. */
-function EditorTesto({ valore, campi, allineamento, colonne, onChange }: { valore: string; campi: Campo[]; allineamento: Allineamento; colonne: 1 | 2; onChange: (html: string) => void }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [, aggiornaStato] = useState(0)
-  // il contenuto si imposta una sola volta: rimpiazzarlo a ogni battuta sposterebbe il cursore
-  useEffect(() => { if (ref.current) ref.current.innerHTML = valore }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  const timer = useRef<number | undefined>(undefined)
-  const cambia = () => { window.clearTimeout(timer.current); timer.current = window.setTimeout(() => ref.current && onChange(pulisciHtml(ref.current.innerHTML)), 250); aggiornaStato((n) => n + 1) }
-  useEffect(() => () => { window.clearTimeout(timer.current); if (ref.current) onChange(pulisciHtml(ref.current.innerHTML)) }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  const cmd = (c: string, v?: string) => { ref.current?.focus(); document.execCommand(c, false, v); cambia() }
-  const attivo = (c: string) => { try { return document.queryCommandState(c) } catch { return false } }
-  // sezione a due colonne: si applica ai paragrafi selezionati; dentro una sezione, la toglie
-  const sezioneDi = (n: Node | null | undefined) => (n instanceof Element ? n : n?.parentElement)?.closest('[data-colonne]') as HTMLElement | null
-  const inSezione = (() => { const s = window.getSelection(); return !!(s?.rangeCount && ref.current?.contains(s.anchorNode) && sezioneDi(s.anchorNode)) })()
-  const dueColonne = () => {
-    const f = ref.current, sel = window.getSelection()
-    if (!f || !sel?.rangeCount || !f.contains(sel.anchorNode)) { f?.focus(); return }
-    const r = sel.getRangeAt(0), s = sezioneDi(r.startContainer)
-    if (s && s === sezioneDi(r.endContainer)) s.replaceWith(...s.childNodes)
-    else {
-      const toccati = [...f.childNodes].filter((n) => r.intersectsNode(n))
-      if (!toccati.length) return
-      const sez = document.createElement('div'); sez.dataset.colonne = '2'
-      toccati[0].before(sez)
-      for (const n of toccati) {
-        if (n instanceof HTMLElement && n.dataset.colonne) { sez.append(...n.childNodes); n.remove() }
-        else if (n.nodeType === Node.TEXT_NODE) { const p = document.createElement('p'); p.append(n); sez.append(p) }
-        else sez.append(n)
-      }
-    }
-    cambia()
-  }
-  const blocco = (() => { try { return String(document.queryCommandValue('formatBlock') || 'p').toLowerCase() } catch { return 'p' } })()
-  const gruppi = [...new Set(campi.map((c) => c.gruppo))]
-  return <div className="editor-testo">
-    <div className="editor-barra" role="toolbar" aria-label="Formattazione">
-      <select value={['h1', 'h2', 'h3'].includes(blocco) ? blocco : 'p'} onChange={(e) => cmd('formatBlock', e.target.value)} aria-label="Stile del paragrafo">
-        <option value="p">Testo</option><option value="h1">Titolo</option><option value="h2">Sottotitolo</option><option value="h3">Titoletto</option>
-      </select>
-      <div className="tool-group">
-        <button type="button" className={`tool ${attivo('bold') ? 'on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('bold')} title="Grassetto (⌘B)" aria-pressed={attivo('bold')}><Bold size={14} /></button>
-        <button type="button" className={`tool ${attivo('italic') ? 'on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('italic')} title="Corsivo (⌘I)" aria-pressed={attivo('italic')}><Italic size={14} /></button>
-        <button type="button" className={`tool ${attivo('underline') ? 'on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('underline')} title="Sottolineato (⌘U)" aria-pressed={attivo('underline')}><Underline size={14} /></button>
-      </div>
-      <div className="tool-group">
-        <button type="button" className="tool" onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('insertUnorderedList')} title="Elenco puntato"><List size={14} /></button>
-        <button type="button" className="tool" onMouseDown={(e) => e.preventDefault()} onClick={() => cmd('insertOrderedList')} title="Elenco numerato"><ListOrdered size={14} /></button>
-      </div>
-      <button type="button" className={`btn btn-soft btn-sm editor-colonne${inSezione ? ' on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={dueColonne} aria-pressed={inSezione}
-        title={inSezione ? 'Riporta questa parte a una colonna' : 'Metti su due colonne i paragrafi selezionati'}><Columns2 size={14} aria-hidden /> {inSezione ? 'Una colonna' : 'Due colonne'}</button>
-      <div className="tool-group">
-        {([['justifyLeft', AlignLeft, 'a sinistra'], ['justifyCenter', AlignCenter, 'al centro'], ['justifyRight', AlignRight, 'a destra'], ['justifyFull', AlignJustify, 'giustificato']] as const).map(([c, Icon, t]) =>
-          <button key={c} type="button" className={`tool ${attivo(c) ? 'on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={() => cmd(c)} title={`Allinea ${t}`} aria-pressed={attivo(c)}><Icon size={14} /></button>)}
-      </div>
-      <select className="editor-campi" value="" onChange={(e) => { if (e.target.value) cmd('insertText', `{{${e.target.value}}}`) }} aria-label="Inserisci un campo">
-        <option value="">Inserisci campo…</option>
-        {gruppi.map((g) => <optgroup key={g} label={g}>{campi.filter((c) => c.gruppo === g).map((c) => <option key={c.id} value={c.id}>{c.etichetta}</option>)}</optgroup>)}
-      </select>
-    </div>
-    <div ref={ref} className={`editor-foglio${colonne === 2 ? ' due-colonne' : ''}`} style={{ textAlign: CSS_ALLINEA[allineamento] as 'left' }} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" aria-label="Testo del documento" spellCheck lang="it"
-      onInput={cambia} onKeyUp={() => aggiornaStato((n) => n + 1)} onMouseUp={() => aggiornaStato((n) => n + 1)}
-      onPaste={(e) => { e.preventDefault(); const h = e.clipboardData.getData('text/html'); const t = e.clipboardData.getData('text/plain'); document.execCommand('insertHTML', false, h ? pulisciHtml(h) : t.split(/\n/).map((r) => r.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]!))).join('<br>')); cambia() }} />
-    <p className="muted small"><Braces size={12} aria-hidden /> I campi tra doppie graffe, come {'{{destinatario.nome}}'}, si compilano quando crei il documento. Puoi inventarne di nuovi, per esempio {'{{importo}}'}: TIO te li chiederà.</p>
   </div>
 }

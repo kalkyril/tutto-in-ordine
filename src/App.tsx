@@ -8,9 +8,9 @@ const PraticaDetail = lazy(() => import('./pages/PraticaDetail'))
 const Agenda = lazy(() => import('./pages/Agenda'))
 const TodoPage = lazy(() => import('./pages/Todo'))
 const AnagraficaPage = lazy(() => import('./pages/Anagrafica'))
-const ParcellePage = lazy(() => import('./pages/Parcelle'))
 const Collegamenti = lazy(() => import('./pages/Collegamenti'))
-const DaPagare = lazy(() => import('./pages/DaPagare'))
+const Pagamenti = lazy(() => import('./pages/Pagamenti'))
+const ComprimiPdf = lazy(() => import('./pages/ComprimiPdf'))
 const DocumentiPage = lazy(() => import('./pages/Documenti'))
 const Anonimizza = lazy(() => import('./pages/Anonimizza'))
 const Impostazioni = lazy(() => import('./pages/Impostazioni'))
@@ -97,7 +97,7 @@ export default function App() {
   useEffect(() => window.mngmnt.on('menu', esegui), [esegui])
   useEffect(() => {
     document.documentElement.dataset.platform = window.mngmnt.platform
-    const VAI = ['vai-panoramica', 'vai-pratiche', 'vai-agenda', 'vai-compiti', 'vai-anagrafica', 'vai-parcelle', 'vai-collegamenti', 'vai-documenti', 'vai-anonimizza']
+    const VAI = ['vai-panoramica', 'vai-pratiche', 'vai-agenda', 'vai-compiti', 'vai-anagrafica', 'vai-pagamenti', 'vai-collegamenti', 'vai-documenti', 'vai-anonimizza']
     const mac = window.mngmnt.platform === 'darwin'
     const onKey = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey
@@ -122,8 +122,11 @@ export default function App() {
     case 'agenda': page = <Agenda />; break
     case 'todo': page = <TodoPage />; break
     case 'anagrafica': page = <AnagraficaPage />; break
-    case 'parcelle': page = <ParcellePage />; break
-    case 'dapagare': page = <DaPagare />; break
+    // 1.0.2: incassi e «Da pagare» sono schede della sezione Pagamenti; i vecchi indirizzi aprono la scheda giusta
+    case 'pagamenti': page = <Pagamenti key="scadenzario" scheda={route.tab === 'incassi' || route.tab === 'dapagare' ? route.tab : 'scadenzario'} />; break
+    case 'parcelle': page = <Pagamenti key="incassi" scheda="incassi" />; break
+    case 'dapagare': page = <Pagamenti key="dapagare" scheda="dapagare" />; break
+    case 'comprimi': page = <ComprimiPdf />; break
     case 'collegamenti': page = <Collegamenti />; break
     case 'documenti': page = <DocumentiPage />; break
     case 'anonimizza': page = <Anonimizza />; break

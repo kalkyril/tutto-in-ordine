@@ -1,0 +1,93 @@
+/* 1.0.2: recapiti multipli, tariffa da decidere, Pagamenti (scadenzario), torta della commessa, contabili, editor dei documenti, Comprimi PDF */
+
+/* ---------- Anagrafica: telefoni ed email con etichetta ---------- */
+.recapiti { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px 6px; margin: 0; display: grid; gap: 6px; min-width: 0; }
+.recapiti legend { font-size: var(--fs-xs); font-weight: 600; color: var(--muted); padding: 0 4px; }
+.recapito-riga { display: flex; gap: 6px; align-items: center; min-width: 0; }
+.recapito-riga select { width: 150px; flex: none; }
+.recapiti > .btn { justify-self: start; }
+
+/* ---------- Tariffa oraria: inserisci / da decidere ---------- */
+.tariffa-scelta { display: flex; gap: 6px; align-items: center; }
+.tariffa-scelta select { width: 140px; flex: none; }
+.da-decidere { color: var(--warn); font-weight: 600; }
+
+/* ---------- Pagamenti ---------- */
+.pagamenti-schede { margin-bottom: 4px; }
+.scadenzario-mese { margin-bottom: 14px; }
+.scadenzario-mese > header { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; justify-content: space-between; }
+.scadenzario-mese > header h2 { text-transform: capitalize; }
+.scadenzario-totali { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--fs-xs); color: var(--muted); }
+.scadenzario-totali b { color: var(--text); font-variant-numeric: tabular-nums; }
+.scadenzario-saldo.pos b { color: var(--ok); } .scadenzario-saldo.neg b { color: var(--danger); }
+.movimento-tipo { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.movimento-tipo i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.table td.entrata { color: var(--ok); } .table td.uscita { color: var(--danger); }
+.scadenzario-filtri { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* ---------- Torta della commessa ---------- */
+.torta-commessa { display: grid; grid-template-columns: minmax(150px, 190px) 1fr; gap: 18px; align-items: center; }
+.torta-commessa svg { width: 100%; height: auto; max-width: 190px; }
+.torta-legenda { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.torta-legenda li { display: grid; grid-template-columns: 12px 1fr auto auto; gap: 8px; align-items: center; font-size: var(--fs-sm, 13px); }
+.torta-legenda li i { width: 12px; height: 12px; border-radius: 3px; }
+.torta-legenda li b { font-variant-numeric: tabular-nums; }
+.torta-legenda li span.muted { font-variant-numeric: tabular-nums; min-width: 3.5em; text-align: right; }
+@media (max-width: 720px) { .torta-commessa { grid-template-columns: 1fr; } }
+.colori-torta { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+.colori-torta label { display: inline-flex; gap: 8px; align-items: center; }
+.colori-torta input[type=color] { width: 34px; height: 26px; padding: 0; border: 1px solid var(--border-strong); border-radius: 6px; background: none; }
+
+/* ---------- Contabile allegata ---------- */
+.contabile-chip { display: inline-flex; align-items: center; gap: 4px; max-width: 220px; }
+.contabile-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Documenti: anteprima grande ---------- */
+.anteprima-grande { display: grid; gap: 10px; justify-items: center; }
+.anteprima-grande .anteprima-pagina { width: min(100%, 900px); background: #fff; box-shadow: 0 2px 14px rgba(0,0,0,.18); border-radius: 2px; }
+.anteprima-grande .anteprima-pagina img { width: 100%; height: auto; display: block; }
+.anteprima-grande nav { display: flex; gap: 10px; align-items: center; }
+.anteprima-zoom { display: flex; gap: 6px; align-items: center; }
+
+/* ---------- Documenti: editor ricco ---------- */
+.editor-barra .tool-group select { height: 28px; }
+.editor-barra input[type=color] { width: 28px; height: 26px; padding: 0; border: 1px solid var(--border-strong); border-radius: 6px; background: none; }
+.editor-foglio table { border-collapse: collapse; width: 100%; margin: 0 0 .6em; }
+.editor-foglio td, .editor-foglio th { border: 1px solid #9aa5b1; padding: 4px 6px; vertical-align: top; min-width: 2em; }
+.editor-foglio th { background: rgba(127,127,127,.12); font-weight: 650; }
+.editor-foglio img { max-width: 100%; height: auto; }
+.editor-foglio blockquote { margin: 0 0 .6em; padding: 2px 0 2px 12px; border-left: 3px solid var(--border-strong); color: var(--muted); }
+.editor-foglio hr[data-interruzione] { border: 0; border-top: 2px dashed var(--border-strong); margin: 14px 0; position: relative; overflow: visible; }
+.editor-foglio hr[data-interruzione]::after { content: 'Interruzione di pagina'; position: absolute; left: 50%; top: -9px; transform: translateX(-50%); font-size: 10px; background: var(--surface); padding: 0 6px; color: var(--muted); }
+.editor-foglio h4 { font-size: 1em; margin: .7em 0 .25em; }
+.editor-foglio [data-corpo-documento] { display: block; border: 1.5px dashed var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 8px 10px; margin: 0 0 .6em; color: var(--accent); font-weight: 600; text-align: center; }
+.indice-capitoli { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; background: var(--surface-2); }
+.indice-capitoli ol { margin: 4px 0 0; padding-left: 0; list-style: none; display: grid; gap: 2px; max-height: 220px; overflow: auto; }
+.indice-capitoli button { text-align: left; background: none; border: 0; padding: 2px 4px; color: var(--text); border-radius: 4px; width: 100%; cursor: pointer; font: inherit; font-size: var(--fs-xs); }
+.indice-capitoli button:hover { background: var(--accent-soft); }
+.indice-capitoli .liv-2 { padding-left: 12px; } .indice-capitoli .liv-3 { padding-left: 24px; } .indice-capitoli .liv-4 { padding-left: 36px; }
+.corpo-lungo .editor-foglio { min-height: 380px; }
+.firma-anteprima { max-height: 64px; max-width: 220px; object-fit: contain; background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 4px; }
+
+/* ---------- Comprimi PDF ---------- */
+.comprimi { display: grid; gap: 14px; max-width: 880px; }
+.comprimi-livelli { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.comprimi-livelli label { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px; display: grid; gap: 4px; cursor: pointer; background: var(--surface); }
+.comprimi-livelli label.on { border-color: var(--accent); background: var(--accent-soft); }
+.comprimi-livelli input { position: absolute; opacity: 0; pointer-events: none; }
+.comprimi-zona { border: 2px dashed var(--border-strong); border-radius: var(--radius); padding: 22px; text-align: center; display: grid; gap: 8px; justify-items: center; }
+.comprimi-zona.over { border-color: var(--accent); background: var(--accent-soft); }
+.comprimi-esiti { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.comprimi-esiti li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.comprimi-esiti li b { overflow-wrap: anywhere; }
+.comprimi-barra { height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; grid-column: 1 / -1; }
+.comprimi-barra span { display: block; height: 100%; background: var(--accent); }
+@media (max-width: 760px) { .comprimi-livelli { grid-template-columns: 1fr; } }
+/* la barra della tabella o dell'immagine segue quella principale (che resta in cima) invece di sovrapporsi */
+.editor-barra.editor-barra-contesto { position: static; margin-top: 6px; background: var(--surface-2); }
+.editor-con-indice { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 10px; align-items: start; margin-top: 6px; }
+.editor-con-indice .indice-capitoli { position: sticky; top: 52px; }
+@media (max-width: 900px) { .editor-con-indice { grid-template-columns: 1fr; } }
+.editor-testo .editor-foglio { margin-top: 6px; }
+.anteprima-grande { overflow: auto; max-height: 72vh; }
+.toolbar.azioni-sezione { justify-content: flex-end; flex-wrap: wrap; gap: 8px; }

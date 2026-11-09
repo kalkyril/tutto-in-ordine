@@ -17,7 +17,9 @@ function AttivitaModal({ praticaId, ora, titoliNoti, onClose }: { praticaId: num
   const { settings, documenti } = useData()
   const run = useAction()
   const { confirm } = useFeedback()
-  const [f, setF] = useState<Partial<Ora>>({ data: todayStr(), tariffa_oraria: settings.tariffa_oraria, ...ora })
+  const [f, setF] = useState<Partial<Ora>>({ data: todayStr(), tariffa_oraria: settings.tariffa_oraria, tariffa_da_decidere: 0, ...ora })
+  // il testo del campo resta com'è scritto («150,» mentre si digita), il numero si ricava a parte
+  const [tariffa, setTariffa] = useState(() => String((ora.tariffa_da_decidere ? '' : ora.tariffa_oraria ?? settings.tariffa_oraria) ?? '').replace('.', ','))
   const [durata, setDurata] = useState(ora.minuti ? `${Math.floor(ora.minuti / 60)}:${String(ora.minuti % 60).padStart(2, '0')}` : '')
   const [nuovi, setNuovi] = useState<string[]>([]) // file scelti, collegati al salvataggio
   const [over, setOver] = useState(false)
@@ -29,7 +31,7 @@ function AttivitaModal({ praticaId, ora, titoliNoti, onClose }: { praticaId: num
   const salva = async () => {
     if (!valido) return
     const r = await run(async () => {
-      const saved = await api.save<Ora>('ore', { ...f, pratica_id: praticaId, minuti, descrizione: f.descrizione!.trim(), dettagli: f.dettagli?.trim() || null })
+      const saved = await api.save<Ora>('ore', { ...f, pratica_id: praticaId, minuti, descrizione: f.descrizione!.trim(), dettagli: f.dettagli?.trim() || null, tariffa_oraria: f.tariffa_da_decidere ? 0 : Number(f.tariffa_oraria) || 0, tariffa_da_decidere: f.tariffa_da_decidere ? 1 : 0 })
       if (nuovi.length) await api.addDocumentiPaths(praticaId, nuovi, 'Allegato attività', saved.id)
       return saved
     }, 'Attività salvata')
@@ -52,8 +54,16 @@ function AttivitaModal({ praticaId, ora, titoliNoti, onClose }: { praticaId: num
             {DURATE_RAPIDE.map(([l, v]) => <button type="button" key={v} className={`chip ${parseDurata(durata) === parseDurata(v) ? 'on' : ''}`} onClick={() => setDurata(v)}>{l}</button>)}
           </div>
           <Field label="Note sull'attività" span={2}><Textarea rows={3} value={f.dettagli || ''} onChange={(e) => setF({ ...f, dettagli: e.target.value })} placeholder="Facoltative: destinatari, esito, riferimenti…" /></Field>
-          <Field label="Tariffa oraria (€)"><Input inputMode="decimal" value={f.tariffa_oraria ?? ''} onChange={(e) => setF({ ...f, tariffa_oraria: parseNumber(e.target.value) })} /></Field>
-          <Field label="Valore" hint="Tempo × tariffa"><Input readOnly value={money((minuti / 60) * (Number(f.tariffa_oraria) || 0))} /></Field>
+          <Field label="Tariffa oraria" hint={f.tariffa_da_decidere ? 'La inserisci dopo, modificando l’attività o nel documento di vendita' : undefined}>
+            <div className="tariffa-scelta">
+              <Select value={f.tariffa_da_decidere ? 'dopo' : 'inserisci'} aria-label="Come indicare la tariffa oraria" onChange={(e) => {
+                const dopo = e.target.value === 'dopo'
+                setF({ ...f, tariffa_da_decidere: dopo ? 1 : 0, tariffa_oraria: dopo ? 0 : f.tariffa_oraria || settings.tariffa_oraria }); setTariffa(dopo ? '' : String(f.tariffa_oraria || settings.tariffa_oraria || '').replace('.', ','))
+              }}><option value="inserisci">Inserisci</option><option value="dopo">Da decidere</option></Select>
+              {!f.tariffa_da_decidere && <Input inputMode="decimal" value={tariffa} onChange={(e) => { setTariffa(e.target.value); setF({ ...f, tariffa_oraria: parseNumber(e.target.value) }) }} aria-label="Tariffa oraria in euro" placeholder="€ / ora" />}
+            </div>
+          </Field>
+          <Field label="Valore" hint="Tempo × tariffa"><Input readOnly value={f.tariffa_da_decidere ? 'Da decidere' : money((minuti / 60) * (Number(f.tariffa_oraria) || 0))} /></Field>
         </FormGrid>
         <div className={`allegati-zona ${over ? 'over' : ''}`} onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)}
           onDrop={(e) => { e.preventDefault(); setOver(false); aggiungi([...e.dataTransfer.files].map((x) => window.mngmnt.pathForFile(x))) }}>
@@ -118,9 +128,10 @@ export function EconomiaTab({ praticaId, ore, spese, onParcella }: { praticaId: 
   const nonFattSpese = spese.filter((s) => !s.parcella_id)
   const crea = () => {
     const voci: any[] = []
-    const byRate = new Map<number, Ora[]>()
-    nonFattOre.forEach((o) => byRate.set(o.tariffa_oraria, [...(byRate.get(o.tariffa_oraria) || []), o]))
-    byRate.forEach((list, rate) => voci.push({ tipo: 'compenso', descrizione: `Attività professionale (${list.map((o) => o.descrizione).slice(0, 3).join('; ')}${list.length > 3 ? '…' : ''})`, quantita: Math.round(list.reduce((s, o) => s + o.minuti, 0) / 60 * 100) / 100, importo: rate }))
+    // le ore con la tariffa da decidere fanno una voce a parte, a 0 €: l'importo orario si scrive nel documento
+    const byRate = new Map<string, Ora[]>()
+    nonFattOre.forEach((o) => { const k = o.tariffa_da_decidere ? 'dopo' : String(o.tariffa_oraria); byRate.set(k, [...(byRate.get(k) || []), o]) })
+    byRate.forEach((list, k) => voci.push({ tipo: 'compenso', descrizione: `Attività professionale (${list.map((o) => o.descrizione).slice(0, 3).join('; ')}${list.length > 3 ? '…' : ''})${k === 'dopo' ? ' — tariffa oraria da decidere' : ''}`, quantita: Math.round(list.reduce((s, o) => s + o.minuti, 0) / 60 * 100) / 100, importo: k === 'dopo' ? 0 : Number(k) }))
     nonFattSpese.forEach((s) => voci.push({ tipo: s.esente ? 'spesa_esente' : 'spesa_imponibile', descrizione: s.descrizione, quantita: 1, importo: s.importo }))
     onParcella({ voci, importa_ore: nonFattOre.map((o) => o.id), importa_spese: nonFattSpese.map((s) => s.id) })
   }
@@ -153,7 +164,7 @@ export function EconomiaTab({ praticaId, ore, spese, onParcella }: { praticaId: 
                   {o.dettagli && <p className="muted small prewrap">{o.dettagli}</p>}
                   {allegati.length > 0 && <div className="allegati-chips">{allegati.map((d) => <button key={d.id} className="allegato-chip" onClick={() => run(() => api.openDocumento(d.id))} title={`Apri ${d.nome}`}><Paperclip size={12} aria-hidden /> {d.nome}</button>)}</div>}
                 </div>
-                <div className="attivita-tempo"><b>{testoDurata(o.minuti)}</b><span className="muted small">{money((o.minuti / 60) * o.tariffa_oraria)}</span>{o.parcella_id ? <Pill>fatturata</Pill> : null}</div>
+                <div className="attivita-tempo"><b>{testoDurata(o.minuti)}</b>{o.tariffa_da_decidere ? <span className="small da-decidere">tariffa da decidere</span> : <span className="muted small">{money((o.minuti / 60) * o.tariffa_oraria)}</span>}{o.parcella_id ? <Pill>fatturata</Pill> : null}</div>
                 <div className="attivita-azioni">
                   <button className="icon-btn" aria-label={`Modifica ${o.descrizione}`} onClick={() => setOraEd(o)}><Pencil size={14} /></button>
                   <button className="icon-btn" aria-label={`Elimina ${o.descrizione}`} onClick={() => eliminaConAnnulla('ore', o.id, 'Attività')}><Trash2 size={14} /></button>

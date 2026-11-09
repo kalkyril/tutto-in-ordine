@@ -168,7 +168,7 @@ function attach({ getWindow, db, runAlertCheck }) {
       // ---- calcolo compensi + nota pro forma ----
       db.setSettings({ studio: { nome: 'Studio Legale Verdi', titolare: 'Avv. Mario Verdi', intestazione: 'Avv. Mario Verdi', indirizzo: 'Via Roma n. 1', cap_citta: '41121 Modena', cf: 'VRDMRA70A01F257X', piva: '01234567897', telefono: '059 000000', email: '', pec: '', iban: 'IT00A0000000000000000000000', domicilio_fiscale: 'Via Milano n. 2 - 41122 Modena', banca: 'PRESSO BANCA ESEMPIO SPA FILIALE DI MODENA' } })
       wc.send('data-changed', ['settings']); await sleep(400)
-      await clickText('.nav-item', 'Parcelle'); await sleep(400)
+      await clickText('.nav-item', 'Pagamenti'); await clickText('.tabs button', 'Parcelle'); await sleep(400)
       await clickText('button', 'Nuovo documento'); await sleep(2800)
       t = await text()
       check('editor: calcolatore integrato con tabelle normative locali', t.includes('Tabelle normative incluse'), t.includes('non raggiungibile') ? '(sito non raggiungibile: fallback)' : '')
@@ -215,7 +215,7 @@ function attach({ getWindow, db, runAlertCheck }) {
       const ms = db.getSettings().modello_pdf
       check('modello PDF salvato nelle impostazioni', ms && ms.intestazione[0].testo === 'Studio Legale Verdi & Associati' && ms.footer.length >= 1)
       // riapre la nota e rigenera il PDF con il modello personalizzato
-      await clickText('.nav-item', 'Parcelle'); await sleep(400)
+      await clickText('.nav-item', 'Pagamenti'); await clickText('.tabs button', 'Parcelle'); await sleep(400)
       await clickText('tbody tr', 'PF 1/'); await sleep(2200)
       const prima = Date.now() // il confronto è con l'istante del clic, non con «6 secondi fa»: sotto carico la stampa può richiedere di più
       await clickText('.modal .btn', 'Salva PDF…')
@@ -234,7 +234,7 @@ function attach({ getWindow, db, runAlertCheck }) {
       // ---- altre pagine ----
       await clickText('.nav-item', 'Compiti'); await sleep(400); await shot('18-todo')
       await clickText('.nav-item', 'Anagrafica'); await sleep(400); await shot('19-anagrafica')
-      await clickText('.nav-item', 'Parcelle'); await sleep(400); await shot('20-parcelle')
+      await clickText('.nav-item', 'Pagamenti'); await clickText('.tabs button', 'Parcelle'); await sleep(400); await shot('20-parcelle')
       await clickText('.nav-item', 'Collegamenti'); await sleep(400); await shot('21-collegamenti')
       await clickText('.nav-item', 'Impostazioni'); await sleep(400); await shot('22-impostazioni')
       for (const tab of ['Avvisi', 'Pratiche e colori', 'Fiscale', 'Backup e sicurezza']) { await clickText('.tabs button', tab); await sleep(250) }
@@ -269,7 +269,7 @@ function attach({ getWindow, db, runAlertCheck }) {
       setTimeout(() => process.exit(0), 300)
     }
   })
-  wc.on('console-message', (_e, level, message) => { if (level >= 2) console.log('[renderer]', message) })
+  wc.on('console-message', (e) => { if (e.level === 'warning' || e.level === 'error') console.log('[renderer]', e.message) }) // API di Electron con l'oggetto evento (gli argomenti separati sono deprecati)
 }
 
 module.exports = { attach }

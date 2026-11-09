@@ -23,7 +23,7 @@
     "test:smoke": "sh scripts/run-smoke.sh",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint --deny-warnings src electron scripts",
-    "test": "npm run lint && npm run test:db && npm run test:archivi && npm run test:compenso && npm run test:print && npm run test:robustezza && npm run test:calendari && npm run test:import && npm run test:conflitti && npm run test:agenda && npm run test:report && npm run test:blocco && npm run test:backup && npm run test:doctext && npm run test:attivita && npm run test:giudiziale && npm run test:docfile && npm run test:release && npm run test:pdf && npm run typecheck && npm run test:regressioni && npm run test:proforma && npm run test:parametri && npm run test:sicurezza-extra && npm run test:ripristino-crash && npm run test:backup-cifrato && npm run test:aggiornamenti && npm run test:revisione-proforma && npm run test:licenses && npm run test:pubblicazione && npm run test:confini && npm run test:canali && npm run test:termini && npm run test:cartella-dati && npm run test:nuove-versioni && npm run test:pacchetto && npm run test:cartelle-utente && npm run test:pratiche-da-eventi && npm run test:registro && npm run test:sito && npm run test:release-metadata && npm run test:gestione && npm run test:professionisti && npm run test:anonimizza && npm run test:campione && npm run test:cliens && npm run test:conti && npm run test:documento && npm run test:pdf-oscura && npm run test:fatturapa && npm run test:nota-credito && npm run test:modelli-word && npm run test:scadenze-fiscali && npm run test:guida",
+    "test": "npm run lint && npm run test:db && npm run test:archivi && npm run test:compenso && npm run test:print && npm run test:robustezza && npm run test:calendari && npm run test:import && npm run test:conflitti && npm run test:agenda && npm run test:report && npm run test:blocco && npm run test:backup && npm run test:doctext && npm run test:attivita && npm run test:giudiziale && npm run test:docfile && npm run test:release && npm run test:pdf && npm run typecheck && npm run test:regressioni && npm run test:proforma && npm run test:parametri && npm run test:sicurezza-extra && npm run test:ripristino-crash && npm run test:backup-cifrato && npm run test:aggiornamenti && npm run test:revisione-proforma && npm run test:licenses && npm run test:pubblicazione && npm run test:confini && npm run test:canali && npm run test:termini && npm run test:cartella-dati && npm run test:nuove-versioni && npm run test:pacchetto && npm run test:cartelle-utente && npm run test:pratiche-da-eventi && npm run test:registro && npm run test:sito && npm run test:release-metadata && npm run test:gestione && npm run test:professionisti && npm run test:anonimizza && npm run test:campione && npm run test:cliens && npm run test:conti && npm run test:documento && npm run test:pdf-oscura && npm run test:fatturapa && npm run test:nota-credito && npm run test:modelli-word && npm run test:scadenze-fiscali && npm run test:guida && npm run test:novita",
     "test:archivi": "node scripts/test-archivi-vecchi.js && cross-env ELECTRON_RUN_AS_NODE=1 electron scripts/test-archivi-vecchi.js",
     "test:compenso": "node scripts/test-compenso.mjs",
     "test:print": "node scripts/test-print.mjs",
@@ -80,7 +80,8 @@
     "test:nota-credito": "node scripts/test-nota-credito.js",
     "test:modelli-word": "node scripts/test-modelli-word.js",
     "test:scadenze-fiscali": "node scripts/test-scadenze-fiscali.mjs",
-    "test:guida": "node scripts/test-guida.js"
+    "test:guida": "node scripts/test-guida.js",
+    "test:novita": "node scripts/test-novita-102.mjs"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
@@ -131,7 +132,10 @@
       "!node_modules/tesseract.js-core/*.wasm.js",
       "!node_modules/tesseract.js-core/*-lstm.{js,wasm}",
       "!node_modules/@tesseract.js-data/ita/4.0.0_best_int/**",
-      "!node_modules/**/*.map"
+      "!node_modules/**/*.map",
+      "!node_modules/pdf-lib/{dist,es,src,ts3.4}/**",
+      "!node_modules/pdf-lib/**/*.d.ts",
+      "!node_modules/pdf-lib/yarn.lock"
     ],
     "asar": true,
     "mac": {
@@ -231,6 +235,7 @@
   "dependencies": {
     "@napi-rs/canvas": "^1.0.11",
     "@tesseract.js-data/ita": "^1.0.0",
+    "pdf-lib": "1.17.1",
     "pdfjs-dist": "^6.4.299",
     "tesseract.js": "^7.0.0"
   },

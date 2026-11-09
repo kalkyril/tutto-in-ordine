@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CheckCircle2, CircleDot, FilePlus2, History, PlusCircle, RotateCcw, Trash2, type LucideIcon } from 'lucide-react'
-import { useData } from '../../store'
+import { api } from '../../api'
 import { fmtDateTime } from '../../lib/dates'
 import type { Cronologia } from '../../types'
 
@@ -15,9 +15,16 @@ function frase(c: Cronologia): string {
 
 /** Registro delle cose successe nella pratica (aggiunte, completamenti, cambi di stato, eliminazioni), dalla più recente. */
 export function CronologiaCard({ praticaId }: { praticaId: number }) {
-  const { cronologia } = useData()
+  const [righe, setRighe] = useState<Cronologia[]>([])
   const [tutte, setTutte] = useState(false)
-  const righe = useMemo(() => cronologia.filter((c) => c.pratica_id === praticaId), [cronologia, praticaId])
+  // solo le righe di questa pratica, rilette quando cambia la cronologia: caricarla tutta nella finestra la appesantiva col tempo
+  useEffect(() => {
+    let attivo = true
+    const carica = () => api.list<Cronologia>('cronologia', { pratica_id: praticaId }, 'id DESC').then((r) => { if (attivo) setRighe(r) }).catch(() => {})
+    carica()
+    const off = window.mngmnt.on('data-changed', (tabelle: string[]) => { if (tabelle.includes('cronologia')) carica() })
+    return () => { attivo = false; off() }
+  }, [praticaId])
   const visibili = tutte ? righe : righe.slice(0, 8)
   return (
     <section className="card" aria-labelledby="cronologia-titolo">

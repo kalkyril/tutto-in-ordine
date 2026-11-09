@@ -152,6 +152,29 @@ function createWindow() {
 }
 
 /**
+ * Dopo ogni aggiornamento (e ogni tanto comunque) si toglie ciò che la versione precedente lascia indietro, così TIO non si
+ * appesantisce di aggiornamento in aggiornamento:
+ * - cache del motore della finestra (codice compilato e file letti), che con ogni versione cambiano nome e non si riusano più;
+ * - cartelle temporanee di stampa, lettura delle scansioni e verifica dei backup rimaste dopo una chiusura improvvisa (più vecchie di un giorno).
+ * L'archivio si mantiene da sé all'apertura (db.manutenzione). Pratiche, documenti e backup non vengono toccati.
+ */
+function puliziaDopoAggiornamento() {
+  const os = require('node:os'), giornoFa = Date.now() - 86400000
+  const vecchia = (p) => { try { return fs.statSync(p).mtimeMs < giornoFa } catch { return false } }
+  for (const [cartella, schema] of [[os.tmpdir(), /^mngmnt-(?:print|ocr-modelli|verifica)-/], [db.getDataDir(), /^\.backup-privato-/]]) {
+    let nomi = []; try { nomi = fs.readdirSync(cartella) } catch { continue }
+    for (const n of nomi) if (schema.test(n) && vecchia(path.join(cartella, n))) { try { fs.rmSync(path.join(cartella, n), { recursive: true, force: true }) } catch { /* in uso: alla prossima */ } }
+  }
+  try {
+    const versione = app.getVersion()
+    if (db.getSettings().versione_avviata === versione) return
+    const { session } = require('electron')
+    Promise.allSettled([session.defaultSession.clearCodeCaches({}), session.defaultSession.clearCache()]).then(() => {})
+    db.setSettings({ versione_avviata: versione })
+  } catch (error) { console.error('Pulizia dopo l’aggiornamento non riuscita:', error.message) }
+}
+
+/**
  * 1.0.1: il controllo degli aggiornamenti si accende per tutti, anche per chi nella 1.0.0 aveva risposto «Non ora»,
  * così ogni copia vede l'icona della versione nuova. Una volta sola; poi vale la scelta nelle Impostazioni.
  * Un avviso nel campanello lo spiega e dice come spegnerlo.
@@ -304,12 +327,14 @@ function buildMenu() {
       voce('Agenda', 'vai-agenda', 'CmdOrCtrl+3'),
       voce('Compiti', 'vai-compiti', 'CmdOrCtrl+4'),
       voce('Anagrafica', 'vai-anagrafica', 'CmdOrCtrl+5'),
-      voce(L.parcelle || 'Parcelle', 'vai-parcelle', 'CmdOrCtrl+6'),
-      voce('Da pagare', 'vai-dapagare'),
+      voce('Pagamenti', 'vai-pagamenti', 'CmdOrCtrl+6'),
+      voce(`Pagamenti › ${avvocato ? L.parcelle || 'Parcelle' : 'Incassi'}`, 'vai-parcelle'),
+      voce('Pagamenti › Da pagare', 'vai-dapagare'),
       voce('Collegamenti', 'vai-collegamenti', 'CmdOrCtrl+7'),
       { type: 'separator' },
       voce('Documenti', 'vai-documenti', 'CmdOrCtrl+8'),
       voce('Anonimizza', 'vai-anonimizza', 'CmdOrCtrl+9'),
+      voce('Comprimi PDF', 'vai-comprimi'),
     ] },
     { role: 'windowMenu', label: 'Finestra' },
     { role: 'help', label: 'Aiuto', submenu: [
@@ -403,6 +428,7 @@ app.whenReady().then(() => {
   ipc.register({ getWindow, notifyChanged, onSettings: applySettings, runAlertCheck, controllaAggiornamenti })
   attivaControlloAggiornamenti()
   applySettings(db.getSettings())
+  puliziaDopoAggiornamento()
   createWindow()
   createTray()
   updateBadge()

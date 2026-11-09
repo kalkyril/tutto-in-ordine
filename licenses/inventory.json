@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "packages": [
     {
       "name": "@napi-rs/canvas",
@@ -24,6 +24,57 @@
       "files": [],
       "upstreamNotices": [
         "native/notices/tessdata/LICENSE"
+      ]
+    },
+    {
+      "name": "pdf-lib",
+      "version": "1.17.1",
+      "license": "MIT",
+      "repository": "git+https://github.com/Hopding/pdf-lib.git",
+      "files": [
+        "packages/pdf-lib@1.17.1/LICENSE.md"
+      ]
+    },
+    {
+      "name": "@pdf-lib/standard-fonts",
+      "version": "1.0.0",
+      "license": "MIT",
+      "repository": "https://github.com/Hopding/standard-fonts.git",
+      "files": [
+        "packages/@pdf-lib_standard-fonts@1.0.0/LICENSE.md"
+      ]
+    },
+    {
+      "name": "pako",
+      "version": "1.0.11",
+      "license": "(MIT AND Zlib)",
+      "repository": "nodeca/pako",
+      "files": [
+        "packages/pako@1.0.11/LICENSE"
+      ]
+    },
+    {
+      "name": "@pdf-lib/upng",
+      "version": "1.0.1",
+      "license": "MIT",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/Hopding/upng"
+      },
+      "files": [
+        "packages/@pdf-lib_upng@1.0.1/LICENSE"
+      ]
+    },
+    {
+      "name": "tslib",
+      "version": "1.14.1",
+      "license": "0BSD",
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/Microsoft/tslib.git"
+      },
+      "files": [
+        "packages/tslib@1.14.1/LICENSE.txt"
       ]
     },
     {
@@ -260,40 +311,12 @@
         "packages/@napi-rs_canvas@1.0.11/LICENSE",
         "native/notices/skia/LICENSE"
       ]
-    },
-    {
-      "name": "@napi-rs/canvas-darwin-x64",
-      "version": "1.0.11",
-      "license": "MIT",
-      "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Brooooooklyn/canvas.git"
-      },
-      "files": [],
-      "upstreamNotices": [
-        "packages/@napi-rs_canvas@1.0.11/LICENSE",
-        "native/notices/skia/LICENSE"
-      ]
-    },
-    {
-      "name": "@napi-rs/canvas-win32-x64-msvc",
-      "version": "1.0.11",
-      "license": "MIT",
-      "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Brooooooklyn/canvas.git"
-      },
-      "files": [],
-      "upstreamNotices": [
-        "packages/@napi-rs_canvas@1.0.11/LICENSE",
-        "native/notices/skia/LICENSE"
-      ]
     }
   ],
   "packagesWithoutLicenseFile": [],
   "native": {
     "components": 146,
     "files": 321,
-    "artifacts": 209
+    "artifacts": 207
   }
 }

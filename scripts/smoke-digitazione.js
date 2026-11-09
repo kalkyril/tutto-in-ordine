@@ -106,7 +106,10 @@ function attach({ getWindow, db }) {
       await chiudiModale()
       await clickText('.nav-item', 'Anagrafica'); await sleep(400)
       await clickText('button', 'Nuovo contatto'); await sleep(400)
-      for (const [n, l, t] of [['nome', 'Nome e cognome', 'giuseppe'], ['codice fiscale', 'Codice fiscale', 'abc123'], ['email', 'Email', 'info'], ['telefono', 'Telefono', '333111'], ['indirizzo', 'Indirizzo', 'viamilano'], ['note', 'Note', 'cliente']]) await digita(`anagrafica › ${n}`, { label: l }, t)
+      for (const [n, l, t] of [['nome', 'Nome e cognome', 'giuseppe'], ['codice fiscale', 'Codice fiscale', 'abc123'], ['codice SDI', 'Codice SDI', 'm5uxcr1'], ['PEC', 'PEC', 'pec'], ['indirizzo', 'Indirizzo', 'viamilano'], ['note', 'Note', 'cliente']]) await digita(`anagrafica › ${n}`, { label: l }, t)
+      // telefoni ed email: più righe con etichetta (1.0.2), si scrive nella prima
+      await digita('anagrafica › email', { sel: '.modal input[aria-label="Email 1"]' }, 'info')
+      await digita('anagrafica › telefono', { sel: '.modal input[aria-label="Telefoni 1"]' }, '333111')
       await chiudiModale()
       await clickText('.nav-item', 'Collegamenti'); await sleep(400)
       await clickText('.tile-add', 'Aggiungi'); await sleep(400)
@@ -116,7 +119,7 @@ function attach({ getWindow, db }) {
       await chiudiModale()
 
       // ---- editor parcella e calcolatore ----
-      await clickText('.nav-item', 'Parcelle'); await sleep(400)
+      await clickText('.nav-item', 'Pagamenti'); await clickText('.tabs button', 'Parcelle'); await sleep(400)
       await clickText('button', 'Nuovo documento'); await sleep(2500)
       await digita('parcella › oggetto', { label: 'Oggetto' }, 'lettera')
       await clickText('.modal .srow label.check', 'In Percentuale'); await sleep(400)

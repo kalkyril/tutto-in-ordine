@@ -26,7 +26,7 @@ export function FatturaElettronicaModal({ parcella, onClose }: { parcella: Parce
     tipoCassa: salvate.tipoCassa || (settings.profilo === 'avvocato' ? 'TC01' : 'TC22'),
     natura: salvate.natura || 'N2.2',
     tipoRitenuta: salvate.tipoRitenuta || 'RT01',
-    codiceDestinatario: sdi.codice || '',
+    codiceDestinatario: sdi.codice || cliente?.sdi || '', // il codice scritto in Anagrafica, se non ne è già stato usato un altro per questo cliente
     pecDestinatario: sdi.pec ?? cliente?.pec ?? '',
     cessionario: cliente?.tipo === 'persona' ? dividi(cliente.denominazione) : undefined,
   }))

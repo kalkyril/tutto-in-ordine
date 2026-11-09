@@ -5,7 +5,7 @@
   "serialNumber": "urn:uuid:***",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-14T14:34:51.842Z",
+    "timestamp": "2026-11-09T20:08:19.254Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -19,14 +19,14 @@
       }
     ],
     "component": {
-      "bom-ref": "mngmnt@1.3.3",
+      "bom-ref": "tio@1.0.1",
       "type": "library",
-      "name": "App",
-      "version": "1.3.3",
+      "name": "TuttoInOrdine",
+      "version": "1.0.1",
       "scope": "required",
-      "author": "TIO",
-      "description": "Gestionale locale per avvocati e ditte individuali: pratiche, scadenze, compiti, anagrafica, attività svolte, parcelle.",
-      "purl": "pkg:npm/mngmnt@1.3.3",
+      "author": "Matteo Lugli",
+      "description": "TIO, Tutto In Ordine: gestionale locale per avvocati, liberi professionisti e ditte individuali: pratiche, scadenze, compiti, anagrafica, attività svolte, parcelle.",
+      "purl": "pkg:npm/tio@1.0.1",
       "properties": [
         {
           "name": "cdx:npm:package:private",
@@ -100,6 +100,74 @@
         {
           "alg": "SHA-512",
           "content": "27f272956a094c6f0e42a65a8aa972e08383c80c4da1f525668d30b52049b4793a01dca66dd2243f29c033526f41a6693da1b987e9ac93d42e2bccb88b5a28ab"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@pdf-lib/standard-fonts@1.0.0",
+      "type": "library",
+      "name": "@pdf-lib/standard-fonts",
+      "version": "1.0.0",
+      "scope": "required",
+      "author": "Andrew Dillon <andrew.dillon.j@gmail.com>",
+      "description": "Metrics for the Standard 14 PDF fonts and their encodings",
+      "purl": "pkg:npm/%40pdf-lib/standard-fonts@1.0.0",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@pdf-lib/standard-fonts/-/standard-fonts-1.0.0.tgz"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/Hopding/standard-fonts"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "854df404af4850dfecbb4327f5576554ab16052e86ca155faa3c25d458d93784f13fa702c348cfdb0ed5dc77f9b97eccd00649d7abdecbdc84d27cbb49ae7d64"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "@pdf-lib/upng@1.0.1",
+      "type": "library",
+      "name": "@pdf-lib/upng",
+      "version": "1.0.1",
+      "scope": "required",
+      "author": "photopea (https://github.com/photopea)",
+      "description": "Small, fast and advanced PNG / APNG encoder and decoder",
+      "purl": "pkg:npm/%40pdf-lib/upng@1.0.1",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@pdf-lib/upng/-/upng-1.0.1.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/Hopding/upng"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7502b6154310b68c153f4d26b4892cae56617455d064f0beb5a8a1d6ae02bcf679bea77147f2ca05a160d2801fcddd469476575d23dd41fcd09edf95886bc421"
         }
       ],
       "licenses": [
@@ -337,6 +405,117 @@
         {
           "license": {
             "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "pako@1.0.11",
+      "type": "library",
+      "name": "pako",
+      "version": "1.0.11",
+      "scope": "required",
+      "description": "zlib port to javascript - fast, modularized, with browser support",
+      "purl": "pkg:npm/pako@1.0.11",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/pako/-/pako-1.0.11.tgz"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/nodeca/pako"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e212c1f0fcb8cd971ee6ce3277d5f3a29ab056fff218d855d4197c353982ab5efadc778adbe130553bfe95e19e2f5dc39e1db07dbaa8c153d70883b4cf8b5a63"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "(MIT AND Zlib)"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pdf-lib@1.17.1",
+      "type": "library",
+      "name": "pdf-lib",
+      "version": "1.17.1",
+      "scope": "required",
+      "author": "Andrew Dillon <andrew.dillon.j@gmail.com>",
+      "description": "Create and modify PDF files with JavaScript",
+      "purl": "pkg:npm/pdf-lib@1.17.1",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/pdf-lib/-/pdf-lib-1.17.1.tgz"
+        },
+        {
+          "type": "website",
+          "url": "https://pdf-lib.js.org"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/Hopding/pdf-lib/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "57f9a9c890284ec3787273f7d6f734c1f340d7ea76d1ebeaaa76a9d0a2e8454374624fe9df0379d83384b0be2804570b75befa865a4a3edcc9220a3aee3fd72f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "bom-ref": "tslib@1.14.1",
+      "type": "library",
+      "name": "tslib",
+      "version": "1.14.1",
+      "scope": "required",
+      "author": "Microsoft Corp.",
+      "description": "Runtime library for TypeScript helper functions",
+      "purl": "pkg:npm/tslib@1.14.1",
+      "properties": [],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/tslib/-/tslib-1.14.1.tgz"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/Microsoft/tslib.git"
+        },
+        {
+          "type": "website",
+          "url": "https://www.typescriptlang.org/"
+        },
+        {
+          "type": "issue-tracker",
+          "url": "https://github.com/Microsoft/TypeScript/issues"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5e78b7e4d2b38e032bc1ebf2b074c202bb4b0e93efc9ef3357fd04e04c989f8dcfeffeeabd0c0f87d0469077b06ccba5567b5b8a099c4fbadd5f704da3dc1126"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "0BSD"
           }
         }
       ]
@@ -668,10 +847,11 @@
   ],
   "dependencies": [
     {
-      "ref": "mngmnt@1.3.3",
+      "ref": "tio@1.0.1",
       "dependsOn": [
         "@napi-rs/canvas@1.0.11",
         "@tesseract.js-data/ita@1.0.0",
+        "pdf-lib@1.17.1",
         "pdfjs-dist@6.4.299",
         "tesseract.js@7.0.0"
       ]
@@ -685,6 +865,18 @@
     {
       "ref": "@napi-rs/canvas-darwin-arm64@1.0.11",
       "dependsOn": []
+    },
+    {
+      "ref": "@pdf-lib/standard-fonts@1.0.0",
+      "dependsOn": [
+        "pako@1.0.11"
+      ]
+    },
+    {
+      "ref": "@pdf-lib/upng@1.0.1",
+      "dependsOn": [
+        "pako@1.0.11"
+      ]
     },
     {
       "ref": "@tesseract.js-data/ita@1.0.0",
@@ -710,6 +902,23 @@
     },
     {
       "ref": "opencollective-postinstall@2.0.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "pako@1.0.11",
+      "dependsOn": []
+    },
+    {
+      "ref": "pdf-lib@1.17.1",
+      "dependsOn": [
+        "@pdf-lib/standard-fonts@1.0.0",
+        "@pdf-lib/upng@1.0.1",
+        "pako@1.0.11",
+        "tslib@1.14.1"
+      ]
+    },
+    {
+      "ref": "tslib@1.14.1",
       "dependsOn": []
     },
     {

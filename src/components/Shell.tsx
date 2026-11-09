@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Lock, AlarmClock, Bell, CalendarDays, CheckCheck, CheckSquare, FolderKanban, Globe, LayoutDashboard, Search, Settings, Trash2, Users, Wallet, FileText, StickyNote, Folder, Users2, PanelLeft, ChevronRight, Download, FilePen, ShieldCheck, HandCoins } from 'lucide-react'
+import { Lock, AlarmClock, Bell, CalendarDays, CheckCheck, CheckSquare, FolderKanban, Globe, LayoutDashboard, Search, Settings, Trash2, Users, Wallet, FileText, StickyNote, Folder, Users2, PanelLeft, ChevronRight, Download, FilePen, ShieldCheck, FileDown } from 'lucide-react'
 import { api } from '../api'
 import { useData } from '../store'
 import { useNav, type Page } from '../nav'
@@ -24,13 +24,13 @@ export function Sidebar() {
     { page: 'agenda', label: 'Agenda', icon: CalendarDays, badge: lateCount },
     { page: 'todo', label: 'Compiti', icon: CheckSquare, badge: todos.filter((t) => !t.completata).length },
     { page: 'anagrafica', label: 'Anagrafica', icon: Users },
-    { page: 'parcelle', label: L.parcelle, icon: Wallet },
-    { page: 'dapagare', label: 'Da pagare', icon: HandCoins },
+    { page: 'pagamenti', label: 'Pagamenti', icon: Wallet },
     { page: 'collegamenti', label: 'Collegamenti', icon: Globe },
     { page: 'documenti', label: 'Documenti', icon: FilePen },
     { page: 'anonimizza', label: 'Anonimizza', icon: ShieldCheck },
+    { page: 'comprimi', label: 'Comprimi PDF', icon: FileDown },
   ]
-  const active = route.page === 'pratica' ? 'pratiche' : route.page
+  const active = route.page === 'pratica' ? 'pratiche' : route.page === 'parcelle' || route.page === 'dapagare' ? 'pagamenti' : route.page
   return (
     <nav className="sidebar" id="sidebar" aria-label="Navigazione principale">
       <div className="brand" title={nomeAttivita(settings)}>
@@ -38,7 +38,7 @@ export function Sidebar() {
         <span className="brand-text"><span className="brand-name">{nomeAttivita(settings)}</span><span className="brand-app">TIO</span></span>
       </div>
       <div className="nav-list">
-        {[{ label: 'Lavoro', items: items.slice(0, 4) }, { label: 'Gestione', items: items.slice(4, 8) }, { label: 'Strumenti', items: items.slice(8) }].map((group) => (
+        {[{ label: 'Lavoro', items: items.slice(0, 4) }, { label: 'Gestione', items: items.slice(4, 7) }, { label: 'Strumenti', items: items.slice(7) }].map((group) => (
           <div className="nav-group" key={group.label}>
             <p className="nav-section">{group.label}</p>
             {group.items.map(({ page, label, icon: Icon, badge }) => (
@@ -59,7 +59,7 @@ export function Sidebar() {
 export function Topbar({ onSearch, sidebarVisible, onToggleSidebar }: { onSearch: () => void; sidebarVisible: boolean; onToggleSidebar: () => void }) {
   const { notifiche, settings, praticaById } = useData()
   const { route, go } = useNav()
-  const labels: Record<Page, string> = { dashboard: 'Panoramica', pratiche: settings.etichette.pratiche, pratica: settings.etichette.pratiche, agenda: 'Agenda', todo: 'Compiti', anagrafica: 'Anagrafica', parcelle: settings.etichette.parcelle, dapagare: 'Da pagare', collegamenti: 'Collegamenti', documenti: 'Documenti', anonimizza: 'Anonimizza', impostazioni: 'Impostazioni' }
+  const labels: Record<Page, string> = { dashboard: 'Panoramica', pratiche: settings.etichette.pratiche, pratica: settings.etichette.pratiche, agenda: 'Agenda', todo: 'Compiti', anagrafica: 'Anagrafica', parcelle: 'Pagamenti', dapagare: 'Pagamenti', pagamenti: 'Pagamenti', comprimi: 'Comprimi PDF', collegamenti: 'Collegamenti', documenti: 'Documenti', anonimizza: 'Anonimizza', impostazioni: 'Impostazioni' }
   const pratica = route.page === 'pratica' && route.id ? praticaById.get(route.id) : null
   const blocco = useBlocco()
   const [open, setOpen] = useState(false)

@@ -1,8 +1,13 @@
 export interface Anagrafica {
-  id: number; tipo: 'persona' | 'azienda'; ruolo: 'cliente' | 'controparte' | 'altro'; denominazione: string
+  id: number; tipo: 'persona' | 'azienda'; ruolo: 'cliente' | 'controparte' | 'fornitore' | 'collaboratore' | 'altro'; denominazione: string
   codice_fiscale?: string; partita_iva?: string; email?: string; pec?: string; telefono?: string
   indirizzo?: string; cap?: string; citta?: string; provincia?: string; note?: string; created_at: string
+  /** 1.0.2: titolo della persona fisica (Avv., Ing., Dott.…), codice destinatario SDI, recapiti con etichetta (JSON di Recapiti) */
+  titolo?: string | null; sdi?: string | null; recapiti?: string | null
 }
+/** Un telefono o un'email con la sua etichetta: «Cellulare», «Fisso» o un nome scelto dall'utente («Ufficio», «Amministrazione»). */
+export interface Recapito { etichetta: string; valore: string }
+export interface Recapiti { telefoni: Recapito[]; email: Recapito[] }
 export interface Pratica {
   id: number; numero: string; titolo: string; cliente_id: number | null; controparte_id: number | null
   tipo?: string; stato?: string; colore: string; autorita?: string; giudice?: string; rg?: string
@@ -22,7 +27,9 @@ export interface Cronologia { id: number; pratica_id: number; tabella: string; r
 export interface Nota { id: number; pratica_id: number; testo: string; created_at: string; updated_at: string }
 export interface Documento { id: number; pratica_id: number; nome: string; file: string; dimensione: number; categoria?: string; ora_id?: number | null; percorso?: string | null; impronta?: string | null; rel?: string | null; percorso_cliens?: string | null; origine?: 'cliens' | 'locale' | 'condivisa' | null; created_at: string }
 export interface Link { id: number; pratica_id: number | null; titolo: string; url: string; categoria?: string; descrizione?: string; colore?: string; ordine: number }
-export interface Ora { id: number; pratica_id: number; data: string; minuti: number; descrizione: string; dettagli?: string | null; tariffa_oraria: number; parcella_id: number | null }
+export interface Ora { id: number; pratica_id: number; data: string; minuti: number; descrizione: string; dettagli?: string | null; tariffa_oraria: number; parcella_id: number | null
+  /** 1.0.2: tariffa ancora da decidere (si inserisce dopo, anche nel documento di vendita) */
+  tariffa_da_decidere?: number }
 export interface Spesa { id: number; pratica_id: number; data: string; descrizione: string; importo: number; esente: number; parcella_id: number | null }
 export interface VoceParcella { id?: number; tipo: 'compenso' | 'spesa_esente' | 'spesa_imponibile'; descrizione: string; quantita: number; importo: number }
 export interface Parcella {
@@ -66,10 +73,12 @@ export interface Settings {
   cartella_cliens?: string // cartella principale dei documenti scaricati da Cliens (una sottocartella per pratica)
   cartella_documenti: string; cartelle_ricerca: string[] // dove salvare i documenti creati dall'app; dove cercare i file spostati
   etichette: Labels; categorie_link: string[]; palette: string[]
+  /** 1.0.2: colori di incassate, da incassare, pagate e da pagare (scadenzario e grafico della pratica) */
+  colori_pagamenti?: Partial<Record<'incassate' | 'da_incassare' | 'pagate' | 'da_pagare', string>>
   [k: string]: any
 }
 /** Riga di testo dell'intestazione o del piè di pagina dei documenti PDF. */
-export interface RigaModello { testo: string; dimensione: 'grande' | 'media' | 'normale' | 'piccola'; grassetto: boolean; corsivo: boolean; allineamento: 'sinistra' | 'centro' | 'destra'; font?: string }
+export interface RigaModello { testo: string; dimensione: 'grandissima' | 'grande' | 'media' | 'normale' | 'piccola'; grassetto: boolean; corsivo: boolean; sottolineato?: boolean; allineamento: 'sinistra' | 'centro' | 'destra'; font?: string }
 export type TipoTitolo = 'proforma' | 'parcella' | 'preventivo' | 'nota_credito'
 export interface StileTitolo { testo: string; dimensione: number; grassetto: boolean; corsivo: boolean; allineamento: 'sinistra' | 'centro' | 'destra'; font?: string }
 export interface FontDocumento { id: string; nome: string; formato: 'ttf' | 'otf' | 'woff' | 'woff2'; dati: string }
@@ -83,12 +92,19 @@ export interface ModelloPdf {
   /** titolo di ogni tipo di documento di vendita: testo, dimensione (pt), stile, allineamento e font */
   titoli?: Partial<Record<TipoTitolo, StileTitolo>>
   mostraLuogoData: boolean; luogo: string
+  /** 1.0.2: dove mettere luogo e data (predefinito in alto a destra) */
+  posizioneLuogoData?: PosizioneLuogoData
 }
+export type PosizioneLuogoData = 'alto-destra' | 'alto-sinistra' | 'basso-sinistra' | 'basso-destra'
 /** Modello della sezione Documenti: stessa intestazione e piè di pagina della nota pro forma, più il corpo (HTML pulito). */
 export interface ModelloDocumento extends ModelloPdf {
   id: string; nome: string; tipo: string; corpo: string; numeriPagina: boolean; aggiornato: string; allineamento?: Allineamento; colonne?: 1 | 2; predefinito?: boolean; word?: boolean; campiWord?: string[]
   /** impaginazione: margini della pagina in mm (in alto, in basso, ai lati) e dimensione del testo del corpo in punti */
   margini?: MarginiPagina; corpoPt?: number
+  /** 1.0.2: foto della firma (al posto di {{firma}} nel testo), con altezza in pixel e allineamento */
+  firma?: string | null; firmaAltezza?: number; firmaAllineamento?: Allineamento
+  /** 1.0.2: campi inventati dall'utente per questo modello (es. «n.giorni», «compenso»), da compilare alla creazione */
+  campiPersonali?: string[]
 }
 export interface MarginiPagina { sopra: number; sotto: number; lati: number }
 export type Allineamento = 'sinistra' | 'centro' | 'destra' | 'giustificato'

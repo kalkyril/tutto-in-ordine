@@ -1,4 +1,4 @@
-import { CalendarPlus, CheckSquare, FolderPlus, Settings, UserPlus, Wallet, Globe, Users, CalendarDays, LayoutDashboard, FolderKanban, Calculator, FilePen, ShieldCheck, HandCoins, BookOpen, type LucideIcon } from 'lucide-react'
+import { CalendarPlus, CheckSquare, FolderPlus, Settings, UserPlus, Wallet, Globe, Users, CalendarDays, LayoutDashboard, FolderKanban, Calculator, FilePen, ShieldCheck, HandCoins, BookOpen, Receipt, FileDown, type LucideIcon } from 'lucide-react'
 import { api } from '../api'
 import type { Page, Route } from '../nav'
 import { nuovo } from './defaults'
@@ -25,11 +25,13 @@ export function azioniRapide({ go, apri, L, calcolaTermine, avvocato = true }: {
     vai('vai-agenda', 'Agenda', CalendarDays, 'agenda'),
     vai('vai-compiti', 'Compiti', CheckSquare, 'todo'),
     vai('vai-anagrafica', 'Anagrafica', Users, 'anagrafica'),
-    vai('vai-parcelle', L.parcelle, Wallet, 'parcelle'),
-    vai('vai-dapagare', 'Da pagare', HandCoins, 'dapagare'),
+    vai('vai-pagamenti', 'Pagamenti: scadenzario', Wallet, 'pagamenti'),
+    vai('vai-parcelle', `Pagamenti: ${avvocato ? L.parcelle.toLowerCase() : 'incassi'}`, Receipt, 'parcelle'),
+    vai('vai-dapagare', 'Pagamenti: da pagare', HandCoins, 'dapagare'),
     vai('vai-collegamenti', 'Collegamenti', Globe, 'collegamenti'),
     vai('vai-documenti', 'Documenti', FilePen, 'documenti'),
     vai('vai-anonimizza', 'Anonimizza un documento', ShieldCheck, 'anonimizza'),
+    vai('vai-comprimi', 'Comprimi un PDF', FileDown, 'comprimi'),
     vai('vai-impostazioni', 'Impostazioni', Settings, 'impostazioni', scorciatoia(',')),
     { id: 'guida', etichetta: 'Guida di TIO', gruppo: 'Vai a', icona: BookOpen, tasto: 'F1', esegui: () => { api.apriGuida().catch(() => {}) } },
   ]

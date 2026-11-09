@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
-export type Page = 'dashboard' | 'pratiche' | 'pratica' | 'agenda' | 'todo' | 'anagrafica' | 'parcelle' | 'dapagare' | 'collegamenti' | 'documenti' | 'anonimizza' | 'impostazioni'
+export type Page = 'dashboard' | 'pratiche' | 'pratica' | 'agenda' | 'todo' | 'anagrafica' | 'parcelle' | 'dapagare' | 'pagamenti' | 'comprimi' | 'collegamenti' | 'documenti' | 'anonimizza' | 'impostazioni'
 export interface Route { page: Page; id?: number; tab?: string; focus?: number }
 
 interface Nav {

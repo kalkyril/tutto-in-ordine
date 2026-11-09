@@ -135,6 +135,8 @@ function ruolo(testo, predefinito) {
   const t = norm(testo)
   if (/contr|avvers|convenut|resistent/.test(t)) return 'controparte'
   if (/client|assistit|mandant|committent/.test(t)) return 'cliente'
+  if (/fornit/.test(t)) return 'fornitore'
+  if (/collabor|consulent|dipendent/.test(t)) return 'collaboratore'
   if (t) return 'altro'
   return predefinito || 'cliente'
 }

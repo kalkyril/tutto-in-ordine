@@ -31,12 +31,6 @@ function RelBadge({ date, done }: { date: string; done?: boolean }) {
   return <span className={`rel rel-${r.tone}`}>{r.text}</span>
 }
 
-/** Il bordo a sinistra dice l'urgenza (rosso = scaduto, ambra = oggi), mai il colore della pratica: quello sta nell'etichetta della pratica. */
-const bordoUrgenza = (data?: string | null) => {
-  const tono = data ? relative(data).tone : 'later'
-  return tono === 'late' ? 'var(--danger)' : tono === 'today' ? 'var(--warn)' : 'var(--border-strong)'
-}
-
 export function ScadenzaRow({ s, showPratica = true, onEdit, highlight }: { s: Scadenza; showPratica?: boolean; onEdit: (s: Scadenza) => void; highlight?: boolean }) {
   const clock = useClock()
   const { praticaById } = useData()
@@ -50,7 +44,7 @@ export function ScadenzaRow({ s, showPratica = true, onEdit, highlight }: { s: S
   const [esito, setEsito] = useState(false)
   const toggle = () => { if (!s.completata && s.tipo === 'udienza' && s.pratica_id) setEsito(true); else run(() => api.save('scadenze', { id: s.id, completata: s.completata ? 0 : 1 })) }
   return (
-    <div className={`row-item ${s.completata ? 'done' : ''} ${highlight ? 'hl' : ''}`} style={{ borderLeftColor: bordoUrgenza(s.completata ? null : s.data_ora) }}
+    <div className={`row-item ${s.completata ? 'done' : ''} ${highlight ? 'hl' : ''}`}
       onContextMenu={apriMenu([
         { id: 'modifica', label: 'Modifica…', fai: () => onEdit(s) },
         { id: 'completa', label: s.completata ? 'Segna come da fare' : 'Segna come completata', fai: toggle },
@@ -91,7 +85,7 @@ export function TodoRow({ t, showPratica = true, onEdit, highlight }: { t: Todo;
   const p = t.pratica_id ? praticaById.get(t.pratica_id) : null
   const toggle = () => run(() => api.save('todos', { id: t.id, completata: t.completata ? 0 : 1, completata_il: t.completata ? null : ymdhm(new Date()) }))
   return (
-    <div className={`row-item todo ${t.completata ? 'done' : ''} ${highlight ? 'hl' : ''}`} style={{ borderLeftColor: bordoUrgenza(t.completata ? null : t.scadenza) }}
+    <div className={`row-item todo ${t.completata ? 'done' : ''} ${highlight ? 'hl' : ''}`}
       onContextMenu={apriMenu([
         { id: 'modifica', label: 'Modifica…', fai: () => onEdit(t) },
         { id: 'completa', label: t.completata ? 'Segna come da fare' : 'Segna come fatto', fai: toggle },

@@ -49,7 +49,7 @@ export default function Anonimizza() {
 
   return (
     <div className="page anonimizza">
-      <PageHeader title="Anonimizza" eyebrow="Strumenti"
+      <PageHeader title="Anonimizza"
         subtitle={<>Anonimizza {settings.profilo === 'ditta' ? 'contratti, lettere' : 'atti, lettere'} e documenti prima di condividerli o di usarli con un’intelligenza artificiale. Tutto avviene su questo computer.</>}
         actions={<Segmented value={vista} onChange={setVista} options={[{ id: 'anonimizza', label: <><FileText size={15} aria-hidden /> Un documento</> }, { id: 'pratica', label: <><FolderLock size={15} aria-hidden /> Una pratica</> }, { id: 'ripristina', label: <><RotateCcw size={15} aria-hidden /> Ripristina</> }]} />} />
       {vista === 'pratica' && <AnonimizzaPratica praticaIniziale={route.tab === 'pratica' ? route.id : undefined} />}
