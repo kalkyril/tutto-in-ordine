@@ -6,8 +6,8 @@ import { useNav } from '../nav'
 import { Btn, Empty, PageHeader, Segmented, Tabs, useAction } from '../components/ui'
 import { useGestione } from '../components/GestioneAttivita'
 import { fmtDate, todayStr } from '../lib/dates'
-import { money } from '../lib/format'
-import { coloriMovimento, movimenti, NOMI_MOVIMENTO, perMese, ripartizione, STATI_MOVIMENTO, type Movimento } from '../lib/pagamenti'
+import { fmtNum, money } from '../lib/format'
+import { annuale, coloriMovimento, movimenti, NOMI_MOVIMENTO, perMese, ripartizione, STATI_MOVIMENTO, type MeseAnno, type Movimento, type StatoMovimento } from '../lib/pagamenti'
 const ParcellePage = lazy(() => import('./Parcelle'))
 const DaPagare = lazy(() => import('./DaPagare'))
 
@@ -38,6 +38,47 @@ type Filtro = 'tutti' | 'entrate' | 'uscite' | 'aperti'
 const csvCell = (x: unknown) => { let s = String(x ?? '').replace(/[\r\n]/g, ' ').trim(); if (/^[=+@\-\t]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"' }
 const nomeMese = (m: string) => new Date(Number(m.slice(0, 4)), Number(m.slice(5, 7)) - 1, 1).toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })
 
+// nelle colonne dell'anno non c'è posto per «€» e, dai diecimila in su, per i centesimi: l'importo intero sta nel suggerimento e nell'etichetta letta ad alta voce
+const importoBreve = (n: number) => fmtNum(n, Number.isInteger(n) || Math.abs(n) >= 10000 ? 0 : 2)
+const conSegno = (n: number, f: (x: number) => string) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${f(Math.abs(n))}`
+
+/**
+ * L'anno in dodici colonne: per ogni mese entrate (incassate e attese) e uscite (pagate e da pagare) e, sotto, la differenza.
+ * Le barre danno il peso del mese rispetto al più ricco dell'anno; la parte tenue è il denaro non ancora mosso.
+ */
+function PanoramicaAnnuale({ mesi, anno, colori, onMese }: { mesi: MeseAnno[]; anno: number; colori: Record<StatoMovimento, string>; onMese: (mese: string) => void }) {
+  const massimo = Math.max(1, ...mesi.map((m) => Math.max(m.entrate, m.uscite)))
+  const tot = mesi.reduce((t, m) => ({ entrate: t.entrate + m.entrate, uscite: t.uscite + m.uscite }), { entrate: 0, uscite: 0 })
+  const meseCorrente = todayStr().slice(0, 7)
+  const barra = (fatto: number, atteso: number, cFatto: string, cAtteso: string) => <i style={{ height: `${((fatto + atteso) / massimo) * 100}%` }}>
+    {atteso > 0 && <i style={{ flexGrow: atteso, background: cAtteso }} />}{fatto > 0 && <i style={{ flexGrow: fatto, background: cFatto }} />}
+  </i>
+  return <section className="card pad anno-colonne" aria-label={`Panoramica del ${anno}`}>
+    <header>
+      <h2>Panoramica {anno}</h2>
+      <span className="scadenzario-totali"><span>Entrate <b>{money(tot.entrate)}</b></span><span>Uscite <b>{money(tot.uscite)}</b></span><span className={`scadenzario-saldo ${tot.entrate - tot.uscite >= 0 ? 'pos' : 'neg'}`}>Differenza <b>{conSegno(Math.round((tot.entrate - tot.uscite) * 100) / 100, money)}</b></span></span>
+    </header>
+    <ol className="anno-griglia">
+      {mesi.map((m) => {
+        const nome = nomeMese(m.mese).replace(/ \d+$/, '')
+        const esito = !m.movimenti ? 'vuoto' : m.saldo > 0 ? 'pos' : m.saldo < 0 ? 'neg' : 'pari'
+        return <li key={m.mese} className={m.mese === meseCorrente ? 'oggi' : undefined}>
+          <span className="anno-mese" id={`anno-${m.mese}-nome`}><span aria-hidden>{nome.slice(0, 3)}</span><span className="sr-only">{nome}</span></span>
+          <button type="button" className="anno-box" disabled={!m.movimenti} onClick={() => onMese(m.mese)}
+            title={m.movimenti ? `${nome}: vai ai movimenti del mese` : `${nome}: nessun movimento`}
+            id={`anno-${m.mese}-box`} aria-labelledby={`anno-${m.mese}-nome anno-${m.mese}-box anno-${m.mese}-saldo`}>
+            <span className="anno-barre" aria-hidden>{barra(m.totali.incassate, m.totali.da_incassare, colori.incassate, colori.da_incassare)}{barra(m.totali.pagate, m.totali.da_pagare, colori.pagate, colori.da_pagare)}</span>
+            <span className="anno-voce"><small>Entrate</small><b className={m.entrate ? 'entrata' : 'muted'}>{m.entrate ? importoBreve(m.entrate) : '—'}</b></span>
+            <span className="anno-voce"><small>Uscite</small><b className={m.uscite ? 'uscita' : 'muted'}>{m.uscite ? importoBreve(m.uscite) : '—'}</b></span>
+          </button>
+          <span className={`anno-saldo ${esito}`} id={`anno-${m.mese}-saldo`} title={m.movimenti ? `Entrate meno uscite di ${nome}: ${conSegno(m.saldo, money)}` : undefined}>{m.movimenti ? conSegno(m.saldo, importoBreve) : '—'}</span>
+        </li>
+      })}
+    </ol>
+    <p className="muted small anno-nota">Importi in euro; le barre hanno i colori dei quattro riquadri qui sopra. Sotto ogni mese, entrate meno uscite.</p>
+  </section>
+}
+
 function Scadenzario() {
   const d = useGestione()
   const { parcelle, anagraficaById, praticaById, settings } = useData()
@@ -52,6 +93,9 @@ function Scadenzario() {
   const [filtro, setFiltro] = useState<Filtro>('tutti')
   const visibili = tutti.filter((m) => m.data.startsWith(String(anno)) && (filtro === 'tutti' || (filtro === 'entrate' ? m.stato === 'incassate' || m.stato === 'da_incassare' : filtro === 'uscite' ? m.stato === 'pagate' || m.stato === 'da_pagare' : m.stato === 'da_incassare' || m.stato === 'da_pagare')))
   const mesi = perMese(visibili)
+  const colonne = useMemo(() => annuale(tutti, anno), [tutti, anno])
+  // dalla colonna dell'anno ai movimenti del mese: si tolgono i filtri (il mese potrebbe essere nascosto) e si porta la sezione in vista
+  const vaiAlMese = (mese: string) => { setFiltro('tutti'); requestAnimationFrame(() => { const el = document.getElementById(`mese-${mese}`); el?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); el?.focus({ preventScroll: true }) }) }
   const totAnno = ripartizione(visibili)
   // scaduti degli anni precedenti: restano visibili in cima, perché sono ancora da sistemare
   const arretrati = tutti.filter((m) => m.scaduto && m.data < `${anno}-01-01` && anno === new Date().getFullYear())
@@ -78,6 +122,7 @@ function Scadenzario() {
     <div className="kpis fascia-numeri">
       {STATI_MOVIMENTO.map((k) => <div key={k} className="kpi static"><span><span className="movimento-tipo"><i style={{ background: colori[k] }} aria-hidden />{NOMI_MOVIMENTO[k]} {anno}</span></span><b>{money(totAnno[k])}</b></div>)}
     </div>
+    <PanoramicaAnnuale mesi={colonne} anno={anno} colori={colori} onMese={vaiAlMese} />
     <div className="toolbar scadenzario-filtri">
       <select value={anno} onChange={(e) => setAnno(Number(e.target.value))} aria-label="Anno">{anni.map((a) => <option key={a}>{a}</option>)}</select>
       <Segmented<Filtro> value={filtro} onChange={setFiltro} options={[{ id: 'tutti', label: 'Tutto' }, { id: 'entrate', label: 'Entrate' }, { id: 'uscite', label: 'Uscite' }, { id: 'aperti', label: 'Ancora aperti' }]} />
@@ -88,7 +133,7 @@ function Scadenzario() {
       <header><h2 className="late-text">Scaduti degli anni precedenti</h2><span className="scadenzario-totali"><span>Da incassare <b>{money(ripartizione(arretrati).da_incassare)}</b></span><span>Da pagare <b>{money(ripartizione(arretrati).da_pagare)}</b></span></span></header>
       {tabella(arretrati)}
     </section>}
-    {mesi.map((m) => <section key={m.mese} className="card pad scadenzario-mese" aria-label={nomeMese(m.mese)}>
+    {mesi.map((m) => <section key={m.mese} id={`mese-${m.mese}`} tabIndex={-1} className="card pad scadenzario-mese" aria-label={nomeMese(m.mese)}>
       <header>
         <h2>{nomeMese(m.mese)}</h2>
         <span className="scadenzario-totali">

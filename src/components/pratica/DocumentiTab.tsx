@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, Cloud, File as FileIcon, FilePlus2, ShieldCheck, FolderInput, FolderOpen, FolderSync, Link2, Pencil, RefreshCw, Trash2, Unlink, Upload } from 'lucide-react'
+import { AlertTriangle, ChevronRight, Cloud, File as FileIcon, Folder, FilePlus2, ShieldCheck, FolderInput, FolderOpen, FolderSync, Link2, Pencil, RefreshCw, Trash2, Unlink, Upload } from 'lucide-react'
 import { api, type RapportoCliens, type SezioneDocumento } from '../../api'
 import { useData } from '../../store'
 import { useNav } from '../../nav'
@@ -9,6 +9,7 @@ import { NuovoDaModelloModal } from '../CreaDocumento'
 import { fmtBytes } from '../../lib/format'
 import { fmtDate } from '../../lib/dates'
 import type { Documento } from '../../types'
+import { contenutoCartella, sottocartella } from '../../lib/cartelle'
 
 type Stato = 'ok' | 'mancante' | 'copia'
 const cartellaDi = (p?: string | null) => (p ? p.replace(/[\\/][^\\/]*$/, '') : '')
@@ -31,13 +32,24 @@ export function DocumentiTab({ praticaId, docs }: { praticaId: number; docs: Doc
   const [stato, setStato] = useState<Record<number, Stato>>({})
   const [sezioni, setSezioni] = useState<Record<number, SezioneDocumento>>({})
   const [sincronizzando, setSincronizzando] = useState(false)
+  const [sulDisco, setSulDisco] = useState<string[]>([])
 
   // controlla che i file esistano ancora: all'apertura, quando i documenti cambiano e quando si torna sulla finestra (dopo aver spostato file nel Finder/Esplora risorse)
   const chiavi = JSON.stringify(docs)
-  const aggiorna = useCallback(() => { api.statoDocumenti(praticaId).then(setStato).catch(() => {}); api.sezioniDocumenti(praticaId).then(setSezioni).catch(() => {}); api.indiceDocumenti(praticaId).then((rows) => setIndice(Object.fromEntries(rows.map((r) => [r.id, r])))).catch(() => {}) }, [praticaId])
+  const aggiorna = useCallback(() => { api.statoDocumenti(praticaId).then(setStato).catch(() => {}); api.sottocartelleDocumenti(praticaId).then(setSulDisco).catch(() => {}); api.sezioniDocumenti(praticaId).then(setSezioni).catch(() => {}); api.indiceDocumenti(praticaId).then((rows) => setIndice(Object.fromEntries(rows.map((r) => [r.id, r])))).catch(() => {}) }, [praticaId])
   useEffect(() => { aggiorna() }, [aggiorna, chiavi])
   useEffect(() => { window.addEventListener('focus', aggiorna); return () => window.removeEventListener('focus', aggiorna) }, [aggiorna])
   const mancanti = docs.filter((d) => stato[d.id] === 'mancante')
+  // sottocartelle della cartella collegata (della pratica o di Cliens): si sfogliano come sul computer
+  const [dove, setDove] = useState('')
+  const [tuttiInsieme, setTuttiInsieme] = useState(false)
+  // un file che non si trova più non sta in nessuna cartella: resta in vista alla radice, con il suo avviso
+  const voci = useMemo(() => docs.map((d) => ({ voce: d, cartella: stato[d.id] === 'mancante' ? '' : sottocartella(d.percorso || d.percorso_cliens, [pratica?.cartella, pratica?.cartella_cliens]) })), [docs, stato, pratica?.cartella, pratica?.cartella_cliens])
+  const conSottocartelle = sulDisco.length > 0 || voci.some((v) => v.cartella)
+  // la cartella aperta può sparire (file scollegati o spostati): si torna alla radice
+  const qui = dove && [...voci.map((v) => v.cartella), ...sulDisco].some((c) => (c + '/').toLowerCase().startsWith(dove.toLowerCase() + '/')) ? dove : ''
+  const { cartelle, file } = contenutoCartella(voci, qui, sulDisco)
+  const elenco = conSottocartelle && !tuttiInsieme ? file : docs
 
   const elimina = async (d: Documento) => {
     const collegato = !!d.percorso
@@ -103,12 +115,23 @@ export function DocumentiTab({ praticaId, docs }: { praticaId: number; docs: Doc
       {mancanti.length > 0 && (
         <div className="doc-avviso" role="alert"><AlertTriangle size={16} aria-hidden /><span className="grow"><b>{mancanti.length === 1 ? '1 file non si trova più' : `${mancanti.length} file non si trovano più`}</b> dove erano: sono stati spostati o rinominati?</span><Btn size="sm" variant="primary" onClick={() => setSync(true)}>Sincronizza</Btn></div>
       )}
+      {conSottocartelle && <nav className="doc-percorso" aria-label="Cartella aperta">
+        <ol>
+          <li><button type="button" className="link-btn" disabled={tuttiInsieme} aria-current={!qui && !tuttiInsieme ? 'location' : undefined} onClick={() => setDove('')}>{tuttiInsieme ? 'Tutte le cartelle' : pratica?.cartella?.split(/[\\/]/).filter(Boolean).pop() || 'Documenti'}</button></li>
+          {!tuttiInsieme && qui.split('/').filter(Boolean).map((nome, i, a) => <li key={i}><ChevronRight size={13} aria-hidden /><button type="button" className="link-btn" aria-current={i === a.length - 1 ? 'location' : undefined} onClick={() => setDove(a.slice(0, i + 1).join('/'))}>{nome}</button></li>)}
+        </ol>
+        <label className="check"><input type="checkbox" checked={tuttiInsieme} onChange={(e) => setTuttiInsieme(e.target.checked)} /> Tutti i file insieme</label>
+      </nav>}
+      {conSottocartelle && !tuttiInsieme && cartelle.map((c) => <button key={c.percorso} type="button" className="plain-row doc-sottocartella" onClick={() => setDove(c.percorso)}>
+        <Folder size={18} aria-hidden /><span className="grow"><b>{c.nome}</b></span><span className="muted small">{c.file === 0 ? 'Vuota' : c.file === 1 ? '1 file' : `${c.file} file`}</span><ChevronRight size={15} aria-hidden />
+      </button>)}
       {conCliens
         ? ([['condivisa', 'In comune con Cliens', 'Lo stesso file è su Cliens e sul computer: un documento solo, si apre dalla copia sul computer'], ['cliens', 'Solo su Cliens', 'File presenti soltanto nella cartella di Cliens'], ['locale', 'Solo sul computer', 'File della cartella della pratica o collegati da altre cartelle, non presenti su Cliens']] as const).map(([k, titolo, aiuto]) => {
-          const lista = docs.filter((d) => (sezioni[d.id] || 'locale') === k)
+          const lista = elenco.filter((d) => (sezioni[d.id] || 'locale') === k)
           return <div key={k} className="doc-sezione"><p className="nav-section" title={aiuto}>{titolo} <span className="muted">· {lista.length}</span></p>{lista.map(riga)}{!lista.length && <p className="muted small doc-sezione-vuota">Nessun file.</p>}</div>
         })
-        : docs.map(riga)}
+        : elenco.map(riga)}
+      {conSottocartelle && !tuttiInsieme && !conCliens && !file.length && docs.length > 0 && <p className="muted small doc-sezione-vuota">{cartelle.length ? 'Nessun file in questa cartella: apri una sottocartella.' : 'Cartella vuota.'}</p>}
       {!docs.length && <Empty icon={<Upload size={28} />} title="Trascina qui i file o collegali" text="I file restano nelle tue cartelle: TIO non ne fa una copia, ricorda dove sono e li ritrova se li sposti (pulsante «Sincronizza»)." />}
       {daModello && <NuovoDaModelloModal praticaId={praticaId} onClose={() => { setDaModello(false); aggiorna() }} />}
       {sync && <SincronizzaDocumentiModal praticaId={praticaId} onClose={() => { setSync(false); aggiorna() }} />}

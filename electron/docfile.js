@@ -254,6 +254,27 @@ async function impostaCartella(praticaId, nuova) {
   return { cartella, aggiornati }
 }
 
+/**
+ * Sottocartelle delle cartelle collegate alla pratica (la sua e quella di Cliens), anche vuote: percorsi relativi con «/».
+ * Stesse regole di percorri(): niente collegamenti simbolici, niente cartelle nascoste o di sistema, profondità e numero limitati.
+ */
+function sottocartelle(praticaId, { max = 2000, maxProf = 10 } = {}) {
+  const p = db.get('pratiche', praticaId); if (!p) throw new Error('Pratica non trovata')
+  const out = new Set()
+  const vai = (radice, rel, prof) => {
+    let elenco; try { elenco = fs.readdirSync(path.join(radice, rel), { withFileTypes: true }) } catch { return }
+    for (const e of elenco) {
+      if (out.size >= max) return
+      if (!e.isDirectory() || e.isSymbolicLink() || SALTA.test(e.name)) continue
+      const sotto = rel ? `${rel}/${e.name}` : e.name
+      out.add(sotto)
+      if (prof < maxProf) vai(radice, sotto, prof + 1)
+    }
+  }
+  for (const r of [p.cartella, p.cartella_cliens]) if (r && isDir(r)) vai(r, '', 1)
+  return [...out]
+}
+
 /** Collega tutti i file di una cartella (sottocartelle comprese) alla pratica. */
 async function collegaCartella(praticaId, dir, { maxFile = 5000, avanza: cb = null } = {}) {
   const avanza = avanzamento(cb)
@@ -277,4 +298,4 @@ async function collegaCartella(praticaId, dir, { maxFile = 5000, avanza: cb = nu
   return { collegati, gia, incompleto: incompleto || file.length > maxFile, documenti: nuovi }
 }
 
-module.exports = { init, risolvi, esiste, impronta, improntaAsync, percorriAsync, avanzamento, respira, collega, ricollega, stato, sincronizza, impostaCartella, collegaCartella, cartellaPer, salvaGenerato, baseGenerati, percorri }
+module.exports = { init, risolvi, esiste, impronta, improntaAsync, percorriAsync, avanzamento, respira, collega, ricollega, stato, sincronizza, impostaCartella, collegaCartella, sottocartelle, cartellaPer, salvaGenerato, baseGenerati, percorri }

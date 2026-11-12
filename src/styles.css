@@ -218,16 +218,22 @@ input.round:checked::after { content: ""; width: 5px; height: 9px; border: solid
 /* ---------- Agenda ---------- */
 .cal-title { font-size: var(--fs-lg); margin-left: 8px; min-width: 150px; }
 .cal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
-.cal-head { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--surface-2); border-bottom: 1px solid var(--border); } .cal-head div { padding: 8px 10px; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 650; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
-.cal-cell { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 4px 5px; display: flex; flex-direction: column; gap: 3px; min-height: 96px; cursor: pointer; overflow: hidden; } .cal-cell:nth-child(7n) { border-right: 0; } .cal-cell:hover { background: var(--surface-2); }
+/* da lunedì a venerdì le colonne sono più larghe: è lì che cadono quasi tutti gli impegni */
+.cal { --cal-colonne: repeat(5, minmax(0, 1.15fr)) repeat(2, minmax(0, .85fr)); }
+.cal-head { display: grid; grid-template-columns: var(--cal-colonne); background: var(--surface-2); border-bottom: 1px solid var(--border); } .cal-head div { padding: 8px 10px; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 650; }
+.cal-grid { display: grid; grid-template-columns: var(--cal-colonne); }
+.cal-cell { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 4px 5px; display: flex; flex-direction: column; gap: 3px; min-height: 96px; cursor: pointer; overflow: hidden; container-type: inline-size; } .cal-cell:nth-child(7n) { border-right: 0; } .cal-cell:hover { background: var(--surface-2); }
 .cal-cell.weekend { background: color-mix(in srgb, var(--surface-2) 45%, var(--surface)); }
 .cal-cell.other { background: color-mix(in srgb, var(--surface-2) 70%, var(--bg)); } .cal-cell.other .cal-day span { color: var(--muted); }
 .cal-day { display: flex; justify-content: flex-end; padding: 1px 3px; } .cal-day span { min-width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; font-weight: 600; font-size: var(--fs-xs); }
 .cal-cell.today .cal-day span { background: var(--accent); color: var(--accent-text); }
-.ev { display: flex; align-items: center; gap: 4px; width: 100%; border: 0; border-left: 3px solid; border-radius: 4px 6px 6px 4px; padding: 2px 6px; font-size: var(--fs-xs); text-align: left; overflow: hidden; color: var(--text); } .ev span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev { display: flex; align-items: center; gap: 2px 5px; width: 100%; min-height: 22px; border: 0; border-left: 3px solid; border-radius: 4px 6px 6px 4px; padding: 2px 6px; font-size: var(--fs-xs); line-height: 1.35; text-align: left; overflow: hidden; color: var(--text); } .ev span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* l'orario non si stringe e non va mai a capo («11:00» restava «11:0 / 0» nelle colonne strette): è il titolo a cedere spazio */
+.ev b, .ev svg { flex: none; } .ev b { white-space: nowrap; font-weight: 650; font-variant-numeric: tabular-nums; }
+/* giorno stretto (finestra piccola, fine settimana): l'orario sta sopra e il titolo ha tutta la larghezza, su due righe al massimo */
+@container (max-width: 150px) { .cal-cell .ev { flex-wrap: wrap; } .cal-cell .ev span { flex-basis: 100%; white-space: normal; overflow-wrap: anywhere; hyphens: auto; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; } }
 .ev:hover { filter: brightness(.96); } .ev.done { opacity: .5; text-decoration: line-through; } .ev.late { box-shadow: inset 0 0 0 1px var(--danger); } .ev.todo { font-style: italic; }
-.more { border: 0; background: transparent; color: var(--accent); font-size: var(--fs-xs); text-align: left; padding: 0 4px; }
+.more { border: 0; background: transparent; color: var(--accent); font-size: var(--fs-xs); text-align: left; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
 .week-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px; min-height: 420px; display: flex; flex-direction: column; gap: 5px; cursor: pointer; box-shadow: var(--shadow); } .week-col.today { outline: 2px solid var(--accent); outline-offset: -1px; }
 .week-col header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; color: var(--muted); } .week-col header b { font-size: var(--fs-xl); color: var(--text); }
@@ -456,6 +462,10 @@ input[type=radio] { width: 16px; height: 16px; accent-color: var(--accent); marg
 
 /* documenti collegati */
 .doc-cartella { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: var(--fs-sm); } .doc-cartella svg { color: var(--accent); flex: none; }
+.doc-percorso { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: var(--fs-sm); }
+.doc-percorso ol { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; list-style: none; margin: 0; padding: 0; min-width: 0; } .doc-percorso li { display: inline-flex; align-items: center; gap: 4px; min-width: 0; color: var(--muted); }
+.doc-percorso .link-btn { overflow-wrap: anywhere; } .doc-percorso .link-btn[aria-current], .doc-percorso .link-btn:disabled { color: var(--text); font-weight: 650; cursor: default; text-decoration: none; }
+.doc-sottocartella svg:first-child { color: var(--accent); flex: none; } .doc-sottocartella b { overflow-wrap: anywhere; } .doc-sottocartella > svg:last-child { color: var(--muted); flex: none; }
 .doc-avviso { display: flex; align-items: center; gap: 10px; margin: 10px 16px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--danger-soft); font-size: var(--fs-sm); }
 .doc-nome { display: flex; flex-direction: column; min-width: 0; } .doc-nome .link-btn { text-align: left; } .doc-nome small { font-size: var(--fs-xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .doc-mancante .doc-nome .link-btn { color: var(--danger); }

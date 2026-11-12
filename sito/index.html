@@ -37,7 +37,7 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
     <a class="barra-marchio" href="#contenuto" aria-label="TIO, inizio pagina"><img src="img/icona.png" width="30" height="30" alt="">TIO</a>
     <nav class="barra-voci" aria-label="Sezioni">
       <a href="#funzioni">Funzioni</a>
-      <a href="#collega">Si collega</a>
+      <a href="#collega">Collegamenti</a>
       <a href="#dati">I tuoi dati</a>
       <a href="#strumenti">Strumenti</a>
       <a href="#installare">Installare</a>
@@ -171,7 +171,7 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
           </figure>
         </article>
         <article class="funz-voce" data-funz="4">
-          <div class="funz-testo"><h3>I soldi, mese per mese.</h3><p>Pagamenti riunisce incassi e uscite: lo scadenzario mostra mese per mese cosa hai incassato, cosa aspetti, cosa hai pagato e cosa devi pagare, con il saldo previsto. Quando paghi un fornitore alleghi la contabile.</p></div>
+          <div class="funz-testo"><h3>I soldi, mese per mese.</h3><p>Pagamenti riunisce incassi e uscite: lo scadenzario mostra l’anno in dodici colonne, con entrate, uscite e differenza di ogni mese, e mese per mese cosa hai incassato, cosa aspetti, cosa hai pagato e cosa devi pagare. Quando paghi un fornitore alleghi la contabile.</p></div>
           <figure class="funz-figura" data-ui>
             <div class="finestra-app"><span class="semafori" aria-hidden="true"><i></i><i></i><i></i></span><img src="img/funzione-scadenzario.webp" width="1600" height="1012" loading="lazy" alt="Pagamenti › Scadenzario: totali dell’anno e, per ogni mese, incassi ricevuti e attesi, voci pagate e da pagare con il saldo previsto"></div>
           </figure>
@@ -205,10 +205,10 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
     <h2 id="titolo-tutto" data-reveal>Tutto in un’app.</h2>
     <p class="sezione-sotto" data-reveal>Clienti, lavori, agenda, documenti, soldi e strumenti: quello che prima stava in cinque programmi, una cartella e un foglio Excel.</p>
     <div class="mappa-griglia" data-reveal>
-      <article class="mappa-carta"><span class="funz-tag">Lavoro</span><h3>Il lavoro.</h3><ul class="funz-elenco"><li>Pratiche, incarichi e commesse, ognuno con la sua scheda e la cronologia.</li><li>Agenda per mese, settimana o elenco, con gli avvisi anche a finestra chiusa.</li><li>Compiti con priorità e attività ricorrenti che si creano da sole.</li><li>Anagrafica con titolo, più telefoni ed email, PEC e codice SDI.</li><li>Ricerca in tutto l’archivio con ⌘K o Ctrl+K, anche dentro PDF e scansioni.</li></ul></article>
-      <article class="mappa-carta"><span class="funz-tag">Pagamenti</span><h3>I soldi.</h3><ul class="funz-elenco"><li>Preventivi, fatture, parcelle e note pro forma in PDF, con IVA, bollo e cassa.</li><li>File XML FatturaPA per il tuo canale verso lo SdI.</li><li>Scadenzario mese per mese, incassi, solleciti e voci da pagare con la contabile.</li><li>Ore e spese di ogni lavoro, con la tariffa scritta subito o da decidere.</li><li>Valore di ogni commessa con il grafico, redditività e prima nota.</li></ul></article>
-      <article class="mappa-carta"><span class="funz-tag">Documenti</span><h3>I documenti.</h3><ul class="funz-elenco"><li>Modelli pronti con la tua intestazione, già compilati con i dati dell’archivio.</li><li>Un editor completo: titoli, tabelle, immagini, colori, capitoli e anteprima grande.</li><li>Testi lunghi da incollare, firma, campi tuoi come {{n.giorni}} o {{compenso}}.</li><li>La tua carta intestata Word, così com’è.</li><li>Documenti dei lavori collegati alle tue cartelle, senza copie.</li></ul></article>
-      <article class="mappa-carta"><span class="funz-tag">Strumenti</span><h3>Gli strumenti.</h3><ul class="funz-elenco"><li>Anonimizza: dati personali tolti prima di condividere o usare un’IA.</li><li>Comprimi PDF: allegati più leggeri per PEC e depositi, sul computer.</li><li>Calcolo dei termini e dei compensi forensi, per gli studi legali.</li><li>Scadenze fiscali pronte per il tuo profilo.</li><li>Backup automatici, blocco con password, tema chiaro e scuro.</li></ul></article>
+      <article class="mappa-carta"><h3>Il lavoro.</h3><ul class="funz-elenco"><li>Pratiche, incarichi e commesse, ognuno con la sua scheda, più clienti, fornitori e collaboratori, il tuo ruolo e la cronologia.</li><li>Agenda per mese, settimana o elenco, con gli avvisi anche a finestra chiusa.</li><li>Compiti con priorità e attività ricorrenti che si creano da sole.</li><li>Anagrafica con titolo, più telefoni, email e indirizzi, PEC e codice SDI.</li><li>Ricerca in tutto l’archivio con ⌘K o Ctrl+K, anche dentro PDF e scansioni.</li></ul></article>
+      <article class="mappa-carta"><h3>I soldi.</h3><ul class="funz-elenco"><li>Preventivi, fatture, parcelle e note pro forma in PDF, con IVA, bollo e cassa.</li><li>File XML FatturaPA per il tuo canale verso lo SdI.</li><li>Scadenzario con la panoramica dell’anno, incassi, solleciti e voci da pagare con la contabile.</li><li>Ore e spese di ogni lavoro, con la tariffa scritta subito o da decidere.</li><li>Valore di ogni commessa con il grafico, redditività e prima nota.</li></ul></article>
+      <article class="mappa-carta"><h3>I documenti.</h3><ul class="funz-elenco"><li>Modelli pronti con la tua intestazione, già compilati con i dati dell’archivio.</li><li>Un editor completo: titoli, tabelle, immagini, colori, capitoli e anteprima grande.</li><li>Testi lunghi da incollare, firma, campi tuoi come {{n.giorni}} o {{compenso}}.</li><li>La tua carta intestata Word, così com’è.</li><li>Documenti dei lavori collegati alle tue cartelle, senza copie.</li></ul></article>
+      <article class="mappa-carta"><h3>Gli strumenti.</h3><ul class="funz-elenco"><li>Anonimizza: dati personali tolti prima di condividere o usare un’IA.</li><li>Comprimi PDF: allegati più leggeri per PEC e depositi, sul computer.</li><li>Calcolo dei termini e dei compensi forensi, per gli studi legali.</li><li>Scadenze fiscali pronte per il tuo profilo.</li><li>Backup automatici, blocco con password, tema chiaro e scuro.</li></ul></article>
     </div>
   </section>
 
@@ -236,18 +236,18 @@ if (performance.getEntriesByType?.('navigation')[0]?.type === 'reload') {
 
   <!-- i programmi e i servizi con cui TIO lavora: legge e prepara, i dati restano sul computer -->
   <section class="palco collega" id="collega" aria-labelledby="titolo-collega">
-    <h2 id="titolo-collega" data-reveal>Si collega.</h2>
+    <h2 id="titolo-collega" data-reveal>Collegamenti.</h2>
     <p class="sezione-sotto" data-reveal>TIO lavora con i programmi e i servizi che usi già. Legge, prepara e compila; quello che esce dal computer lo decidi tu.</p>
-    <div class="collega-griglia" data-reveal>
-      <article class="collega-carta"><p class="collega-con">Google Calendar · Outlook · iCloud · Cliens Più</p><h3>Calendari</h3><p>Gli impegni dei calendari che già usi compaiono in Agenda, con i loro avvisi; da quelli di Cliens TIO riconosce anche le pratiche. E l’agenda di TIO si esporta in .ics.</p></article>
-      <article class="collega-carta"><p class="collega-con">Fascicoli e documenti</p><h3>Cliens Cube</h3><p>Importi l’esportazione dei fascicoli con parti, ruolo e ufficio; la cartella dei documenti scaricati da Cliens si unisce a quella di ogni pratica.</p></article>
-      <article class="collega-carta"><p class="collega-con">Fatture e Corrispettivi · intermediario · commercialista</p><h3>Fattura elettronica</h3><p>Da ogni fattura il file XML FatturaPA controllato, con il codice SDI del cliente già scritto: lo carichi sul tuo canale verso il Sistema di Interscambio.</p></article>
-      <article class="collega-carta"><p class="collega-con">Word · Pages · LibreOffice</p><h3>Word e LibreOffice</h3><p>La tua carta intestata Word diventa un modello; i documenti si creano in Word, OpenDocument, RTF, PDF, pagina web, Markdown o testo.</p></article>
-      <article class="collega-carta"><p class="collega-con">Excel · Numbers · fogli di calcolo</p><h3>Excel e CSV</h3><p>Porti dentro clienti, pratiche, scadenze e fatture da un foglio o da un altro programma; esporti prima nota, scadenzario e voci da pagare.</p></article>
-      <article class="collega-carta"><p class="collega-con">Finder · Esplora file · disco esterno</p><h3>Cartelle del computer</h3><p>I documenti di ogni lavoro restano nelle tue cartelle: TIO li collega senza copiarli e li ritrova se li sposti. Il backup va anche su un disco esterno.</p></article>
-      <article class="collega-carta"><p class="collega-con">Il tuo programma di posta</p><h3>Posta e PEC</h3><p>Solleciti e messaggi già scritti si aprono nel tuo programma di posta, pronti da controllare e inviare; email, PEC e telefoni dei contatti sono a un clic.</p></article>
-      <article class="collega-carta"><p class="collega-con">Qualsiasi assistente</p><h3>Intelligenza artificiale</h3><p>Anonimizza toglie i dati personali prima di mandare un testo a un’IA; quando arriva la risposta, TIO rimette nomi, numeri e indirizzi veri.</p></article>
-    </div>
+    <ul class="collega-elenco" data-reveal>
+      <li><div><h3>Calendari</h3><p class="collega-con">Google Calendar · Outlook · iCloud · Cliens Più</p></div><p>Gli impegni dei calendari che già usi compaiono in Agenda, con i loro avvisi; da quelli di Cliens TIO riconosce anche le pratiche. E l’agenda di TIO si esporta in .ics.</p></li>
+      <li><div><h3>Cliens Cube</h3><p class="collega-con">Fascicoli e documenti</p></div><p>Importi l’esportazione dei fascicoli con parti, ruolo e ufficio; la cartella dei documenti scaricati da Cliens si unisce a quella di ogni pratica.</p></li>
+      <li><div><h3>Fattura elettronica</h3><p class="collega-con">Fatture e Corrispettivi · intermediario · commercialista</p></div><p>Da ogni fattura il file XML FatturaPA controllato, con il codice SDI del cliente già scritto: lo carichi sul tuo canale verso il Sistema di Interscambio.</p></li>
+      <li><div><h3>Word e LibreOffice</h3><p class="collega-con">Word · Pages · LibreOffice</p></div><p>La tua carta intestata Word diventa un modello; i documenti si creano in Word, OpenDocument, RTF, PDF, pagina web, Markdown o testo.</p></li>
+      <li><div><h3>Excel e CSV</h3><p class="collega-con">Excel · Numbers · fogli di calcolo</p></div><p>Porti dentro clienti, pratiche, scadenze e fatture da un foglio o da un altro programma; esporti prima nota, scadenzario e voci da pagare.</p></li>
+      <li><div><h3>Cartelle del computer</h3><p class="collega-con">Finder · Esplora file · disco esterno</p></div><p>I documenti di ogni lavoro restano nelle tue cartelle: TIO li collega senza copiarli e li ritrova se li sposti. Il backup va anche su un disco esterno.</p></li>
+      <li><div><h3>Posta e PEC</h3><p class="collega-con">Il tuo programma di posta</p></div><p>Solleciti e messaggi già scritti si aprono nel tuo programma di posta, pronti da controllare e inviare; email, PEC e telefoni dei contatti sono a un clic.</p></li>
+      <li><div><h3>Intelligenza artificiale</h3><p class="collega-con">Qualsiasi assistente</p></div><p>Anonimizza toglie i dati personali prima di mandare un testo a un’IA; quando arriva la risposta, TIO rimette nomi, numeri e indirizzi veri.</p></li>
+    </ul>
     <p class="collega-nota" data-reveal>Nessun account e nessun server di TIO in mezzo: i collegamenti partono dal tuo computer e solo quando servono.</p>
   </section>
 

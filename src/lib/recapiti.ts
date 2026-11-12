@@ -1,4 +1,4 @@
-import type { Anagrafica, Recapiti, Recapito } from '../types'
+import type { Anagrafica, Indirizzo, Recapiti, Recapito } from '../types'
 
 /** Etichette proposte per i telefoni; «Personalizzato» lascia scrivere un nome a piacere. */
 export const ETICHETTE_TELEFONO = ['Cellulare', 'Fisso', 'Ufficio', 'WhatsApp']
@@ -29,6 +29,21 @@ export function scriviRecapiti(r: Recapiti): Pick<Anagrafica, 'recapiti' | 'tele
   const telefoni = pulisci(r.telefoni).filter((x) => x.valore), email = pulisci(r.email).filter((x) => x.valore)
   return { recapiti: telefoni.length || email.length ? JSON.stringify({ telefoni, email }) : null, telefono: telefoni[0]?.valore || '', email: email[0]?.valore || '' }
 }
+
+/** Etichette proposte per gli indirizzi in più (il principale resta nei campi storici del contatto). */
+export const ETICHETTE_INDIRIZZO = ['Sede legale', 'Sede operativa', 'Residenza', 'Domicilio', 'Studio', 'Cantiere']
+const testo = (v: unknown, max: number) => String(v ?? '').trim().slice(0, max)
+/** Gli indirizzi in più del contatto, senza righe vuote. */
+export function leggiIndirizzi(a: Partial<Anagrafica> | null | undefined): Indirizzo[] {
+  let l: unknown
+  try { l = a?.indirizzi ? JSON.parse(a.indirizzi) : [] } catch { l = [] }
+  return (Array.isArray(l) ? l : []).filter((x) => !!x && typeof x === 'object')
+    .map((x) => ({ etichetta: testo(x.etichetta, 40), indirizzo: testo(x.indirizzo, 200), cap: testo(x.cap, 10), citta: testo(x.citta, 80), provincia: testo(x.provincia, 2).toUpperCase() }))
+    .filter((x) => x.indirizzo || x.citta || x.cap)
+}
+export const scriviIndirizzi = (l: Indirizzo[]): string | null => { const puliti = leggiIndirizzi({ indirizzi: JSON.stringify(l) }); return puliti.length ? JSON.stringify(puliti) : null }
+/** «Via Roma 3, 41012 Carpi (MO)» */
+export const indirizzoInRiga = (x: { indirizzo?: string | null; cap?: string | null; citta?: string | null; provincia?: string | null }) => [x.indirizzo, [x.cap, x.citta, x.provincia && `(${x.provincia})`].filter(Boolean).join(' ')].filter(Boolean).join(', ')
 
 /** Nome con il titolo davanti («Ing. Mario Rossi»), solo per le persone fisiche. */
 export const nomeConTitolo = (a: Partial<Anagrafica> | null | undefined) => a ? [a.tipo !== 'azienda' ? a.titolo?.trim() : '', a.denominazione].filter(Boolean).join(' ') : ''

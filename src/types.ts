@@ -4,7 +4,14 @@ export interface Anagrafica {
   indirizzo?: string; cap?: string; citta?: string; provincia?: string; note?: string; created_at: string
   /** 1.0.2: titolo della persona fisica (Avv., Ing., Dott.…), codice destinatario SDI, recapiti con etichetta (JSON di Recapiti) */
   titolo?: string | null; sdi?: string | null; recapiti?: string | null
+  /** 1.0.3: altri indirizzi oltre al principale (JSON di Indirizzo[]) */
+  indirizzi?: string | null
 }
+/** Un indirizzo in più del contatto, con la sua etichetta («Sede operativa», «Domicilio», «Cantiere»…). */
+export interface Indirizzo { etichetta: string; indirizzo: string; cap: string; citta: string; provincia: string }
+export type RuoloPersona = 'cliente' | 'controparte' | 'fornitore' | 'collaboratore' | 'altro'
+/** Una persona in più della pratica, oltre a cliente e controparte principali. */
+export interface PersonaPratica { id: number; ruolo: RuoloPersona }
 /** Un telefono o un'email con la sua etichetta: «Cellulare», «Fisso» o un nome scelto dall'utente («Ufficio», «Amministrazione»). */
 export interface Recapito { etichetta: string; valore: string }
 export interface Recapiti { telefoni: Recapito[]; email: Recapito[] }
@@ -13,6 +20,8 @@ export interface Pratica {
   tipo?: string; stato?: string; colore: string; autorita?: string; giudice?: string; rg?: string
   valore?: number | null; data_apertura?: string; data_chiusura?: string; descrizione?: string; cartella?: string | null; cartella_cliens?: string | null; preferita: number; created_at: string
   budget_ore?: number | null; budget_importo?: number | null; consegna?: string | null
+  /** 1.0.3: altre persone (JSON di PersonaPratica[]) e ruolo ricoperto nella pratica da chi usa TIO («Difensore», «CTU», «Direttore dei lavori»…) */
+  persone?: string | null; ruolo?: string | null
 }
 export type TipoScadenza = 'scadenza' | 'udienza' | 'appuntamento' | 'altro'
 export interface Scadenza {

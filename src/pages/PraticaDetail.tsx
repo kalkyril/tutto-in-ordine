@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Link2, ArrowLeft, Download, Pencil, Plus, Receipt, Star, Trash2, Palette, CalendarPlus, Calculator } from 'lucide-react'
 import { api } from '../api'
 import { useData } from '../store'
@@ -18,6 +18,8 @@ import { PanoramicaEconomica } from '../components/pratica/PanoramicaEconomica'
 import { ParcellaEditor } from '../components/ParcellaEditor'
 import { EventoEsternoModal, EventoEsternoRow } from '../components/EventoEsterno'
 import { money } from '../lib/format'
+import { personeDi } from '../lib/persone'
+import { nomeConTitolo, nomeRuolo } from '../lib/recapiti'
 import { fmtDate } from '../lib/dates'
 import { nomeImpegni } from '../lib/defaults'
 import type { Parcella } from '../types'
@@ -56,6 +58,9 @@ export default function PraticaDetail({ id, tab: initialTab, focus }: { id: numb
 
   const cli = p.cliente_id ? anagraficaById.get(p.cliente_id) : null
   const ctr = p.controparte_id ? anagraficaById.get(p.controparte_id) : null
+  // tutte le persone della pratica, raggruppate per ruolo (cliente e controparte principali per primi)
+  const gruppi = (['cliente', 'controparte', 'collaboratore', 'fornitore', 'altro'] as const).map((ruolo) => ({ ruolo, persone: personeDi(p, anagraficaById).filter((x) => x.ruolo === ruolo) })).filter((g) => g.persone.length)
+  const etichettaGruppo = (ruolo: string, n: number) => n > 1 && ruolo === 'cliente' ? L.clienti : n > 1 && ruolo === 'fornitore' ? 'Fornitori' : n > 1 && ruolo === 'collaboratore' ? 'Collaboratori' : n > 1 && ruolo === 'altro' ? 'Altri' : nomeRuolo(ruolo, settings.profilo, L)
   const statoObj = settings.stati_pratica.find((s) => s.nome === p.stato)
   const scadAperte = mine.scad.filter((s) => !s.completata).sort((a, b) => a.data_ora.localeCompare(b.data_ora))
   const todoAperti = mine.todo.filter((t) => !t.completata)
@@ -79,8 +84,8 @@ export default function PraticaDetail({ id, tab: initialTab, focus }: { id: numb
             <h1>{p.titolo}</h1>
             <div className="row wrap" style={{ marginTop: 6 }}>
               <Pill color={statoObj?.colore}>{p.stato}</Pill>
-              {cli && <span className="muted small">{L.cliente}: <b>{cli.denominazione}</b></span>}
-              {ctr && <span className="muted small">{L.controparte}: <b>{ctr.denominazione}</b></span>}
+              {gruppi.map((g) => <span key={g.ruolo} className="muted small">{etichettaGruppo(g.ruolo, g.persone.length)}: <b>{g.persone.map((x) => x.contatto.denominazione).join(', ')}</b></span>)}
+              {p.ruolo && <span className="muted small">Il tuo ruolo: <b>{p.ruolo}</b></span>}
             </div>
           </div>
           <div className="row">
@@ -109,8 +114,10 @@ export default function PraticaDetail({ id, tab: initialTab, focus }: { id: numb
           <section className="card">
             <header className="card-head"><h2>Dettagli</h2></header>
             <dl className="defs">
-              <dt>{L.cliente}</dt><dd>{cli ? cli.denominazione : '—'}</dd>
-              <dt>{L.controparte}</dt><dd>{ctr ? ctr.denominazione : '—'}</dd>
+              {!cli && <><dt>{L.cliente}</dt><dd>—</dd></>}
+              {gruppi.map((g) => <Fragment key={g.ruolo}><dt>{etichettaGruppo(g.ruolo, g.persone.length)}</dt><dd className="persone-elenco">{g.persone.map((x) => <button key={x.contatto.id} type="button" className="link-btn" title="Apri in Anagrafica" onClick={() => go({ page: 'anagrafica', id: x.contatto.id })}>{nomeConTitolo(x.contatto)}</button>)}</dd></Fragment>)}
+              {!ctr && settings.profilo !== 'ditta' && <><dt>{L.controparte}</dt><dd>—</dd></>}
+              {p.ruolo && <><dt>Il tuo ruolo</dt><dd>{p.ruolo}</dd></>}
               <dt>{L.autorita}</dt><dd>{p.autorita || '—'}</dd>
               <dt>{L.rg}</dt><dd>{p.rg || '—'}</dd>
               <dt>{L.giudice}</dt><dd>{p.giudice || '—'}</dd>

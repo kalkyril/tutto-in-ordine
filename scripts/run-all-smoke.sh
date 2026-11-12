@@ -10,7 +10,7 @@
 cd "$(dirname "$0")/.."
 OUT="${1:-/tmp/mngmnt-smoke-all}"
 FALLITI=0; INSTABILI=""
-SCENARI="${SCENARI:-smoke-hooks smoke-ditta smoke-novita smoke-tiles smoke-collegamenti smoke-digitazione smoke-giudiziale smoke-documenti smoke-miglioramenti smoke-qualita smoke-release smoke-hig smoke-proforma smoke-backup-accessibility smoke-modello-layout smoke-security smoke-aggiornamenti smoke-profilo-ditta smoke-orologio smoke-gestione smoke-strumenti smoke-102}"
+SCENARI="${SCENARI:-smoke-hooks smoke-ditta smoke-novita smoke-tiles smoke-collegamenti smoke-digitazione smoke-giudiziale smoke-documenti smoke-miglioramenti smoke-qualita smoke-release smoke-hig smoke-proforma smoke-backup-accessibility smoke-modello-layout smoke-security smoke-aggiornamenti smoke-profilo-ditta smoke-orologio smoke-gestione smoke-strumenti smoke-102 smoke-103}"
 CORE=$(getconf _NPROCESSORS_ONLN 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 CARICO=$(uptime 2>/dev/null | sed 's/.*load averages\{0,1\}: *//' | awk '{gsub(",","."); print $1}')
 awk -v c="$CARICO" -v n="$CORE" 'BEGIN { if (c > n * 0.75) printf "ATTENZIONE: computer carico (carico %.1f su %d core): chiudi altre app per risultati più affidabili\n", c, n }'

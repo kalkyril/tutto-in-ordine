@@ -15,7 +15,7 @@
 <div class="guida">
 
 <aside class="indice" aria-label="Indice della guida">
-  <a class="marchio" href="#inizio"><img src="img/icona.png" alt=""><span>Guida di TIO<small>Versione 1.0.2</small></span></a>
+  <a class="marchio" href="#inizio"><img src="img/icona.png" alt=""><span>Guida di TIO<small>Versione 1.0.3</small></span></a>
   <button class="apri-indice" type="button" data-apri-indice aria-expanded="false">Indice</button>
   <nav>
     <div class="cerca">
@@ -142,7 +142,7 @@
 <div class="testo">
 
 <header class="copertina" id="inizio">
-  <p class="sopra">Guida completa · TIO 1.0.2</p>
+  <p class="sopra">Guida completa · TIO 1.0.3</p>
   <h1>Tutto In Ordine, spiegato bene.</h1>
   <p class="sotto">Il manuale di TIO, l’app unica per tutto il lavoro: dall’installazione al primo documento, dall’agenda ai pagamenti e alla fattura elettronica, fino a Documenti, Anonimizza e Comprimi PDF, e a come TIO si collega ai programmi che usi già. Gratuito, sul tuo computer, anche senza internet.</p>
 </header>
@@ -168,16 +168,16 @@
 <div class="tabella"><table>
   <thead><tr><th>Sistema</th><th>File da scaricare</th></tr></thead>
   <tbody>
-    <tr><td>Mac con chip Apple (M1, M2…)</td><td><code>TIO-1.0.2-arm64.dmg</code> · macOS 13 Ventura o successivo</td></tr>
-    <tr><td>Mac con processore Intel</td><td><code>TIO-1.0.2.dmg</code> · macOS 13 o successivo</td></tr>
-    <tr><td>Windows</td><td><code>TIO-Setup-1.0.2.exe</code> · Windows 10 o 11 a 64 bit</td></tr>
+    <tr><td>Mac con chip Apple (M1, M2…)</td><td><code>TIO-1.0.3-arm64.dmg</code> · macOS 13 Ventura o successivo</td></tr>
+    <tr><td>Mac con processore Intel</td><td><code>TIO-1.0.3.dmg</code> · macOS 13 o successivo</td></tr>
+    <tr><td>Windows</td><td><code>TIO-Setup-1.0.3.exe</code> · Windows 10 o 11 a 64 bit</td></tr>
   </tbody>
 </table></div>
 <p>L’app occupa circa 420 MB su Mac e 510 MB su Windows, più l’archivio e i backup. Non sai che Mac hai? Menu Apple › <span class="percorso">Informazioni su questo Mac</span>: «Chip Apple M…» indica Apple Silicon, «Processore Intel» un Mac Intel.</p>
 <p>Gli installer sono nella pagina <strong>Releases</strong> del progetto su GitHub, insieme al file <code>SHA256SUMS.txt</code>. Per controllare che il file scaricato sia integro e sia proprio quello pubblicato, confronta il suo codice:</p>
 <ul>
-  <li>Mac, nel Terminale: <code>shasum -a 256 TIO-1.0.2-arm64.dmg</code></li>
-  <li>Windows, nel Prompt dei comandi: <code>certutil -hashfile TIO-Setup-1.0.2.exe SHA256</code></li>
+  <li>Mac, nel Terminale: <code>shasum -a 256 TIO-1.0.3-arm64.dmg</code></li>
+  <li>Windows, nel Prompt dei comandi: <code>certutil -hashfile TIO-Setup-1.0.3.exe SHA256</code></li>
 </ul>
 
 <h3 id="installare-mac">Su Mac</h3>
@@ -191,7 +191,7 @@
 
 <h3 id="installare-windows">Su Windows</h3>
 <ol class="passi">
-  <li>Scarica <code>TIO-Setup-1.0.2.exe</code>. Se il browser dice che il file «non viene scaricato comunemente», scegli di conservarlo (in Edge: menu <strong>…</strong> › <strong>Mantieni</strong> › <strong>Mantieni comunque</strong>).</li>
+  <li>Scarica <code>TIO-Setup-1.0.3.exe</code>. Se il browser dice che il file «non viene scaricato comunemente», scegli di conservarlo (in Edge: menu <strong>…</strong> › <strong>Mantieni</strong> › <strong>Mantieni comunque</strong>).</li>
   <li>Fai doppio clic. Se compare <strong>«Windows ha protetto il PC»</strong> (SmartScreen), premi <strong>Ulteriori informazioni</strong> e poi <strong>Esegui comunque</strong>. L’avviso dipende dalla mancanza di una firma digitale a pagamento.</li>
   <li>Segui l’installazione in italiano: non servono permessi da amministratore. TIO crea l’icona sul desktop e nel menu Start e alla fine si apre.</li>
 </ol>
@@ -339,10 +339,10 @@
 <div class="tabella"><table>
   <thead><tr><th>Scheda</th><th>Cosa contiene</th></tr></thead>
   <tbody>
-    <tr><td>Panoramica</td><td>Dati principali, prossime scadenze, compiti aperti e la <strong>cronologia</strong>: ogni modifica, documento e scadenza con data e ora.</td></tr>
+    <tr><td>Panoramica</td><td>Dati principali, <strong>tutte le persone</strong> del lavoro con il loro ruolo, il <strong>tuo ruolo</strong>, prossime scadenze, compiti aperti e la <strong>cronologia</strong>: ogni modifica, documento e scadenza con data e ora.</td></tr>
     <tr><td>Compiti</td><td>Le cose da fare per questo lavoro.</td></tr>
     <tr><td>Scadenze</td><td>Udienze, scadenze e appuntamenti, con gli avvisi.</td></tr>
-    <tr><td>Documenti</td><td>I file collegati, la ricerca nel loro testo, «Da modello…» e «Anonimizza…».</td></tr>
+    <tr><td>Documenti</td><td>I file collegati e le <strong>sottocartelle</strong> della cartella del lavoro, la ricerca nel loro testo, «Da modello…» e «Anonimizza…».</td></tr>
     <tr><td>Note</td><td>Appunti liberi, ricercabili.</td></tr>
     <tr><td>Attività e spese</td><td>Ore lavorate, spese anticipate, budget e consegna.</td></tr>
     <tr><td>Parcelle</td><td>I documenti contabili del lavoro (fatture, preventivi, note pro forma).</td></tr>
@@ -355,8 +355,10 @@
 <ul>
   <li><strong>Ricerca nel testo</strong> di PDF, Word, Excel ed email; le <strong>scansioni</strong> si leggono con l’OCR italiano, sul computer.</li>
   <li><strong>Anteprima</strong> dei PDF e delle immagini senza aprire altri programmi; «Mostra nella cartella» per trovarli nel Finder o in Esplora file.</li>
+  <li><strong>Sottocartelle:</strong> se la cartella del lavoro (o quella di Cliens) ha sottocartelle, le sfogli come sul computer: un clic apre la cartella, il percorso in alto riporta indietro, una cartella senza file è indicata come <strong>Vuota</strong>. <strong>Tutti i file insieme</strong> mostra l’elenco unico.</li>
   <li>Per sicurezza TIO non avvia programmi o script contenuti nei documenti collegati.</li>
 </ul>
+<p><strong>Più persone nello stesso lavoro.</strong> In <strong>Modifica</strong>, oltre a cliente e controparte principali, <strong>Altre persone</strong> aggiunge altri clienti, controparti, fornitori e collaboratori: scegli il contatto dalla rubrica (o creane uno con <strong>+</strong>) e il suo ruolo in questo lavoro. <strong>Il tuo ruolo</strong> è quello che ricopri tu (Difensore, Domiciliatario, Progettista, Direttore dei lavori, CTU… o un testo libero). L’avviso di possibile conflitto di interessi considera solo cliente e controparte principali.</p>
 
 <h3 id="documenti-cliens">Documenti di Cliens</h3>
 <p>Se scarichi i documenti dei fascicoli da Cliens in una cartella del computer, nella scheda Documenti della pratica scegli <strong>Collega cartella di Cliens…</strong> (oppure, per tutte le pratiche insieme, la cartella principale in <span class="percorso">Impostazioni › Integrazioni › Cartella di Cliens</span>: ogni sottocartella viene abbinata alla sua pratica per numero o titolo). TIO mostra un’unica vista con tre sezioni:</p>
@@ -387,7 +389,7 @@
 <figure><img src="img/funzione-agenda.webp" width="1600" height="1012" loading="lazy" alt="L’agenda della settimana con appuntamenti, scadenze e compiti"><figcaption>L’agenda della settimana, con i colori dei lavori.</figcaption></figure>
 
 <h3 id="viste-agenda">Mese, settimana, elenco</h3>
-<p>Tre viste: <strong>Mese</strong>, <strong>Settimana</strong> ed <strong>Elenco</strong>. Gli eventi hanno il colore del loro lavoro; quelli dei calendari collegati compaiono accanto. Le scadenze superate e non completate sono evidenziate e contate nella barra laterale.</p>
+<p>Tre viste: <strong>Mese</strong>, <strong>Settimana</strong> ed <strong>Elenco</strong>. Gli eventi hanno il colore del loro lavoro; quelli dei calendari collegati compaiono accanto. Le scadenze superate e non completate sono evidenziate e contate nella barra laterale. Nella vista Mese ogni impegno mostra orario e titolo; se la finestra è stretta l’orario sta sopra e il titolo sotto, su due righe. Da lunedì a venerdì le colonne sono più larghe.</p>
 <p>Ogni evento ha un tipo: per gli studi legali <strong>Udienza</strong>, <strong>Scadenza / termine</strong>, <strong>Appuntamento</strong> e <strong>Altro</strong>; per professionisti e ditte <strong>Scadenza</strong>, <strong>Appuntamento / sopralluogo</strong> e <strong>Altro</strong>. Puoi indicare luogo, note e il lavoro a cui appartiene. Lo spunti come completato quando è fatto.</p>
 
 <h3 id="avvisi">Gli avvisi</h3>
@@ -440,7 +442,9 @@
   <li><strong>Titolo</strong> (facoltativo, solo persone fisiche): Avv., Ing., Dott.… o quello che vuoi; compare davanti al nome e nel campo <code>{{destinatario.nome_completo}}</code>.</li>
   <li><strong>Più telefoni e più email</strong>, ognuno con la sua etichetta: Cellulare, Fisso, Ufficio… oppure <strong>Personalizzato</strong> con il nome che scegli. Il primo di ogni elenco è quello principale.</li>
   <li>Per la <a href="#fattura-elettronica">fattura elettronica</a> TIO propone il <strong>codice SDI</strong> dell’anagrafica e ricorda codice e PEC usati per ogni cliente.</li>
-  <li>Dalla scheda di un contatto vedi i suoi lavori e i suoi documenti contabili.</li>
+  <li><strong>Più indirizzi:</strong> oltre a quello principale, <strong>Aggiungi un indirizzo</strong> con la sua etichetta (Sede operativa, Domicilio, Cantiere… o quella che vuoi).</li>
+  <li><strong>Lavori collegati:</strong> in Modifica scegli un lavoro e premi <strong>Collega</strong>: il contatto vi entra con il ruolo che ha in rubrica; la «×» lo scollega. Si salva con <strong>Salva</strong>.</li>
+  <li>Dalla scheda di un contatto vedi tutti i lavori in cui compare, con il ruolo, e i suoi documenti contabili.</li>
   <li><strong>Conflitto di interessi</strong> <small>(studi legali)</small>: se una persona compare come cliente in una pratica e come controparte in un’altra, TIO lo segnala.</li>
 </ul>
 <p>Clienti e controparti dell’anagrafica servono anche ad <a href="#anonimizza">Anonimizza</a>, che li riconosce nei documenti anche dal solo cognome.</p>
@@ -557,7 +561,8 @@
 <p>Nella barra laterale <strong>Pagamenti</strong> (<kbd>⌘</kbd><kbd>6</kbd>) riunisce in tre schede tutto il denaro dell’attività: <strong>Scadenzario</strong>, <strong>Incassi</strong> (per lo studio legale <strong>Parcelle</strong>: documenti contabili, preventivi e incassi, descritti nel <a href="#parcelle">capitolo 9</a>) e <strong>Da pagare</strong>.</p>
 
 <h3 id="scadenzario">Scadenzario</h3>
-<figure><img src="img/funzione-scadenzario.webp" width="1600" height="1012" loading="lazy" alt="Lo scadenzario di Pagamenti: totali dell’anno e, mese per mese, incassi ricevuti e attesi, voci pagate e da pagare con il saldo previsto"><figcaption>Lo scadenzario: il giro del denaro mese per mese.</figcaption></figure>
+<figure><img src="img/funzione-scadenzario.webp" width="1600" height="1012" loading="lazy" alt="Lo scadenzario di Pagamenti: totali dell’anno, panoramica dei dodici mesi con entrate, uscite e differenza e, mese per mese, incassi ricevuti e attesi, voci pagate e da pagare con il saldo previsto"><figcaption>Lo scadenzario: il giro del denaro mese per mese.</figcaption></figure>
+<p><strong>Panoramica dell’anno:</strong> dodici colonne, da gennaio a dicembre. In ogni mese le entrate (incassate e attese) e le uscite (pagate e da pagare) con le barre; sotto, la differenza: verde se entra più di quanto esce, rossa se esce di più, gialla se è pari. Un clic sul mese porta ai suoi movimenti.</p>
 <p>Il giro del denaro mese per mese: per ogni mese gli incassi ricevuti, quelli attesi (alla scadenza di pagamento del documento, o 30 giorni dopo l’emissione), le voci pagate e quelle da pagare, con i totali e il <strong>saldo previsto</strong>. In alto i totali dell’anno; i filtri mostrano solo entrate, solo uscite o ciò che è ancora aperto. Le scadenze passate degli anni precedenti restano in cima finché non le sistemi. <strong>Esporta CSV</strong> salva lo scadenzario dell’anno.</p>
 
 <h3 id="contabile">Da pagare e contabile del pagamento</h3>

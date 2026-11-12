@@ -59,6 +59,15 @@ export function perMese(m: Movimento[]): Mese[] {
     return { mese, movimenti, totali, saldo: tondo(totali.incassate - totali.pagate), previsto: tondo(totali.incassate + totali.da_incassare - totali.pagate - totali.da_pagare) }
   })
 }
+export interface MeseAnno { mese: string; totali: Record<StatoMovimento, number>; entrate: number; uscite: number; saldo: number; movimenti: number }
+/** Panoramica dell'anno: sempre dodici mesi, ciascuno con entrate (incassate + da incassare), uscite (pagate + da pagare) e la loro differenza. */
+export function annuale(m: Movimento[], anno: number): MeseAnno[] {
+  return Array.from({ length: 12 }, (_, i) => {
+    const mese = `${anno}-${String(i + 1).padStart(2, '0')}`, suoi = m.filter((x) => x.data.startsWith(mese)), totali = ripartizione(suoi)
+    const entrate = tondo(totali.incassate + totali.da_incassare), uscite = tondo(totali.pagate + totali.da_pagare)
+    return { mese, totali, entrate, uscite, saldo: tondo(entrate - uscite), movimenti: suoi.length }
+  })
+}
 export const ripartizione = (m: Movimento[]): Record<StatoMovimento, number> => {
   const t = { incassate: 0, da_incassare: 0, pagate: 0, da_pagare: 0 }
   for (const x of m) t[x.stato] = tondo(t[x.stato] + x.importo)

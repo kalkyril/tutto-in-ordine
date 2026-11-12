@@ -2,6 +2,21 @@
 
 Novità di ogni versione di TIO, dalla più recente. Come installare e usare TIO è spiegato nel [README](README.md).
 
+## Versione 1.0.3 — Panoramica dell'anno, più persone nella pratica, sottocartelle
+
+Piccole correzioni e aggiunte raccolte usando TIO su più computer. Si installa sopra la 1.0.2: l'archivio non cambia formato.
+
+- **Agenda, vista Mese:** l'orario di un impegno non va più a capo («11:00» diventava «11:0 / 0» nelle colonne strette). L'orario resta sempre intero; nei giorni stretti (finestra piccola, fine settimana) passa sopra il titolo, che ha tutta la larghezza su due righe. Le colonne da lunedì a venerdì sono più larghe di sabato e domenica.
+- **Pagamenti › Scadenzario:** **panoramica dell'anno** in dodici colonne (Gen, Feb, Mar…): per ogni mese entrate e uscite totali con le barre, e sotto la differenza, verde se positiva, rossa se negativa, gialla se pari. Un clic sul mese porta ai suoi movimenti. A finestra stretta le colonne diventano 6, 4 o 3 per riga.
+- **Pratiche e commesse:**
+  - **più persone** nella stessa pratica: altri clienti, controparti, fornitori e collaboratori, ognuno con il suo ruolo («Altre persone» in Modifica); compaiono in testa alla pratica, nei dettagli e nella ricerca;
+  - **Il tuo ruolo**: il ruolo che ricopri nella pratica (Difensore, Domiciliatario, Progettista, CTU… o libero).
+- **Documenti della pratica:** le **sottocartelle** della cartella collegata si vedono e si sfogliano (percorso in alto per risalire, «Tutti i file insieme» per l'elenco unico di prima); le cartelle senza file compaiono come **Vuota**.
+- **Anagrafica:** in Modifica si aggiungono **altri indirizzi** con etichetta (Sede operativa, Domicilio, Cantiere…) e si **collega il contatto a una pratica o commessa**; la scheda del contatto elenca tutte le pratiche in cui compare, con il ruolo. Dai dettagli della pratica un clic sul nome apre il contatto.
+- L'avviso di conflitto di interessi resta su cliente e controparte principali.
+- Guida e sito aggiornati, con la nuova immagine dello scadenzario; nel sito «Si collega» diventa **Collegamenti** (un elenco al posto degli otto riquadri) e «Tutto in un'app» ha quattro riquadri più larghi.
+- Eliminando un contatto, sparisce anche dalle altre persone delle pratiche. L'archivio resta compatibile con la 1.0.2 (schema 6).
+
 ## Versione 1.0.2 — Pagamenti, documenti più completi, Comprimi PDF
 
 Nuove funzioni chieste da chi usa TIO ogni giorno e revisione dell'interfaccia con le linee guida di Apple per le app desktop, WCAG 2.2 e una prova con dati estremi (nomi lunghissimi, parole senza spazi, caratteri non latini).

@@ -7,11 +7,12 @@ import { useNav } from '../nav'
 import { useEditors } from '../components/editors'
 import { conflittiPer } from '../lib/conflitti'
 import { Btn, ColorDot, Empty, PageHeader, Pill, Segmented, useAction, useFeedback } from '../components/ui'
-import { leggiRecapiti, nomeConTitolo, nomeRuolo, ruoliAnagrafica } from '../lib/recapiti'
+import { indirizzoInRiga, leggiIndirizzi, leggiRecapiti, nomeConTitolo, nomeRuolo, ruoliAnagrafica } from '../lib/recapiti'
+import { ruoliIn } from '../lib/persone'
 
 type R = 'tutti' | 'cliente' | 'controparte' | 'fornitore' | 'collaboratore' | 'altro'
 
-export default function AnagraficaPage() {
+export default function AnagraficaPage({ id }: { id?: number }) {
   const { anagrafica, pratiche, settings, anagraficaById } = useData()
   const { go } = useNav()
   const ed = useEditors()
@@ -20,12 +21,12 @@ export default function AnagraficaPage() {
   const L = settings.etichette
   const [q, setQ] = useState('')
   const [ruolo, setRuolo] = useState<R>('tutti')
-  const [sel, setSel] = useState<number | null>(null)
+  const [sel, setSel] = useState<number | null>(id ?? null)
   const ditta = settings.profilo === 'ditta'
   // per le ditte le vecchie «controparti» (fornitore o altro) compaiono tra i fornitori
   const delRuolo = (a: { ruolo: string }) => ruolo === 'tutti' || a.ruolo === ruolo || (ditta && ruolo === 'fornitore' && a.ruolo === 'controparte')
   const rows = useMemo(() => anagrafica.filter((a) => delRuolo(a) &&
-    (!q.trim() || [a.denominazione, a.titolo, a.codice_fiscale, a.partita_iva, a.sdi, a.email, a.telefono, a.recapiti, a.citta].join(' ').toLowerCase().includes(q.toLowerCase()))), [anagrafica, q, ruolo]) // eslint-disable-line react-hooks/exhaustive-deps -- delRuolo dipende solo da ruolo e profilo
+    (!q.trim() || [a.denominazione, a.titolo, a.codice_fiscale, a.partita_iva, a.sdi, a.email, a.telefono, a.recapiti, a.citta, a.indirizzi].join(' ').toLowerCase().includes(q.toLowerCase()))), [anagrafica, q, ruolo]) // eslint-disable-line react-hooks/exhaustive-deps -- delRuolo dipende solo da ruolo e profilo
   const nomeR = (r: string) => nomeRuolo(r, settings.profilo, L)
   const { visible, controls } = usePagination(rows, JSON.stringify([q, ruolo]))
   const cur = anagrafica.find((a) => a.id === sel) || rows[0]
@@ -33,7 +34,7 @@ export default function AnagraficaPage() {
   const comeControparte = useMemo(() => cur ? pratiche.filter((p) => p.controparte_id && anagraficaById.get(p.controparte_id) && conflittiPer(cur, 'cliente', [p], anagraficaById).length) : [], [cur, pratiche, anagraficaById])
   // conflitto di interessi: concetto degli studi legali; per una ditta un cliente può essere anche fornitore
   const conflitto = settings.profilo !== 'ditta' && comeCliente.length > 0 && comeControparte.length > 0
-  const sue = cur ? pratiche.filter((p) => p.cliente_id === cur.id || p.controparte_id === cur.id) : []
+  const sue = cur ? pratiche.filter((p) => ruoliIn(p, cur.id).length) : []
   const recapiti = leggiRecapiti(cur)
 
   return (
@@ -75,11 +76,12 @@ export default function AnagraficaPage() {
                 {recapiti.email.map((e, i) => <Fragment key={'e' + i}><dt>{recapiti.email.length > 1 || e.etichetta !== 'Personale' ? `Email · ${e.etichetta || 'altra'}` : 'Email'}</dt><dd><button className="link-btn" onClick={() => run(() => api.openExternal('mailto:' + e.valore))}><Mail size={13} /> {e.valore}</button></dd></Fragment>)}
                 {cur.pec && <><dt>PEC</dt><dd><button className="link-btn" onClick={() => run(() => api.openExternal('mailto:' + cur.pec))}>{cur.pec}</button></dd></>}
                 {recapiti.telefoni.map((t, i) => <Fragment key={'t' + i}><dt>{t.etichetta || 'Telefono'}</dt><dd><button className="link-btn" onClick={() => run(() => api.openExternal('tel:' + t.valore.replace(/\s/g, '')))}><Phone size={13} /> {t.valore}</button></dd></Fragment>)}
-                {(cur.indirizzo || cur.citta) && <><dt>Indirizzo</dt><dd>{[cur.indirizzo, [cur.cap, cur.citta, cur.provincia && `(${cur.provincia})`].filter(Boolean).join(' ')].filter(Boolean).join(', ')}</dd></>}
+                {(cur.indirizzo || cur.citta) && <><dt>Indirizzo</dt><dd>{indirizzoInRiga(cur)}</dd></>}
+                {leggiIndirizzi(cur).map((x, i) => <Fragment key={'i' + i}><dt>{x.etichetta || 'Altro indirizzo'}</dt><dd>{indirizzoInRiga(x)}</dd></Fragment>)}
               </dl>
               {cur.note && <><h3 className="sub-title">Note</h3><p className="prewrap">{cur.note}</p></>}
               <h3 className="sub-title">{L.pratiche} collegate ({sue.length})</h3>
-              {sue.map((p) => <button key={p.id} className="plain-row" onClick={() => go({ page: 'pratica', id: p.id })}><ColorDot color={p.colore} size={12} /><span className="grow"><b>{p.titolo}</b> <small className="muted">{p.numero}</small></span><span className="muted small">{p.cliente_id === cur.id ? L.cliente : L.controparte} · {p.stato}</span></button>)}
+              {sue.map((p) => <button key={p.id} className="plain-row" onClick={() => go({ page: 'pratica', id: p.id })}><ColorDot color={p.colore} size={12} /><span className="grow"><b>{p.titolo}</b> <small className="muted">{p.numero}</small></span><span className="muted small">{ruoliIn(p, cur.id).map(nomeR).join(', ')} · {p.stato}</span></button>)}
               {!sue.length && <p className="muted">Nessuna pratica collegata.</p>}
             </section>
           )}

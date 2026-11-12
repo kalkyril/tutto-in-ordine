@@ -80,6 +80,7 @@ module.exports = function registra({ handle, changed, getWindow, scelti, autoriz
   handle('documenti:indice', (praticaId) => { db.get('pratiche', praticaId); return doctext.statoIndice(praticaId) })
   handle('documenti:indicizza', async (id, ocr) => { const result = await doctext.indicizzaDocumento(id, !!ocr); changed('documenti'); return result })
   handle('documenti:stato', (praticaId) => docfile.stato(praticaId || null))
+  handle('documenti:sottocartelle', (praticaId) => docfile.sottocartelle(praticaId))
   // candidati proposti all'utente nell'ultimo controllo: solo questi percorsi si possono scegliere dall'interfaccia
   const candidati = new Map()
   const rapporto = (praticaId, radici) => unaVolta(`sincronizza:${praticaId || 'tutte'}:${radici.join('|')}`, async () => {

@@ -506,14 +506,21 @@ p { max-width: 62ch; text-wrap: pretty; }
   .segmentato button, .pulsante, .barra a { transition: none; }
 }
 
-/* ---------- 1.0.2: «Tutto in un’app» e «Si collega»: schede in griglia, stesse superfici delle domande ---------- */
+/* ---------- «Tutto in un’app» e «Collegamenti» ---------- */
 .mappa, .collega { min-height: 0; }
-.mappa-griglia, .collega-griglia { width: 100%; max-width: var(--larghezza); margin: clamp(2rem, 5svh, 3.5rem) auto 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16.5rem), 1fr)); gap: var(--gutter); text-align: left; }
-.mappa-carta, .collega-carta { padding: clamp(1.25rem, 2.2vw, 1.75rem); border-radius: 20px; background: var(--surface); }
-.mappa-carta h3, .collega-carta h3 { font-family: var(--font); font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem); color: var(--ink); }
+/* Tutto in un'app: quattro riquadri larghi, due per riga, ognuno con il suo titolo e basta */
+.mappa-griglia { width: 100%; max-width: var(--larghezza); margin: clamp(2rem, 5svh, 3.5rem) auto 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gutter); text-align: left; }
+.mappa-carta { padding: clamp(1.5rem, 2.6vw, 2.25rem); border-radius: 20px; background: var(--surface); }
+.mappa-carta h3, .collega-elenco h3 { font-family: var(--font); font-size: clamp(1.375rem, 1.15rem + 0.7vw, 1.75rem); color: var(--ink); }
 .mappa-carta .funz-elenco { margin-top: 1rem; max-width: none; }
-.mappa-carta .funz-elenco li { font-size: 0.9375rem; }
-.collega-carta p { margin-top: 0.6rem; font-size: 0.9375rem; line-height: 1.55; color: color-mix(in srgb, var(--ink) 88%, var(--muted)); }
-.collega-carta .collega-con { margin: 0 0 0.5rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.mappa-carta .funz-elenco li { font-size: 1rem; }
+/* Collegamenti: un elenco da leggere, non otto riquadri uguali. A sinistra con che cosa, a destra che cosa succede */
+.collega-elenco { list-style: none; width: 100%; max-width: var(--larghezza); margin: clamp(2rem, 5svh, 3.5rem) auto 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(2rem, 5vw, 5rem); text-align: left; }
+.collega-elenco li { display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); gap: 0.5rem 1.5rem; align-items: start; padding: 1.4rem 0; border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent); }
+.collega-elenco li > p { margin: 0.2rem 0 0; font-size: 1rem; line-height: 1.55; color: color-mix(in srgb, var(--ink) 88%, var(--muted)); text-wrap: pretty; }
+.collega-elenco .collega-con { margin: 0.4rem 0 0; font-size: 0.875rem; line-height: 1.4; color: var(--muted); }
+@media (max-width: 61.95em) { .collega-elenco { grid-template-columns: 1fr; } }
+@media (max-width: 47.95em) { .mappa-griglia { grid-template-columns: 1fr; } }
+@media (max-width: 33.95em) { .collega-elenco li { grid-template-columns: 1fr; } }
 .collega-nota { max-width: 46rem; margin: 2rem auto 0; font-size: 1rem; line-height: 1.55; color: var(--ink); }
 #tutto, #collega { scroll-margin-top: 0; }

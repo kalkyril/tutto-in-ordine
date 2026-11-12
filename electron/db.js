@@ -267,6 +267,10 @@ function open(dir, { restoring = false } = {}) {
   if (!db.prepare('PRAGMA table_info(ore)').all().some((c) => c.name === 'tariffa_da_decidere')) db.exec('ALTER TABLE ore ADD COLUMN tariffa_da_decidere INTEGER NOT NULL DEFAULT 0')
   if (!db.prepare('PRAGMA table_info(costi)').all().some((c) => c.name === 'contabile')) db.exec('ALTER TABLE costi ADD COLUMN contabile TEXT')
   if (!db.prepare('PRAGMA table_info(ricorrenze)').all().some((c) => c.name === 'lavorativo')) db.exec('ALTER TABLE ricorrenze ADD COLUMN lavorativo INTEGER NOT NULL DEFAULT 0')
+  // 1.0.3: altre persone della pratica (JSON: [{ id, ruolo }]), ruolo ricoperto dal professionista, altri indirizzi del contatto (JSON).
+  // Colonne facoltative che le versioni precedenti ignorano: la versione dello schema non cambia.
+  { const c = db.prepare('PRAGMA table_info(pratiche)').all().map((x) => x.name); for (const nome of ['persone', 'ruolo']) if (!c.includes(nome)) db.exec(`ALTER TABLE pratiche ADD COLUMN ${nome} TEXT`) }
+  if (!db.prepare('PRAGMA table_info(anagrafica)').all().some((c) => c.name === 'indirizzi')) db.exec('ALTER TABLE anagrafica ADD COLUMN indirizzi TEXT')
   db.exec("UPDATE parcelle SET incassato = netto WHERE stato = 'pagata' AND incassato = 0")
   db.exec(`CREATE INDEX IF NOT EXISTS idx_parcelle_serie ON parcelle(anno,tipo,numero);
     CREATE TRIGGER IF NOT EXISTS parcelle_numero_insert BEFORE INSERT ON parcelle WHEN EXISTS(SELECT 1 FROM parcelle WHERE anno=NEW.anno AND tipo=NEW.tipo AND numero=NEW.numero) BEGIN SELECT RAISE(ABORT,'Numero di documento già utilizzato in questa serie'); END;
@@ -428,6 +432,11 @@ function remove(t, id) {
   assertTable(t)
   id = validation.id(id)
   if (CRONO[t]) { const r = get(t, id); if (r) scriviCronologia(r.pratica_id, t, id, 'eliminato', descrivi(t, r)) }
+  // il contatto eliminato esce anche dalle «altre persone» delle pratiche (cliente e controparte li azzera la chiave esterna)
+  if (t === 'anagrafica') for (const p of db.prepare("SELECT id, persone FROM pratiche WHERE persone IS NOT NULL AND persone <> ''").all()) {
+    let l; try { l = JSON.parse(p.persone) } catch { continue }
+    if (Array.isArray(l) && l.some((x) => Number(x?.id) === id)) { const resto = l.filter((x) => Number(x?.id) !== id); db.prepare('UPDATE pratiche SET persone = ? WHERE id = ?').run(resto.length ? JSON.stringify(resto) : null, p.id) }
+  }
   db.prepare(`DELETE FROM ${t} WHERE id = ?`).run(id)
   return true
 }

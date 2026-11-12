@@ -57,6 +57,8 @@ export const api = {
   // documenti collegati (i file restano nelle cartelle dell'utente)
   indiceDocumenti: (praticaId: number): Promise<{ id: number; stato: string | null; errore: string | null }[]> => inv('documenti:indice', praticaId),
   indicizzaDocumento: (id: number, ocr = false): Promise<{ caratteri: number; stato: string } | null> => inv('documenti:indicizza', id, ocr),
+  // sottocartelle (anche vuote) della cartella della pratica e di quella di Cliens, come percorsi relativi con «/»
+  sottocartelleDocumenti: (praticaId: number): Promise<string[]> => inv('documenti:sottocartelle', praticaId),
   statoDocumenti: (praticaId?: number): Promise<Record<number, 'ok' | 'mancante' | 'copia'>> => inv('documenti:stato', praticaId),
   sincronizzaDocumenti: (praticaId?: number): Promise<RapportoSync> => inv('documenti:sincronizza', praticaId),
   sincronizzaDocumentiIn: (praticaId?: number): Promise<RapportoSync | null> => inv('documenti:sincronizzaIn', praticaId),

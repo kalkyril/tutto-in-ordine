@@ -41,6 +41,11 @@ function record(table, obj) {
     if (['minuti', 'tariffa_oraria', 'importo', 'quantita', 'valore', 'sg_perc', 'cpa_perc', 'iva_perc', 'rit_perc', 'bollo', 'compensi', 'spese_generali', 'cpa', 'imponibile', 'iva', 'spese_esenti', 'ritenuta', 'totale', 'netto', 'incassato', 'dimensione', 'promemoria_min'].includes(key)) {
       if (!Number.isFinite(Number(value)) || Number(value) < 0) throw new Error(`Il campo ${key} deve essere un numero non negativo`)
     }
+    if (key === 'persone') { // altre persone della pratica: elenco di { id, ruolo }
+      let l; try { l = JSON.parse(value) } catch { throw new Error('Formato non valido: persone') }
+      if (!Array.isArray(l) || l.length > 200 || l.some((x) => !x || typeof x !== 'object' || !Number.isSafeInteger(x.id) || x.id <= 0 || !['cliente', 'controparte', 'fornitore', 'collaboratore', 'altro'].includes(x.ruolo))) throw new Error('Formato non valido: persone')
+    }
+    if (key === 'indirizzi') { let l; try { l = JSON.parse(value) } catch { l = null } if (!Array.isArray(l) || l.length > 50 || l.some((x) => !x || typeof x !== 'object')) throw new Error('Formato non valido: indirizzi') }
     if (key === 'anno' && (!Number.isInteger(Number(value)) || Number(value) < 1000 || Number(value) > 9999)) throw new Error('Anno non valido')
     if (key === 'progressivo') id(value)
     if (['promemoria', 'calcolo'].includes(key)) { try { const parsed = typeof value === 'string' ? JSON.parse(value) : value; if (key === 'promemoria' && (!Array.isArray(parsed) || parsed.some((x) => !Number.isFinite(x) || x < 0 || x > 525600))) throw new Error() } catch { throw new Error(`Formato non valido: ${key}`) } }

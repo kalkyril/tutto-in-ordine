@@ -10,6 +10,7 @@ import { Btn, ColorDot, Empty, PageHeader, Pill, Segmented, useAction, useFeedba
 import { useZonaPratiche } from '../lib/trascina'
 import { fmtDate, relative } from '../lib/dates'
 import { loadPref, matchPratica, praticaStats, savePref } from '../lib/stats'
+import { personeDi } from '../lib/persone'
 import type { Pratica } from '../types'
 import { useClock } from '../lib/clock'
 
@@ -47,7 +48,7 @@ export default function Pratiche() {
       if (stato === '__attive' && chiuse.has(p.stato || '')) return false
       if (stato !== '__attive' && stato !== '__tutte' && p.stato !== stato) return false
       if (tipo && p.tipo !== tipo) return false
-      if (q.trim()) return matchPratica(p, q, [anagraficaById.get(p.cliente_id ?? -1)?.denominazione || '', anagraficaById.get(p.controparte_id ?? -1)?.denominazione || ''])
+      if (q.trim()) return matchPratica(p, q, [...personeDi(p, anagraficaById).map((x) => x.contatto.denominazione), p.ruolo || ''])
       return true
     })
     const next = (p: Pratica) => stats.get(p.id)?.nextScad?.data_ora || '9999'

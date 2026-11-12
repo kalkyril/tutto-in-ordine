@@ -121,7 +121,7 @@ export default function App() {
     case 'pratica': page = <PraticaDetail key={route.id} id={route.id!} tab={route.tab} focus={route.focus} />; break
     case 'agenda': page = <Agenda />; break
     case 'todo': page = <TodoPage />; break
-    case 'anagrafica': page = <AnagraficaPage />; break
+    case 'anagrafica': page = <AnagraficaPage id={route.id} />; break
     // 1.0.2: incassi e «Da pagare» sono schede della sezione Pagamenti; i vecchi indirizzi aprono la scheda giusta
     case 'pagamenti': page = <Pagamenti key="scadenzario" scheda={route.tab === 'incassi' || route.tab === 'dapagare' ? route.tab : 'scadenzario'} />; break
     case 'parcelle': page = <Pagamenti key="incassi" scheda="incassi" />; break

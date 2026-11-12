@@ -76,8 +76,8 @@ Gli installer sono nella pagina **[Releases](https://github.com/kalkyril/tutto-i
 <summary>Verificare il codice SHA-256</summary>
 
 ```bash
-shasum -a 256 TIO-1.0.2-arm64.dmg                  # macOS (Terminale)
-certutil -hashfile TIO-Setup-1.0.2.exe SHA256     # Windows (Prompt dei comandi)
+shasum -a 256 TIO-1.0.3-arm64.dmg                  # macOS (Terminale)
+certutil -hashfile TIO-Setup-1.0.3.exe SHA256     # Windows (Prompt dei comandi)
 ```
 
 Il risultato deve coincidere con la riga del file in `SHA256SUMS.txt`.
