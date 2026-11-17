@@ -79,9 +79,12 @@ app.whenReady().then(async () => {
     await new Promise(resolve => { current.webContents.once('did-finish-load', resolve); current.reload() })
     let minContrast = Infinity
     for (const tema of ['chiaro', 'scuro']) {
+      const misura = () => evaluate("(()=>{const s=document.querySelector('[data-tramonto]'),el=s.querySelector('.tramonto-fermo'),p=s.querySelector('.tramonto-testa p');const rgb=v=>v.match(/[\\d.]+/g).slice(0,3).map(Number);const lum=a=>a.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((n,v,k)=>n+v*[.2126,.7152,.0722][k],0);const a=lum(rgb(getComputedStyle(el).backgroundColor)),b=lum(rgb(getComputedStyle(p).color));return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)})()")
       await evaluate(`document.querySelector('[data-tema-scegli=${tema}]').click();document.querySelector('[data-tramonto]').scrollIntoView({behavior:'instant'})`)
+      // subito dopo il clic, a transizione appena iniziata (come su una macchina che non disegna i fotogrammi) e a transizione finita
+      const subito = await misura()
       await sleep(900)
-      const value = await evaluate("(()=>{const s=document.querySelector('[data-tramonto]'),el=s.querySelector('.tramonto-fermo'),p=s.querySelector('.tramonto-testa p');const rgb=v=>v.match(/[\\d.]+/g).slice(0,3).map(Number);const lum=a=>a.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((n,v,k)=>n+v*[.2126,.7152,.0722][k],0);const a=lum(rgb(getComputedStyle(el).backgroundColor)),b=lum(rgb(getComputedStyle(p).color));return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)})()")
+      const value = Math.min(subito, await misura())
       minContrast = Math.min(minContrast, value)
       await axe('accessibilità con la schermata in ' + tema)
     }
