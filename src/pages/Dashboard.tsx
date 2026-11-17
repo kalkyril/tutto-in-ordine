@@ -1,10 +1,12 @@
 import { residuo } from '../lib/report'
 import { useMemo, useState, type CSSProperties } from 'react'
-import { AlarmClock, AlertTriangle, CalendarPlus, CheckSquare, FolderPlus, UserPlus, FolderOpen, Star, Wallet } from 'lucide-react'
+import { AlarmClock, AlertTriangle, CalendarPlus, CheckSquare, FolderPlus, Gauge, UserPlus, FolderOpen, Star, Wallet } from 'lucide-react'
+import { useGestione } from '../components/GestioneAttivita'
+import { avvisiPratiche, consumoPratiche } from '../lib/budgetPratica'
 import { useData } from '../store'
 import { useNav } from '../nav'
 import { useEditors } from '../components/editors'
-import { Btn, ColorDot, PageHeader } from '../components/ui'
+import { Btn, ColorDot, PageHeader, Priorita } from '../components/ui'
 import { ScadenzaRow, TodoRow } from '../components/items'
 import { EventoEsternoModal, EventoEsternoRow } from '../components/EventoEsterno'
 import { addDays, fmtDate, fmtLong, fmtTime, isLate, parse, ymd } from '../lib/dates'
@@ -13,7 +15,8 @@ import { apriMenu } from '../lib/menuContestuale'
 import { useClock } from '../lib/clock'
 
 export default function Dashboard() {
-  const { scadenze, todos, pratiche, parcelle, settings, ready, eventi, calendari } = useData()
+  const { scadenze, todos, pratiche, parcelle, settings, ready, eventi, calendari, ore, spese } = useData()
+  const gestione = useGestione()
   const [extAperto, setExtAperto] = useState<import('../types').EventoEsterno | null>(null)
   const { go } = useNav()
   const ed = useEditors()
@@ -34,6 +37,8 @@ export default function Dashboard() {
     (a.scadenza ? 0 : 1) - (b.scadenza ? 0 : 1) || (a.scadenza || '').localeCompare(b.scadenza || '') || b.priorita - a.priorita), [todos])
   const chiuse = new Set(settings.stati_pratica.filter((s) => s.chiusa).map((s) => s.nome))
   const attive = pratiche.filter((p) => !chiuse.has(p.stato || ''))
+  // 1.0.4: avvisi sul budget della pratica (ore, importo concordato, consegna), mostrati accanto al titolo
+  const avvisiBudget = useMemo(() => { const m = new Map<number, ReturnType<typeof avvisiPratiche>>(); for (const a of avvisiPratiche(pratiche, consumoPratiche(ore, spese, gestione.costi), today, new Set(settings.stati_pratica.filter((s) => s.chiusa).map((s) => s.nome)))) m.set(a.pratica_id, [...(m.get(a.pratica_id) || []), a]); return m }, [pratiche, ore, spese, gestione.costi, today, settings.stati_pratica])
   const daIncassare = parcelle.filter((p) => p.tipo === 'parcella' && p.stato === 'emessa').reduce((s, p) => s + residuo(p), 0)
   const settimana = prossime.filter((s) => s.data_ora.slice(0, 10) <= ymd(addDays(now, 7))).length
 
@@ -126,7 +131,9 @@ export default function Dashboard() {
                 { id: 'compito', label: 'Nuovo compito…', fai: () => ed.open({ kind: 'todo', praticaId: p.id }) },
               ])}>
                 <ColorDot color={p.colore} size={12} />
+                <Priorita valore={p.priorita} />
                 <span className="grow"><b>{p.titolo}</b><small className="muted"> {p.numero}</small></span>
+                {avvisiBudget.get(p.id) && (() => { const av = avvisiBudget.get(p.id)!, grave = av.some((a) => a.livello === 'superato'); return <span className={`avviso-budget ${grave ? 'superato' : 'attenzione'}`} title={av.map((a) => a.testo).join(' · ')}><Gauge size={14} aria-hidden="true" /><span className="sr-only">Budget: {av.map((a) => a.testo).join('; ')}</span></span> })()}
                 {p.preferita ? <Star size={13} className="fav" /> : null}
                 <span className="muted small">{p.stato}</span>
               </button>

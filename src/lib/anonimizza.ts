@@ -14,7 +14,7 @@
 export type Tag =
   | 'FULLNAME' | 'ORG' | 'CF' | 'PIVA' | 'IBAN' | 'CREDITCARDNUMBER' | 'EMAIL' | 'TELEPHONENUM'
   | 'STREET' | 'ZIPCODE' | 'CITY' | 'PROVINCE' | 'DATE' | 'TIME' | 'AGE' | 'AMOUNT' | 'TARGA'
-  | 'ID_DOC' | 'DOCID' | 'CATASTO' | 'URL' | 'IPADDR'
+  | 'ID_DOC' | 'DOCID' | 'CATASTO' | 'URL' | 'IPADDR' | 'GENDER' | 'ACCOUNT'
 
 export type Fonte = 'regex' | 'contesto' | 'archivio' | 'nomi' | 'manuale' | 'propagazione'
 
@@ -42,13 +42,15 @@ export const TAGS: { tag: Tag; nome: string; esempio: string }[] = [
   { tag: 'CATASTO', nome: 'Dati catastali', esempio: 'foglio 12, particella 345' },
   { tag: 'URL', nome: 'Siti web', esempio: 'www.esempio.it' },
   { tag: 'IPADDR', nome: 'Indirizzi IP', esempio: '192.168.1.10' },
+  { tag: 'GENDER', nome: 'Sesso', esempio: 'di sesso maschile' },
+  { tag: 'ACCOUNT', nome: 'Nomi utente e password', esempio: 'password: …' },
 ]
 export const NOME_TAG = Object.fromEntries(TAGS.map((t) => [t.tag, t.nome])) as Record<Tag, string>
 /** Parola del segnaposto, in italiano: [NOME_COMPLETO_1], [DATA_1]… (solo lettere senza accenti e trattini bassi, per l'IA e il ripristino). */
 export const SEGNAPOSTO: Record<Tag, string> = {
   FULLNAME: 'NOME_COMPLETO', ORG: 'SOCIETA', CF: 'CODICE_FISCALE', PIVA: 'PARTITA_IVA', IBAN: 'IBAN', CREDITCARDNUMBER: 'CARTA_PAGAMENTO',
   EMAIL: 'EMAIL', TELEPHONENUM: 'TELEFONO', STREET: 'INDIRIZZO', ZIPCODE: 'CAP', CITY: 'CITTA', PROVINCE: 'PROVINCIA', DATE: 'DATA', TIME: 'ORARIO',
-  AGE: 'ETA', AMOUNT: 'IMPORTO', TARGA: 'TARGA', ID_DOC: 'DOCUMENTO_IDENTITA', DOCID: 'NUMERO_ATTO', CATASTO: 'DATI_CATASTALI', URL: 'SITO_WEB', IPADDR: 'INDIRIZZO_IP',
+  AGE: 'ETA', AMOUNT: 'IMPORTO', TARGA: 'TARGA', ID_DOC: 'DOCUMENTO_IDENTITA', DOCID: 'NUMERO_ATTO', CATASTO: 'DATI_CATASTALI', URL: 'SITO_WEB', IPADDR: 'INDIRIZZO_IP', GENDER: 'SESSO', ACCOUNT: 'CREDENZIALE',
 }
 const segnaposto = (tag: Tag, n: number) => `[${SEGNAPOSTO[tag]}_${n}]`
 
@@ -131,9 +133,17 @@ export function luhnOk(s: string): boolean {
 // ------------------------------------------------------------------ rete regex (da rizzo-pii)
 
 type Validatore = ((s: string) => boolean) | null
+/** Telefono scritto con barre, trattini o gruppi: da 8 a 11 cifre dopo il prefisso internazionale, e non una data. */
+function telefonoOk(s: string): boolean {
+  if (/^\d{1,2}[-./]\d{1,2}[-./]\d{2,4}$/.test(s.trim())) return false
+  const cifre = s.replace(/^\s*(?:\+|00)39/, '').replace(/\D/g, '')
+  return cifre.length >= 8 && cifre.length <= 11
+}
 // [tag, regex, validatore, strict]: strict scarta il candidato se il checksum fallisce
 const RILEVATORI: [Tag, RegExp, Validatore, boolean][] = [
   ['EMAIL', /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, null, true],
+  // chiocciola scritta per esteso per sfuggire ai filtri: «mario.rossi[at]gmail.com»
+  ['EMAIL', /[A-Za-z0-9._%+-]+\s?(?:\[at\]|\(at\)|\[chiocciola\]|\(chiocciola\))\s?[A-Za-z0-9.-]+\.[A-Za-z]{2,}/gi, null, true],
   ['CF', /\b[A-Za-z]{6}\d{2}[A-Za-z]\d{2}[A-Za-z]\d{3}[A-Za-z]\b/g, cfOk, false],
   // omocodia: le cifre diventano lettere (0→L … 9→V); la forma da sola è generica, quindi checksum obbligatorio
   ['CF', /\b[A-Za-z]{6}[\dLMNPQRSTUVlmnpqrstuv]{2}[A-Za-z][\dLMNPQRSTUVlmnpqrstuv]{2}[A-Za-z][\dLMNPQRSTUVlmnpqrstuv]{3}[A-Za-z]\b/g, cfOk, true],
@@ -141,15 +151,44 @@ const RILEVATORI: [Tag, RegExp, Validatore, boolean][] = [
   ['CREDITCARDNUMBER', /(?<!\d)\d(?:[ .-]?\d){12,18}(?!\d)/g, luhnOk, true],
   ['PIVA', /(?<!\d)\d{11}(?!\d)/g, pivaOk, true],
   ['TELEPHONENUM', /(?<![\w.])(?:\+39[\s.-]?)?(?:3\d{2}[\s.-]?\d{3}[\s.-]?\d{3,4}|0\d{1,3}[\s.-]?\d{5,8})(?!\w)/g, null, true],
+  // telefoni con barra, trattini o a gruppi («02/12345678», «333-12 34 567», «0039 347 1234567») e numeri verdi
+  ['TELEPHONENUM', /(?<![\w.,/-])(?:(?:\+|00)39[\s.-]?)?(?:3\d{2}|0\d{1,3})[\s./-]?\d{2,4}(?:[\s.-]?\d{2,4}){1,3}(?![\w/]|[.,-]\d)/g, telefonoOk, true],
+  ['TELEPHONENUM', /(?<![\w.])(?:800|803)[\s.-]?\d{2,3}[\s.-]?\d{3,4}(?!\w)/g, null, true],
+  // coordinate bancarie diverse dall'IBAN: conto corrente, ABI, CAB, CIN, BIC/SWIFT
+  ['IBAN', /\b(?:c\/c|conto\s+corrente)(?:\s+(?:bancario|postale))?\s*(?:n\.?|nr\.?|num\.?|numero)?\s*°?\s*:?\s*\d{5,12}\b/gi, null, true],
+  ['IBAN', /\b(?:ABI|CAB)\s*:?\s*\d{5}\b|\bCIN\s*:?\s*[A-Z]\b/g, null, true],
+  ['IBAN', /\b(?:BIC|SWIFT)(?:\s*\/\s*(?:BIC|SWIFT))?\s*:?\s*[A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?\b/g, null, true],
+  // codice fiscale numerico di enti e società e partita IVA dichiarati dalla sigla: valgono anche se il codice di controllo non torna (refuso)
+  ['CF', /(?<=(?<![\p{L}])(?:c\.\s?f\.|cod(?:ice|\.)\s+fisc(?:ale|\.)?)\s*:?\s*)\d{11}(?!\d)/giu, null, true],
+  ['PIVA', /(?<=(?<![\p{L}])(?:p\.?\s?iva|partita\s+iva)\s*:?\s*)(?:IT\s?)?\d{11}(?!\d)/giu, null, true],
+  ['AMOUNT', /\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?\s?(?:€|EUR\b|euro\b)|(?<![\d.,])\d{1,7}(?:,\d{1,2})?\s?(?:€|EUR\b|euro\b)|(?:€|EUR\b|euro\b)\s?\d{4,9}(?:,\d{1,2})?(?![\d.])|(?<![\p{L}])(?:lire|£|\$|USD\b|CHF\b)\s?\d{1,3}(?:[.\s]\d{3})*(?:,\d{2})?/giu, null, true],
+  // somma scritta senza valuta dopo la parola che la annuncia: «importo di 2.340,50»
+  ['AMOUNT', /(?<![\p{L}])(?:importo|somma|prezzo|corrispettivo|canone|compenso|saldo|acconto|totale|caparra|risarcimento)(?:\s+[\p{L}]+){0,3}?\s+(?:di|pari\s+a[d]?|:)\s*\d{1,3}(?:\.\d{3})*,\d{2}(?!\d)/giu, null, true],
   ['AMOUNT', /(?:€|EUR\b|euro\b)\s?\d{1,3}(?:[.\s]\d{3})*(?:,\d{2})?|\d{1,3}(?:\.\d{3})*,\d{2}\s?(?:€|EUR\b|euro\b)/gi, null, true],
   ['TARGA', /\b[A-Za-z]{2}[\s-]?\d{3}[\s-]?[A-Za-z]{2}\b/g, null, true],
+  // targhe di vecchio tipo e di moto, riconoscibili dalla parola che le introduce; numero di telaio (17 caratteri)
+  ['TARGA', /(?<![\p{L}])(?:targa(?:t[oaie])?|tg\.)\s*:?\s*[A-Z]{2}[\s-]?[A-Z0-9]?\d{4,6}\b|(?<![\p{L}])(?:motociclo|ciclomotore|motoveicolo|scooter)(?:\s+targat[oa])?\s+[A-Z]{2}[\s-]?\d{5}\b/giu, null, true],
+  ['TARGA', /(?<![\p{L}])(?:telaio|VIN)\s*(?:n\.?\s*)?:?\s*[A-HJ-NPR-Z0-9]{17}\b/giu, null, true],
   ['URL', /(?:https?|ftp):\/\/[^\s<>"']+|www\.[A-Za-z0-9\-._~%]+\.[A-Za-z]{2,}(?:\/[^\s<>"']*)?|\b(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+(?:it|com|net|org|eu|info|io|dev|app|gov|edu|cloud|online|site|blog)\b(?:\/[^\s<>"']*)?/gi, null, true],
   ['IPADDR', /\b(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}(?:\/(?:3[0-2]|[12]?\d))?(?:\s*-\s*(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})?\b/g, null, true],
   // la sigla rende riconoscibile il numero dell'atto: senza, «1234/2024» potrebbe essere una frazione o un articolo
   ['DOCID', /\b(?:R\.?\s?G\.?\s*N\.?\s?R\.?|R\.?\s?G\.?(?=[\s\d])|RG|Prot\.?|protocollo|Rep\.?|repertorio|Racc\.?|raccolta|sentenza|decreto(?:\s+ingiuntivo)?|ordinanza|fattura|polizza|CIG|CUP|matricola)(?:\s*(?:n\.?|num\.?|nro\.?|numero)\s*°?)?\s*:?\s*\d{1,8}(?:[/-]\d{2,4})?\b/gi, null, true],
+  // altri numeri che individuano una persona o un rapporto: sinistro, polizza, contratto, REA, matricola, codice cliente o SDI
+  ['DOCID', /(?<![\p{L}])(?:sinistro|polizza|contratto|pratica|R\.?E\.?A\.?|matricola(?:\s+(?:INPS|INAIL))?|posizione\s+(?:INPS|INAIL)|tessera(?!\s+sanitaria)|codice\s+(?:cliente|utente|SDI|destinatario|univoco)|SDI)(?:\s*(?:n\.?|nr\.?|num\.?|numero)\s*°?)?\s*:?\s*(?:[A-Z]{2}[-\s]?\d{3,9}|\d{2,14}(?:[/-]\d{2,8})?|(?=[A-Z0-9]*\d)[A-Z0-9]{7})\b/gu, null, true],
   // «iscritta al n. 2231/2024 R.G.»: la sigla dopo il numero
   ['DOCID', /\b(?:n\.?|nr\.?|num\.?|numero)\s*°?\s*\d{1,8}[/-]\d{2,4}(?=\s*(?:R\.?\s?G\.?|RG|r\.g\.)(?![A-Za-z]))/gi, null, true],
   ['DATE', /(?<!\d)(?:0?[1-9]|[12]\d|3[01])[/.-](?:0?[1-9]|1[0-2])[/.-](?:19|20)\d{2}(?:\s+\d{1,2}[:.]\d{2})?(?!\d)/g, null, true],
+  // anno a due cifre («12.06.85») e data in formato ISO («2024-03-15»)
+  ['DATE', /(?<![\d/.-]|\bartt?\.\s?|\bn\.\s?|§\s?|\bcomma\s)(?:0?[1-9]|[12]\d|3[01])([/.-])(?:0?[1-9]|1[0-2])\1\d{2}(?![\d/.-])/g, null, true],
+  ['DATE', /(?<![\d-])(?:19|20)\d{2}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])(?![\d-])/g, null, true],
+  // sesso dichiarato e credenziali di accesso
+  ['GENDER', /(?<![\p{L}])(?:di\s+)?(?:sesso|genere)\s*:?\s*(?:maschile|femminile|maschio|femmina|M|F)(?![\p{L}])/giu, null, true],
+  // solo il valore viene nascosto: l'etichetta («password:», «nome utente:») resta leggibile
+  ['ACCOUNT', /(?<=(?<![\p{L}])(?:password|passwd|pwd|passcode|PIN|PUK)\s*(?::|=|è)\s*)\S{3,60}(?<![.,;])|(?<=(?<![\p{L}])(?:password|passwd|pwd)\s+)(?=\S*[\d!@#$%^&*_+-])\S{4,60}(?<![.,;])/giu, null, true],
+  ['ACCOUNT', /(?<=(?<![\p{L}])(?:nome\s+utente|username|user\s?id|login|skype|SPID|telegram|instagram|facebook)\s*(?::|=)\s*|(?<![\p{L}])(?:username|user\s?id|skype|SPID)\s+|(?<![\p{L}])(?:utente|account|user)\s*(?::|=)\s*)@?(?=[A-Za-z0-9._-]*[A-Za-z])[A-Za-z0-9._-]{3,40}(?<![.,;])/giu, null, true],
+  ['ACCOUNT', /(?<![\w@./])@(?=[A-Za-z0-9_.]*[A-Za-z])[A-Za-z0-9_](?:[A-Za-z0-9_.]{1,28}[A-Za-z0-9_])\b/g, null, true],
+  // coordinate geografiche dell'Italia (latitudine 35-47, longitudine 6-18): individuano un indirizzo
+  ['STREET', /(?<![\d.])(?:3[5-9]|4[0-7])\.\d{4,7}\s*°?\s*N?\s*[,;]\s*(?:[6-9]|1[0-8])\.\d{4,7}(?:\s*°?\s*E)?(?!\d)/g, null, true],
 ]
 // forma senza checksum: in fusione non prevale su un candidato più specifico
 const REGEX_DEBOLI = new Set<Tag>(['DATE'])
@@ -226,7 +265,7 @@ export function rilevaRegex(testo: string): Entita[] {
 const MAIUSC = 'A-ZÀ-ÖØ-Ý'
 const MINUSC = 'a-zß-öø-ÿ'
 // una parola di nome: «Rossi», «D'Amico», «ROSSI», «De» dentro un cognome composto
-const PAROLA = `(?:[${MAIUSC}][${MINUSC}]+(?:['’][${MAIUSC}][${MINUSC}]+)?|[${MAIUSC}]{2,}(?:['’][${MAIUSC}]+)?)`
+const PAROLA = `(?:[${MAIUSC}][${MINUSC}]+(?:['’][${MAIUSC}][${MINUSC}]+)?|[${MAIUSC}]['’][${MAIUSC}][${MINUSC}]+|[${MAIUSC}]{2,}(?:['’][${MAIUSC}]+)?|[${MAIUSC}]['’][${MAIUSC}]{2,})`
 const PARTICELLA = `(?:De|Di|Del|Della|Dei|Da|Dal|Dalla|La|Lo|Li|Van|Von|D['’])`
 // le parole di un nome restano sulla stessa riga: «ROSSI MARIO» a capo «Nome …» non è un nome solo
 const SP = '[^\\S\\n]'
@@ -263,31 +302,48 @@ const NOMI_PROPRI = new Set(('Mario Giuseppe Giovanni Antonio Luigi Francesco An
 // titoli e ruoli che precedono un nome di persona
 const TITOLO = String.raw`(?:sig(?:\.|nor|nora|\.ra|\.na)?|sigg\.|dott(?:\.|or|ore|oressa|\.ssa)?|dr\.?|avv(?:\.|\.to|ocato|ocatessa|ocata)?|ing(?:\.|egnere)?|arch(?:\.|itetto)?|geom(?:\.|etra)?|rag(?:\.|ioniere)?|prof(?:\.|essore|essoressa|\.ssa)?|p\.\s?i\.|per\.\s?ind\.|notaio|on\.|giudice|g\.i\.|g\.o\.p\.|consigliere|ctu|c\.t\.u\.|teste|testimone|perito|il\s+sottoscritto|la\s+sottoscritta|io\s+sottoscritt[oa]|sottoscritt[oa])`
 // il titolo si riconosce senza badare alle maiuscole, il nome che segue no: «dott. Rossi», non «dott. vista»
-const RE_TITOLO = new RegExp(String.raw`(?<![\p{L}])(?i:${TITOLO})${SP}+(${NOME})`, 'gu')
+// «sig.ra G. Verdi»: una o due iniziali puntate prima del cognome fanno parte del nome
+// In due passi: prima il titolo senza badare alle maiuscole, poi il nome con le maiuscole giuste. Un solo schema con
+// «(?i:…)» salta «Sig.ra» (S maiuscola) nei testi che contengono caratteri fuori da Latin-1, come l'apostrofo tipografico.
+const RE_TITOLO_SOLO = new RegExp(String.raw`(?<![\p{L}])(?:${TITOLO})${SP}+`, 'giu')
+const RE_NOME_DOPO = new RegExp(String.raw`(?:[${MAIUSC}]\.${SP}?){0,2}${NOME}`, 'yu')
+const RE_INIZIALI_DOPO = new RegExp(String.raw`[${MAIUSC}]\.${SP}?[${MAIUSC}]\.`, 'yu')
+// persona indicata con le sole iniziali: «il minore L.B.», «la sig.ra A. R.»
+const RE_INIZIALI_PRIMA = new RegExp(String.raw`(?<![\p{L}])(?:minore|minori|figli[oa]|bambin[oa]|ragazz[oa]|paziente|sig\.(?:ra|na)?|signor[a]?|imputat[oa]|indagat[oa]|persona\s+offesa)${SP}+`, 'giu')
+// «Rossi, Mario»: cognome, virgola, nome proprio
+const RE_COGNOME_NOME = new RegExp(String.raw`(?<![\p{L}])(${PAROLA}),${SP}(${PAROLA})(?![\p{L}])`, 'gu')
 // «Mario Rossi, nato a», «ROSSI MARIO (C.F. …», «Rossi Mario, residente in»
-const RE_PRIMA_DI = new RegExp(String.raw`(${NOME})(?=\s*,?\s*(?:\(?\s*(?:c\.?\s?f\.?|cod(?:ice|\.)\s+fisc(?:ale|\.)?)|nat[oa]\s+(?:a|il|in)\b|resident[ei]\b|domiciliat[oa]\b|c\.f\.))`, 'gu')
-const RE_LUOGO = new RegExp(String.raw`\b(?:nat[oa]|resident[ei]|domiciliat[oa]|elettivamente\s+domiciliat[oa]|con\s+sede(?:\s+legale)?|sit[oa]|ubicat[oa])\s+(?:a|in|ad)\s+((?:[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})(?:(?:${SP}|-)(?:sul|sulla|di|del|della|in|al|San|Santa|S\.|[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})){0,3})(?:\s*\(([A-Z]{2})\))?`, 'gu')
+const RE_PRIMA_DI = new RegExp(String.raw`(${NOME})(?=\s*,?\s*(?:\(?\s*(?:c\.?\s?f\.?|cod(?:ice|\.)\s+fisc(?:ale|\.)?)|nat[oa](?:\/[ao])?\s+(?:a|il|in)\b|resident[ei]\b|domiciliat[oa]\b|c\.f\.))`, 'gu')
+const RE_LUOGO = new RegExp(String.raw`\b(?:nat[oa](?:\/[ao])?|resident[ei]|domiciliat[oa]|elettivamente\s+domiciliat[oa]|con\s+sede(?:\s+legale)?|sit[oa]|ubicat[oa])\s+(?:a|in|ad)\s+((?:[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})(?:(?:${SP}|-)(?:sul|sulla|di|del|della|in|al|San|Santa|S\.|[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})){0,3})(?:\s*\(([A-Z]{2})\))?`, 'gu')
 const RE_CAP_CITTA = new RegExp(String.raw`(?<!\d)(\d{5})\s*[-–]?\s*((?:[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})(?:(?:${SP}|-)(?:sul|sulla|di|del|della|San|Santa|[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})){0,3})(?:\s*\(([A-Z]{2})\))?`, 'gu')
 // tipo di strada, nome (fino a 6 parole) e civico: si preferisce la lettura che arriva fino al numero («via Emilia Est 220»,
 // non solo «via Emilia»); senza numero, il nome più breve
 const VIA_NOME = String.raw`(?:dei|degli|delle|del|della|dello|di|de|da|al|alla|alle|ai|in|sul|sulla|San|Santa|Sant['’]|S\.|[${MAIUSC}0-9][\p{L}0-9'’.]*)`, VIA_ULTIMA = String.raw`(?:[${MAIUSC}0-9][\p{L}0-9'’.]*)`, VIA_CIVICO = String.raw`\s*,?\s*(?:n\.?\s*°?|nr\.?|num\.?|civ\.?|civico)?\s*\d+[A-Za-z]?(?:\/\s?[A-Za-z0-9]+)?`
 const RE_VIA = new RegExp(String.raw`(?<![\p{L}])(?i:via|viale|v\.le|piazza|p\.zza|p\.za|piazzale|p\.le|corso|c\.so|largo|vicolo|vico|strada|contrada|c\.da|località|loc\.|borgo|lungomare|lungotevere|galleria|salita|traversa|frazione|fraz\.)\s+(?:(?:${VIA_NOME}\s*){0,6}?${VIA_ULTIMA}${VIA_CIVICO}|(?:${VIA_NOME}\s*){0,6}?${VIA_ULTIMA})`, 'gu')
-const RE_ORG = new RegExp(String.raw`((?:(?:[${MAIUSC}0-9][\p{L}0-9&'’.-]*|&|e|di|del|della|dei|delle|de)${SP}+){0,5}[${MAIUSC}0-9][\p{L}0-9&'’.-]*)\s*,?\s*(?:S\.?\s?[rR]\.?\s?[lL]\.?(?:\s?[sS]\.?)?(?:\s+(?:unipersonale|UNIPERSONALE))?|S\.?\s?[pP]\.?\s?[aA]\.?|S\.?\s?[nN]\.?\s?[cC]\.?|S\.?\s?[aA]\.?\s?[sS]\.?|S\.?\s?[sS]\.?|S\.?\s?[cC]\.?\s?[aA]\.?\s?[rR]\.?\s?[lL]\.?|(?:[Ss]oc|SOC)\.?\s*(?:[Cc]oop|COOP)\.?(?:\s+a\s+r\.?\s?l\.?)?|[Ss]ociet[àa]\s+[Cc]ooperativa|SOCIET[ÀA]\s+COOPERATIVA|onlus|o\.n\.l\.u\.s\.|ETS|APS)(?![\p{L}])`, 'gu')
-const RE_ORG_PREFISSO = new RegExp(String.raw`(?<![\p{L}])(?:Studio\s+(?:Legale|Notarile|Associato|Tecnico|Commerciale)|Banca|Ditta|Impresa|Associazione|Fondazione|Cooperativa|Società|Agenzia\s+(?:Immobiliare|Viaggi))\s+(?:(?:${PARTICELLA}\s*)?${PAROLA}|&)(?:\s+(?:(?:${PARTICELLA}\s*)?${PAROLA}|&|e)){0,4}`, 'gu')
+const RE_ORG = new RegExp(String.raw`((?:(?:[${MAIUSC}0-9][\p{L}0-9&'’.-]*|&|e|di|del|della|dei|delle|de)${SP}+){0,5}[${MAIUSC}0-9][\p{L}0-9&'’.-]*)\s*,?\s*(?:S\.?\s?[rR]\.?\s?[lL]\.?(?:\s?[sS]\.?)?(?:\s+(?:unipersonale|UNIPERSONALE))?|S\.?\s?[pP]\.?\s?[aA]\.?|S\.?\s?[nN]\.?\s?[cC]\.?|S\.?\s?[aA]\.?\s?[sS]\.?|S\.?\s?[sS]\.?|S\.?\s?[cC]\.?\s?[aA]\.?\s?[rR]\.?\s?[lL]\.?|(?:[Ss]oc|SOC)\.?\s*(?:[Cc]oop|COOP)\.?(?:\s+a\s+r\.?\s?l\.?)?|[Ss]ociet[àa]\s+[Cc]ooperativa|SOCIET[ÀA]\s+COOPERATIVA|s\.r\.l\.(?:s\.)?|s\.p\.a\.|s\.n\.c\.|s\.a\.s\.|s\.s\.|srls?|snc|sas|onlus|o\.n\.l\.u\.s\.|ETS|APS)(?![\p{L}])`, 'gu')
+const RE_ORG_PREFISSO = new RegExp(String.raw`(?<![\p{L}])(?:Studio\s+(?:Legale|Notarile|Associato|Tecnico|Commerciale|Medico|Dentistico)|Banca|Ditta|Impresa|Associazione|Fondazione|Cooperativa|Società|Agenzia\s+(?:Immobiliare|Viaggi)|Condominio|Ospedale|Clinica|Casa\s+di\s+Cura|Istituto|Farmacia|Hotel|Albergo|Parrocchia|Scuola|Liceo|Azienda\s+Agricola|Officina|Autofficina|Carrozzeria|Ristorante|Trattoria|Pizzeria|Bar)\s+(?:(?:${PARTICELLA}\s*)?${PAROLA}|&)(?:\s+(?:(?:(?:${PARTICELLA}|di|del|della|dei|delle|dell['’]|d['’])\s*)?${PAROLA}|&|e(?=\s+[${MAIUSC}]))){0,4}`, 'gu')
 const RE_ETA = /\b(?:di|dell['’]età\s+di|età(?:\s+di)?|anni|età:)\s*(\d{1,3})\s*(?:anni)?\b|\b(\d{1,3})\s*(?:-?\s*enne|anni\s+compiuti)\b/giu
 const RE_ETA_DI_ANNI = /\bdi\s+anni\s+(\d{1,3})\b/giu
 const RE_ORA = /\b(?:ore|alle|dalle|dalle\s+ore|alle\s+ore|h\.?)\s*((?:[01]?\d|2[0-3])[:.][0-5]\d)\b/giu
 const MESI = 'gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre'
-const RE_DATA_TESTO = new RegExp(String.raw`\b(?:[1-9]|[12]\d|3[01])(?:°|º)?\s+(?:${MESI})\s+(?:19|20)\d{2}\b`, 'giu')
-const RE_ID_DOC = new RegExp(String.raw`(?i:carta\s+d['’]\s?identit[àa]|c\.\s?i\.|c\.i\.e\.|passaporto|patente(?:\s+di\s+guida)?|tessera\s+sanitaria|permesso\s+di\s+soggiorno|documento(?:\s+di\s+riconoscimento)?)\s*(?i:(?:n\.|n°|nr\.?|num\.?|numero)\s*)?:?\s*([A-Z]{1,3}\s?\d{4,8}\s?[A-Z]{0,2}|\d{6,10}[A-Z]?|(?=[A-Z]*\d)[A-Z0-9]{8,10})\b`, 'gu')
+const MESI_BREVI = 'gen|feb|mar|apr|mag|giu|lug|ago|set|sett|ott|nov|dic'
+const RE_DATA_TESTO = new RegExp(String.raw`\b(?:[1-9]|0[1-9]|[12]\d|3[01])(?:°|º)?\s+(?:(?:${MESI})|(?:${MESI_BREVI})\.?)\s+(?:(?:19|20)\d{2}|['’]\d{2})\b`, 'giu')
+// giorno e mese senza l'anno («il 5 marzo») e anno di nascita («nato nel 1985», «classe 1985»)
+const RE_GIORNO_MESE = new RegExp(String.raw`\b(?:[1-9]|0[1-9]|[12]\d|3[01])(?:°|º)?\s+(?:${MESI})\b(?!\s+(?:19|20)\d{2})`, 'giu')
+const RE_ANNO_NASCITA = /(?<![\p{L}])(?:nat[oaie](?:\/[ao])?|classe)\s+(?:nel(?:l['’]anno)?\s+)?((?:19|20)\d{2})\b/giu
+const RE_CAP_SOLO = /(?<![\p{L}])C\.?A\.?P\.?\s*:?\s*(\d{5})(?!\d)/gu
+const RE_PROVINCIA_DI = new RegExp(String.raw`(?<![\p{L}])(?:[Pp]rov\.|[Pp]rovincia|PROVINCIA|PROV\.)\s+(?:di|DI|d['’]|D['’])\s*((?:[${MAIUSC}][${MINUSC}'’]+)(?:${SP}+(?:nell['’]|di|del|della|[${MAIUSC}][${MINUSC}'’]+)){0,2})`, 'gu')
+const RE_ID_DOC = new RegExp(String.raw`(?i:carta\s+d['’]\s?identit[àa]|c\.\s?i\.|c\.i\.e\.|passaporto|patente(?:\s+di\s+guida)?|tessera\s+sanitaria|permesso\s+di\s+soggiorno|documento(?:\s+di\s+riconoscimento)?)\s*(?i:(?:n\.|n°|nr\.?|num\.?|numero)\s*)?:?\s*([A-Z]{1,3}\s?\d{4,8}\s?[A-Z]{0,2}|\d{6,20}[A-Z]?|(?=[A-Z]*\d)[A-Z0-9]{8,10})\b`, 'gu')
 const RE_CATASTO = /\b(?:foglio|fg\.?)\s*(?:n\.?\s*)?\d+\s*,?\s*(?:(?:particella|particelle|mappale|mappali|map\.?|part\.?|p\.lla|p\.lle|num\.?)\s*(?:n\.?\s*)?\d+(?:\s*(?:e|,)\s*\d+)*)\s*,?\s*(?:(?:subalterno|subalterni|sub\.?)\s*(?:n\.?\s*)?\d+(?:\s*(?:e|,)\s*\d+)*)?/giu
 
 /** Candidati riconosciuti dalle formule ricorrenti di atti, lettere e contratti italiani. */
-const RE_UFFICIO_DI = /(?:tribunale|corte(?:\s+d['’]appello)?|giudice(?:\s+di\s+pace)?|procura|foro|tar|prefettura|questura|comune|provincia|regione|camera|ufficio|sezione|cancelleria|universit[àa]|ospedale|asl|ausl|diocesi)(?:\s+[\p{L}]+){0,3}\s+(?:di|d['’])\s*$/iu
+const RE_UFFICIO_DI = /(?:prov\.|tribunale|corte(?:\s+d['’]appello)?|giudice(?:\s+di\s+pace)?|procura|foro|tar|prefettura|questura|comune|provincia|regione|camera|ufficio|sezione|cancelleria|universit[àa]|ospedale|asl|ausl|diocesi)(?:\s+[\p{L}]+){0,3}\s+(?:di|d['’])\s*$/iu
 // parenti nominati per nome: «mio fratello Davide», «la moglie Anna Rossi»
 const RE_PARENTE = new RegExp(String.raw`(?<![\p{L}])(?:padre|madre|fratello|sorella|figlio|figlia|marito|moglie|nonno|nonna|zio|zia|cugino|cugina|nipote|cognato|cognata|suocero|suocera|compagno|compagna|convivente|genitore)${SP}*,?${SP}+(${NOME})`, 'gu')
 // luogo di un fatto: «è mancato il 3 agosto 2026 a Sassuolo», «contratto stipulato a Carpi»
 const RE_LUOGO_FATTO = new RegExp(String.raw`(?<![\p{L}])(?:decedut[oa]|mort[oa]|mancat[oa]|scompars[oa]|avvenut[oa]|accadut[oa]|celebrat[oa]|stipulat[oa]|sottoscritt[oa]|firmat[oa]|verificatosi|verificatasi)(?![\p{L}])[^.;\n]{0,45}?${SP}(?:a|ad|in)${SP}+((?:[${MAIUSC}][${MINUSC}'’]+|[${MAIUSC}]{2,})(?:${SP}+(?:sul|di|del|San|[${MAIUSC}][${MINUSC}'’]+)){0,2})`, 'gu')
+// luogo di un bene: «la casa di Fiorano Modenese», «il terreno a Carpi», «il cantiere di Sassuolo»
+const RE_LUOGO_BENE = new RegExp(String.raw`(?<![\p{L}])(?:casa|immobile|appartamento|terreno|villa|abitazione|fabbricato|capannone|negozio|stabilimento|cantiere|filiale|podere|fondo)${SP}+(?:di|a|ad|in)${SP}+((?:[${MAIUSC}][${MINUSC}'’]+)(?:${SP}+(?:sul|di|del|nell['’]|San|[${MAIUSC}][${MINUSC}'’]+)){0,2})`, 'gu')
 
 export function rilevaContesto(testo: string): Entita[] {
   const out: Entita[] = []
@@ -306,8 +362,30 @@ export function rilevaContesto(testo: string): Entita[] {
     // la span copre esattamente il testo originale, con gli stessi spazi e a capo
     if (resto.length) add('FULLNAME', s, trovaFine(testo, s, resto.length), score)
   }
-  for (const m of testo.matchAll(RE_TITOLO)) nome(m, 1, 0.9)
+  // titolo (maiuscole libere) e, subito dopo, il nome (maiuscole giuste)
+  const dopo = (prima: RegExp, poi: RegExp, fai: (m: RegExpMatchArray) => void) => {
+    for (const t of testo.matchAll(prima)) {
+      poi.lastIndex = t.index! + t[0].length
+      const n = poi.exec(testo); if (!n) continue
+      fai(Object.assign([t[0] + n[0], n[0]], { index: t.index, input: testo }) as unknown as RegExpMatchArray)
+    }
+  }
+  dopo(RE_TITOLO_SOLO, RE_NOME_DOPO, (m) => nome(m, 1, 0.9))
   for (const m of testo.matchAll(RE_PRIMA_DI)) nome(m, 1, 0.8)
+  dopo(RE_INIZIALI_PRIMA, RE_INIZIALI_DOPO, (m) => { const s = m.index! + m[0].length - m[1].length; add('FULLNAME', s, s + m[1].length, 0.85) })
+  for (const m of testo.matchAll(RE_COGNOME_NOME)) {
+    const cap = (w: string) => w.charAt(0) + w.slice(1).toLowerCase()
+    if (NOMI_PROPRI.has(cap(m[2])) && parolaNome(m[1]) && !NOMI_PROPRI.has(cap(m[1]))) add('FULLNAME', m.index!, m.index! + m[0].length, 0.75, 'nomi')
+  }
+  for (const m of testo.matchAll(RE_LUOGO_BENE)) {
+    const v = m[1], prima = v.split(/\s/)[0]
+    if (!parolaNome(prima) || NOMI_PROPRI.has(prima)) continue // «la casa di Mario» è una persona, non un luogo
+    const c = m.index! + m[0].lastIndexOf(v); add('CITY', c, c + v.length, 0.7)
+  }
+  for (const m of testo.matchAll(RE_PROVINCIA_DI)) { const s = m.index! + m[0].lastIndexOf(m[1]); add('PROVINCE', s, s + m[1].length, 0.9) }
+  for (const m of testo.matchAll(RE_CAP_SOLO)) { const s = m.index! + m[0].lastIndexOf(m[1]); add('ZIPCODE', s, s + 5, 0.85) }
+  for (const m of testo.matchAll(RE_GIORNO_MESE)) add('DATE', m.index!, m.index! + m[0].length, 0.7)
+  for (const m of testo.matchAll(RE_ANNO_NASCITA)) { const s = m.index! + m[0].lastIndexOf(m[1]); add('DATE', s, s + 4, 0.8) }
   for (const m of testo.matchAll(RE_PARENTE)) if (parolaNome(m[1].split(/\s/)[0])) nome(m, 1, 0.8)
   for (const m of testo.matchAll(RE_LUOGO_FATTO)) {
     const v = m[1]; if (!parolaNome(v.split(/\s/)[0]) || /^(?:Via|Viale|Piazza|Corso|Largo|Vicolo|Strada|Località)$/.test(v.split(/\s/)[0])) continue
@@ -333,6 +411,8 @@ export function rilevaContesto(testo: string): Entita[] {
       let e = s + m[0].length
       if (c && !(parolaNome(c) && (NOMI_PROPRI.has(cap(c)) || /^[A-ZÀ-Ý]{2,}$/.test(c) === /^[A-ZÀ-Ý]{2,}$/.test(b)))) e = s + m[0].lastIndexOf(c)
       while (e > s && /\s/.test(testo[e - 1])) e--
+      const coda = new RegExp(String.raw`^${SP}+${PARTICELLA}${SP}*${PAROLA}`, 'u').exec(testo.slice(e, e + 40))
+      if (coda) e += coda[0].length
       if (parolaNome(a) || primo) add('FULLNAME', s, e, 0.75, 'nomi')
     }
   }

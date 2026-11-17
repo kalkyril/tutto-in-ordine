@@ -45,6 +45,26 @@ const TIPO_LABEL = { scadenza: 'Scadenza', udienza: 'Udienza', appuntamento: 'Ap
  * Restituisce gli avvisi da emettere "adesso" e li registra come emessi.
  * Gli avvisi di eventi già passati da oltre `graceHours` vengono marcati senza notifica.
  */
+/**
+ * Rate dei piani di pagamento ancora da incassare, con l'importo aperto: l'incassato del documento copre le rate in
+ * ordine di data, come nello scadenzario. Gli archivi precedenti alla 1.0.4 non hanno la tabella: nessuna rata.
+ */
+function rateAperte(d) {
+  let righe
+  try {
+    righe = d.prepare(`SELECT r.id, r.parcella_id, r.data, r.importo, p.numero, p.netto, p.incassato, p.pratica_id, a.denominazione AS cliente
+      FROM rate_documento r JOIN parcelle p ON p.id = r.parcella_id LEFT JOIN anagrafica a ON a.id = p.cliente_id
+      WHERE p.tipo = 'parcella' AND p.stato = 'emessa' ORDER BY r.parcella_id, r.data, r.id`).all()
+  } catch { return [] }
+  const perDoc = new Map(), out = []
+  for (const r of righe) perDoc.set(r.parcella_id, [...(perDoc.get(r.parcella_id) || []), r])
+  for (const elenco of perDoc.values()) {
+    let copre = Math.round(Math.min(elenco[0].netto, Math.max(0, elenco[0].incassato || 0)) * 100)
+    elenco.forEach((r, i) => { const c = Math.round(r.importo * 100), preso = Math.min(c, copre); copre -= preso; if (c > preso) out.push({ ...r, n: i + 1, di: elenco.length, aperto: (c - preso) / 100 }) })
+  }
+  return out
+}
+
 function collectDueRows(now, graceHours) {
   const d = db.getDb()
   const settings = db.getSettings()
@@ -93,6 +113,17 @@ function collectDueRows(now, graceHours) {
         tipo: 'evento_esterno', rif_tipo: 'evento_esterno', rif_id: e.id, pratica_id: e.pratica_id,
       }))
     }
+  }
+
+  // 1.0.4: rate dei piani di pagamento ancora aperte, il giorno della rata
+  for (const r of rateAperte(d)) {
+    const event = parseLocal(r.data, startHour)
+    if (!event) continue
+    consider(`r:${r.id}:${r.data}`, event, event, () => ({
+      titolo: `Rata da incassare ${ymdLocale(event) === ymdLocale(now) ? 'oggi' : 'del ' + fmt(event, false)}: documento n. ${r.numero}`,
+      corpo: `Rata ${r.n} di ${r.di} · € ${r.aperto.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${r.cliente ? ' · ' + r.cliente : ''}`,
+      tipo: 'rata', rif_tipo: 'rata', rif_id: r.parcella_id, pratica_id: r.pratica_id,
+    }))
   }
 
   const todos = d.prepare(`SELECT t.*, p.titolo AS pratica_titolo FROM todos t
@@ -152,11 +183,14 @@ function dailyDigest(now = new Date()) {
   const settimana = d.prepare('SELECT COUNT(*) c FROM scadenze WHERE completata = 0 AND data_ora > ? AND data_ora <= ? AND substr(data_ora,1,10) <> ?').get(nowStr, lim, today).c
   const ritardo = d.prepare("SELECT COUNT(*) c FROM scadenze WHERE completata = 0 AND data_ora < ? AND substr(data_ora,1,10) < ?").get(nowStr, today).c
   const todoOggi = d.prepare("SELECT COUNT(*) c FROM todos WHERE completata = 0 AND scadenza IS NOT NULL AND substr(scadenza,1,10) <= ?").get(today).c
-  if (!oggi && !settimana && !ritardo && !todoOggi) return null
+  // 1.0.4: rate dei piani di pagamento che scadono oggi (documenti ancora da saldare)
+  const rateOggi = rateAperte(d).filter((r) => r.data === today).length
+  if (!oggi && !settimana && !ritardo && !todoOggi && !rateOggi) return null
   const parti = []
   if (oggi) parti.push(`${oggi} scadenz${oggi === 1 ? 'a' : 'e'} oggi`)
   if (ritardo) parti.push(`${ritardo} in ritardo`)
   if (todoOggi) parti.push(`${todoOggi} to-do da fare`)
+  if (rateOggi) parti.push(`${rateOggi} rat${rateOggi === 1 ? 'a' : 'e'} da incassare`)
   if (settimana) parti.push(`${settimana} nei prossimi 7 giorni`)
   return { titolo: 'Riepilogo di oggi', corpo: parti.join(' · '), tipo: 'riepilogo', rif_tipo: null, rif_id: null, pratica_id: null }
 }
@@ -170,4 +204,4 @@ function pushNotifiche(items) {
   })
 }
 
-module.exports = { collectDue, dailyDigest, pushNotifiche, parseLocal }
+module.exports = { collectDue, dailyDigest, pushNotifiche, parseLocal, rateAperte }

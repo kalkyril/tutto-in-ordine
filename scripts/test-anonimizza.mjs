@@ -72,6 +72,25 @@ Per comunicazioni: www.studiobianchi.it o 333 1234567. Modena, 3 marzo 2025.`
   assert.equal(prosa.entita, 0, JSON.stringify(trovati(prosa)))
   ok('nessun falso positivo su «via email», «in via preliminare», articoli, versioni e durate')
 
+  // 1.0.4: forme che prima sfuggivano
+  const nascosto = (testo, ...dati) => { const r = m.anonimizza(testo); for (const d of dati) assert.ok(!r.testo.includes(d), `«${d}» è rimasto in chiaro in: ${r.testo}`); return r }
+  nascosto('nato a Carpi il 12.06.85; il 12 giu 1985; scadenza 2024-03-15; udienza del 5 marzo; nato nel 1985', '12.06.85', '12 giu 1985', '2024-03-15', '5 marzo', '1985')
+  nascosto('Tel. 02/12345678, cell. 333-12 34 567, 0039 347 1234567, numero verde 800 123 456', '12345678', '333-12', '347 1234567', '800 123')
+  nascosto('ROSSI Mario; Rossi, Mario; il minore L.B.; la sig.ra G. Verdi; Giovanni D’Angelo; Maria Grazia Lo Presti; la Sig.ra Anna ha detto', 'Rossi', 'Mario', 'L.B.', 'Verdi', 'Angelo', 'Presti', 'Anna')
+  nascosto('12.500 euro; 500€; €1000; importo di 2.340,50; lire 1.000.000', '12.500', '500€', '1000', '2.340,50', '1.000.000')
+  nascosto('C.F. 80012345678; P.IVA IT12345678901; c/c n. 000012345678; ABI 05428 CAB 11101; BIC BPMOIT22XXX', '80012345678', '12345678901', '000012345678', '05428', '11101', 'BPMOIT22')
+  nascosto('targato MO 123456; motociclo AB 12345; telaio ZFA31200000123456; tessera sanitaria 80380000300012345678', '123456', 'AB 12345', 'ZFA312', '8038000030')
+  nascosto('polizza n. 123456789; sinistro n. 2024/000123; REA MO-123456; matricola INPS 1234567890; codice SDI M5UXCR1', '123456789', '2024/000123', 'MO-123456', '1234567890', 'M5UXCR1')
+  nascosto('email mario.rossi[at]gmail.com; @mariorossi su Instagram; password: Pippo123!; nome utente: mrossi85; coordinate 44.6471, 10.9252', 'mario.rossi', 'mariorossi', 'Pippo123', 'mrossi85', '44.6471')
+  nascosto('la Rossi & Figli s.n.c., la Banca Popolare dell’Emilia, il Condominio Aurora; CAP 41121; prov. di Reggio Emilia; nato/a a Carpi (MO)', 'Figli', 'Emilia', 'Aurora', '41121', 'Reggio', 'Carpi')
+  const sesso = m.anonimizza('Il paziente, di sesso maschile, sesso: F')
+  ha(sesso, 'GENDER', 'di sesso maschile'); ha(sesso, 'GENDER', 'sesso: F')
+  const cred = m.anonimizza('Nome utente: mrossi85, password: Segreta!9')
+  ha(cred, 'ACCOUNT', 'mrossi85'); ha(cred, 'ACCOUNT', 'Segreta!9') // l'etichetta resta, il valore no
+  const quieto = m.anonimizza('Come da art. 12.3.21 e versione 1.0.4. L’utente ha dichiarato che il login è avvenuto. Contratto 4+4 e pratica edilizia. Chiamare il tel. dell’ufficio.')
+  assert.equal(quieto.entita, 0, JSON.stringify(trovati(quieto)))
+  ok('date abbreviate e ISO, telefoni a gruppi, iniziali e cognomi con particella, importi senza decimali, conti e codici bancari, targhe e telai, numeri di polizze e sinistri, credenziali, sesso, coordinate; nessun falso positivo in più')
+
   // archivio di TIO: nomi senza titolo né contesto, codici con separatori diversi
   const voci = m.vociArchivio({ anagrafica: [{ tipo: 'persona', denominazione: 'Ezio Zanichelli', codice_fiscale: 'ZNCZEI70A01F257X', telefono: '3351234567' }, { tipo: 'azienda', denominazione: 'Acme Costruzioni' }], pratiche: [{ rg: '987/2023', giudice: 'dott.ssa Laura Neri' }] })
   const ra = m.anonimizza('Incontro con ezio zanichelli e Acme Costruzioni; tel. 335 123 4567. Causa 987/2023, giudice Laura Neri.', { archivio: voci })

@@ -76,8 +76,8 @@ Gli installer sono nella pagina **[Releases](https://github.com/kalkyril/tutto-i
 <summary>Verificare il codice SHA-256</summary>
 
 ```bash
-shasum -a 256 TIO-1.0.3-arm64.dmg                  # macOS (Terminale)
-certutil -hashfile TIO-Setup-1.0.3.exe SHA256     # Windows (Prompt dei comandi)
+shasum -a 256 TIO-1.0.4-arm64.dmg                  # macOS (Terminale)
+certutil -hashfile TIO-Setup-1.0.4.exe SHA256     # Windows (Prompt dei comandi)
 ```
 
 Il risultato deve coincidere con la riga del file in `SHA256SUMS.txt`.
@@ -199,9 +199,9 @@ Per disinstallare: sul Mac trascina TIO da Applicazioni nel Cestino; su Windows 
 
 TIO non scrive mai in altri programmi e non chiede mai le tue password.
 
-- **Calendari** (*Impostazioni › Integrazioni*, «Collega un calendario»): incolli il link iCal del calendario (Cliens Più: *Agenda › Esporta*; Google Calendar: *Impostazioni › il tuo calendario › Integra il calendario › Indirizzo segreto in formato iCal*; Outlook e iCloud) oppure scegli un file `.ics`. Gli impegni compaiono in agenda e negli avvisi; i link vengono riletti automaticamente. Per Cliens Cube verifica che la tua versione offra un link iCal o un’esportazione ICS compatibile.
+- **Calendari** (*Impostazioni › Integrazioni*, «Collega un calendario»): incolli il link iCal del tuo provider calendario (nelle impostazioni del calendario: *Esporta*, *Condividi* o *Indirizzo iCal*) oppure scegli un file `.ics`. Gli impegni compaiono in agenda e negli avvisi; i link vengono riletti automaticamente. Per Cliens Cube verifica che la tua versione offra un link iCal o un’esportazione ICS compatibile.
 - **Pratiche dal calendario:** con **Pratiche…** accanto a un calendario collegato, TIO riconosce nelle udienze e nelle scadenze parti, numero di ruolo, ufficio e giudice, mostra l’anteprima e importa le pratiche che scegli. Arrivano solo le pratiche riconoscibili negli eventi esportati: non è un collegamento all’archivio completo di altri gestionali e non ne importa i documenti.
-- **Importazione da file** (CSV o Excel, per esempio *Esporta lista* di Cliens Più): anagrafiche, pratiche, udienze e scadenze, parcelle, con anteprima e senza doppioni.
+- **Importazione da file** (CSV o Excel, per esempio l’elenco esportato dal tuo gestionale): anagrafiche, pratiche, udienze e scadenze, parcelle, con anteprima e senza doppioni.
 - **Cartelle di documenti:** ogni sottocartella si abbina a un lavoro (o ne crea uno) e i file vengono collegati, mai spostati.
 
 </details>

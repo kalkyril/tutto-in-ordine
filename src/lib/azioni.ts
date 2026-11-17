@@ -1,4 +1,4 @@
-import { CalendarPlus, CheckSquare, FolderPlus, Settings, UserPlus, Wallet, Globe, Users, CalendarDays, LayoutDashboard, FolderKanban, Calculator, FilePen, ShieldCheck, HandCoins, BookOpen, Receipt, FileDown, type LucideIcon } from 'lucide-react'
+import { CalendarPlus, CheckSquare, FolderPlus, Settings, UserPlus, Wallet, Globe, Users, CalendarDays, LayoutDashboard, FolderKanban, Calculator, FilePen, ShieldCheck, HandCoins, BookOpen, Receipt, FileDown, PiggyBank, type LucideIcon } from 'lucide-react'
 import { api } from '../api'
 import type { Page, Route } from '../nav'
 import { nuovo } from './defaults'
@@ -28,6 +28,7 @@ export function azioniRapide({ go, apri, L, calcolaTermine, avvocato = true }: {
     vai('vai-pagamenti', 'Pagamenti: scadenzario', Wallet, 'pagamenti'),
     vai('vai-parcelle', `Pagamenti: ${avvocato ? L.parcelle.toLowerCase() : 'incassi'}`, Receipt, 'parcelle'),
     vai('vai-dapagare', 'Pagamenti: da pagare', HandCoins, 'dapagare'),
+    vai('vai-budget', 'Budget: previsione e conti', PiggyBank, 'budget'),
     vai('vai-collegamenti', 'Collegamenti', Globe, 'collegamenti'),
     vai('vai-documenti', 'Documenti', FilePen, 'documenti'),
     vai('vai-anonimizza', 'Anonimizza un documento', ShieldCheck, 'anonimizza'),

@@ -10,7 +10,7 @@ interface Voce {
 interface Anteprima { calendario: { id: number; nome: string; crea_pratiche: boolean }; primaVolta: boolean; pratiche: Voce[]; nonRiconosciuti: number; esempiNonRiconosciuti: string[] }
 
 /**
- * Pratiche riconosciute negli eventi di un calendario collegato (udienze e scadenze di Cliens Cube, ad esempio):
+ * Pratiche riconosciute negli eventi di un calendario collegato (udienze e scadenze del gestionale, ad esempio):
  * prima un'anteprima, poi si importano quelle scelte. Con «in automatico» le nuove arrivano a ogni aggiornamento del calendario.
  */
 export function PraticheDaCalendarioModal({ calendarioId, onClose }: { calendarioId: number; onClose: () => void }) {

@@ -6,7 +6,7 @@ import { useData } from '../store'
 import { useNav } from '../nav'
 import { useEditors } from '../components/editors'
 import { apriMenu } from '../lib/menuContestuale'
-import { Btn, ColorDot, Empty, PageHeader, Pill, Segmented, useAction, useFeedback } from '../components/ui'
+import { Btn, ColorDot, Empty, PageHeader, Pill, Priorita, Segmented, useAction, useFeedback } from '../components/ui'
 import { useZonaPratiche } from '../lib/trascina'
 import { fmtDate, relative } from '../lib/dates'
 import { loadPref, matchPratica, praticaStats, savePref } from '../lib/stats'
@@ -54,6 +54,7 @@ export default function Pratiche() {
     const next = (p: Pratica) => stats.get(p.id)?.nextScad?.data_ora || '9999'
     if (sort === 'titolo') r = [...r].sort((a, b) => a.titolo.localeCompare(b.titolo))
     else if (sort === 'scadenza') r = [...r].sort((a, b) => next(a).localeCompare(next(b)))
+    else if (sort === 'priorita') r = [...r].sort((a, b) => (b.priorita ?? 1) - (a.priorita ?? 1))
     else if (sort === 'numero') r = [...r].sort((a, b) => (b.numero || '').localeCompare(a.numero || ''))
     r = [...r].sort((a, b) => b.preferita - a.preferita)
     if (col && view === 'elenco') {
@@ -109,7 +110,7 @@ export default function Pratiche() {
           <option value="">Tutte le tipologie</option>{settings.tipi_pratica.map((t) => <option key={t}>{t}</option>)}
         </select>
         <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Ordina">
-          <option value="recenti">Più recenti</option><option value="scadenza">Prossima scadenza</option><option value="titolo">Titolo A–Z</option><option value="numero">Numero</option>
+          <option value="recenti">Più recenti</option><option value="scadenza">Prossima scadenza</option><option value="priorita">Priorità</option><option value="titolo">Titolo A–Z</option><option value="numero">Numero</option>
         </select>
         <Segmented<View> value={view} onChange={setView} options={[
           { id: 'schede', label: <LayoutGrid size={16} />, title: 'Schede' }, { id: 'elenco', label: <List size={16} />, title: 'Elenco' }, { id: 'kanban', label: <Columns3 size={16} />, title: 'Per stato' }]} />
@@ -131,7 +132,7 @@ export default function Pratiche() {
                 <div className="pcard-bar" />
                 <div className="pcard-body">
                   <div className="pcard-top">
-                    <span className="muted small">{p.numero}{p.tipo ? ' · ' + p.tipo : ''}</span>
+                    <span className="muted small pcard-numero"><Priorita valore={p.priorita} />{p.numero}{p.tipo ? ' · ' + p.tipo : ''}</span>
                     <button className={`icon-btn ${p.preferita ? 'fav-on' : ''}`} aria-label="Preferita" onClick={(e) => { e.stopPropagation(); toggleFav(p) }}><Star size={15} /></button>
                   </div>
                   <h2>{p.titolo}</h2>
@@ -182,7 +183,7 @@ export default function Pratiche() {
                     <td onClick={(e) => e.stopPropagation()}><input type="checkbox" aria-label={`Seleziona ${p.titolo}`} checked={sel.has(p.id)} onChange={(e) => setSel((x) => { const n = new Set(x); if (e.target.checked) n.add(p.id); else n.delete(p.id); return n })} /></td>
                     <td><ColorDot color={p.colore} size={12} /></td>
                     <td className="nowrap">{p.numero}</td>
-                    <td><b>{p.titolo}</b>{p.preferita ? <Star size={12} className="fav" style={{ marginLeft: 6, verticalAlign: '-1px' }} /> : null}</td>
+                    <td><Priorita valore={p.priorita} /> <b>{p.titolo}</b>{p.preferita ? <Star size={12} className="fav" style={{ marginLeft: 6, verticalAlign: '-1px' }} /> : null}</td>
                     <td className="nowrap">{p.cliente_id ? anagraficaById.get(p.cliente_id)?.denominazione : ''}</td>
                     <td className="nowrap">{p.tipo}</td>
                     <td onClick={(e) => e.stopPropagation()}>
@@ -218,7 +219,7 @@ export default function Pratiche() {
                 {col.slice(0, limits[s.nome] || 60).map((p) => (
                   <div key={p.id} data-pratica-id={p.id} className="kcard" draggable onContextMenu={menuPratica(p)}
                     onDragStart={(e) => e.dataTransfer.setData('text/pratica', String(p.id))} onClick={() => open(p)}>
-                    <span className="muted small kcard-numero"><ColorDot color={p.colore} size={9} />{p.numero}</span>
+                    <span className="muted small kcard-numero"><ColorDot color={p.colore} size={9} />{p.numero}<Priorita valore={p.priorita} size={13} /></span>
                     <b>{p.titolo}</b>
                     {p.cliente_id && <span className="muted small">{anagraficaById.get(p.cliente_id)?.denominazione}</span>}
                     {stats.get(p.id)?.nextScad && <span className={`rel rel-${relative(stats.get(p.id)!.nextScad!.data_ora).tone}`}>{fmtDate(stats.get(p.id)!.nextScad!.data_ora)}</span>}

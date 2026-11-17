@@ -81,6 +81,7 @@ module.exports = function registra({ handle, changed, getWindow, scelti, autoriz
   handle('documenti:indicizza', async (id, ocr) => { const result = await doctext.indicizzaDocumento(id, !!ocr); changed('documenti'); return result })
   handle('documenti:stato', (praticaId) => docfile.stato(praticaId || null))
   handle('documenti:sottocartelle', (praticaId) => docfile.sottocartelle(praticaId))
+  handle('documenti:disco', (praticaId) => docfile.contenutoDisco(praticaId))
   // candidati proposti all'utente nell'ultimo controllo: solo questi percorsi si possono scegliere dall'interfaccia
   const candidati = new Map()
   const rapporto = (praticaId, radici) => unaVolta(`sincronizza:${praticaId || 'tutte'}:${radici.join('|')}`, async () => {
@@ -119,20 +120,25 @@ module.exports = function registra({ handle, changed, getWindow, scelti, autoriz
   // ---- Cliens: cartella dei documenti scaricati da Cliens, unita a quella locale (sola lettura) ----
   const cliens = require('../cliens')
   handle('documenti:cliensCartella', async (praticaId) => {
-    const dir = await scegliCartellaDocumenti('Cartella con i documenti di Cliens per questa pratica', 'MNGMNT_TEST_CARTELLA_CLIENS'); if (!dir) return null
+    const dir = await scegliCartellaDocumenti('Cartella con i documenti del provider per questa pratica', 'MNGMNT_TEST_CARTELLA_CLIENS'); if (!dir) return null
     const r = await unaVolta(`cliens:${praticaId}`, () => cliens.impostaCartella(praticaId, dir, { avanza: avanza('cliens') })); changed('documenti', 'pratiche'); return r
   })
   handle('documenti:cliensScollega', async (praticaId) => { const r = await cliens.impostaCartella(praticaId, null); changed('documenti', 'pratiche'); return r })
-  handle('documenti:cliensSincronizza', async (praticaId) => { const r = await unaVolta(`cliens:${praticaId}`, () => cliens.sincronizzaPratica(praticaId, { avanza: avanza('cliens') })); changed('documenti', 'pratiche'); return r })
+  // `automatica`: all'apertura della scheda, in silenzio e senza ricollegare i file a cui l'utente ha tolto il collegamento
+  handle('documenti:cliensSincronizza', async (praticaId, automatica) => {
+    const r = await unaVolta(`cliens:${praticaId}`, () => cliens.sincronizzaPratica(praticaId, { avanza: automatica ? null : avanza('cliens'), automatica: !!automatica }))
+    if (!automatica || r.nuovi || r.spostati || r.uniti || r.toltiDaCliens) changed('documenti', 'pratiche')
+    return r
+  })
   handle('documenti:sezioni', (praticaId) => { const p = db.get('pratiche', praticaId); return Object.fromEntries(db.list('documenti', { pratica_id: praticaId }).map((d) => [d.id, cliens.sezione(d, p)])) })
   handle('documenti:cliensApri', (praticaId) => {
-    const p = db.get('pratiche', praticaId); if (!p?.cartella_cliens) throw new Error('Nessuna cartella di Cliens per questa pratica')
+    const p = db.get('pratiche', praticaId); if (!p?.cartella_cliens) throw new Error('Nessuna cartella del provider per questa pratica')
     if (!process.env.MNGMNT_TEST) shell.openPath(p.cartella_cliens)
     return p.cartella_cliens
   })
   // cartella principale di Cliens (una sottocartella per pratica): abbinamento alle pratiche e sincronizzazione di tutte
   handle('documenti:cliensRadice', async () => {
-    const dir = await scegliCartellaDocumenti('Cartella principale dei documenti di Cliens (una sottocartella per pratica)', 'MNGMNT_TEST_CARTELLA_CLIENS'); if (!dir) return null
+    const dir = await scegliCartellaDocumenti('Cartella principale dei documenti del provider (una sottocartella per pratica)', 'MNGMNT_TEST_CARTELLA_CLIENS'); if (!dir) return null
     db.setSettings({ cartella_cliens: dir }); changed('settings')
     return { cartella: dir, abbinamenti: cliens.abbinaCartelle(dir) }
   })

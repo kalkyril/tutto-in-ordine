@@ -143,9 +143,9 @@ export default function Agenda() {
     <div className="page wide">
       <PageHeader title="Agenda" subtitle={nomeImpegni(settings.profilo)}
         actions={<>
-          <Btn variant="ghost" onClick={() => go({ page: 'impostazioni', tab: 'integrazioni' })} title="Collega Cliens Più, Google Calendar, Outlook… (sola lettura)"><Link2 size={16} /> Calendari collegati</Btn>
+          <Btn variant="ghost" onClick={() => go({ page: 'impostazioni', tab: 'integrazioni' })} title="Collega il tuo provider calendario (sola lettura)"><Link2 size={16} /> Calendari collegati</Btn>
           <Btn variant="ghost" onClick={() => setStampa(true)} title="Stampa gli impegni di oggi, domani o della settimana"><Printer size={16} /> Stampa</Btn>
-          <Btn variant="ghost" onClick={() => run(() => api.exportIcs(), undefined)} title="Esporta per Calendario di Apple, Google, Outlook"><Download size={16} /> Esporta .ics</Btn>
+          <Btn variant="ghost" onClick={() => run(() => api.exportIcs(), undefined)} title="Esporta per qualsiasi applicazione di calendario"><Download size={16} /> Esporta .ics</Btn>
           {settings.profilo !== 'ditta' && <Btn variant="ghost" onClick={() => setTermini(true)} title="Calcola un termine in avanti o a ritroso, con sospensione feriale e festivi"><Calculator size={16} /> Calcola termine</Btn>}
           <Btn variant="primary" onClick={() => add(new Date())}><Plus size={16} /> Nuova scadenza</Btn>
         </>} />

@@ -78,8 +78,8 @@ try {
   fs.writeFileSync(path.join(cart, 'Atti', 'a.txt'), 'x')
   try { fs.symlinkSync(path.join(cart, 'Atti'), path.join(cart, 'Scorciatoia'), 'dir') } catch { /* Windows senza permesso di creare collegamenti: la prova vale lo stesso */ }
   db.save('pratiche', { id: pr.id, cartella: cart })
-  assert.deepEqual(docfile.sottocartelle(pr.id).sort(), ['Atti', 'Atti/Notifiche', 'Perizie'])
-  db.save('pratiche', { id: pr.id, cartella: path.join(tmp, 'sparita') }); assert.deepEqual(docfile.sottocartelle(pr.id), [])
+  assert.deepEqual((await docfile.sottocartelle(pr.id)).sort(), ['Atti', 'Atti/Notifiche', 'Perizie'])
+  db.save('pratiche', { id: pr.id, cartella: path.join(tmp, 'sparita') }); assert.deepEqual(await docfile.sottocartelle(pr.id), [])
   db.remove('anagrafica', b.id)
   assert.equal(db.get('pratiche', pr.id).persone, JSON.stringify([{ id: a.id, ruolo: 'cliente' }])) // il contatto eliminato esce dalla pratica
   db.remove('anagrafica', a.id); assert.equal(db.get('pratiche', pr.id).persone, null)

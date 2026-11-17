@@ -10,7 +10,8 @@ const TodoPage = lazy(() => import('./pages/Todo'))
 const AnagraficaPage = lazy(() => import('./pages/Anagrafica'))
 const Collegamenti = lazy(() => import('./pages/Collegamenti'))
 const Pagamenti = lazy(() => import('./pages/Pagamenti'))
-const ComprimiPdf = lazy(() => import('./pages/ComprimiPdf'))
+const Budget = lazy(() => import('./pages/Budget'))
+const EditorPdf = lazy(() => import('./pages/EditorPdf'))
 const DocumentiPage = lazy(() => import('./pages/Documenti'))
 const Anonimizza = lazy(() => import('./pages/Anonimizza'))
 const Impostazioni = lazy(() => import('./pages/Impostazioni'))
@@ -124,9 +125,10 @@ export default function App() {
     case 'anagrafica': page = <AnagraficaPage id={route.id} />; break
     // 1.0.2: incassi e «Da pagare» sono schede della sezione Pagamenti; i vecchi indirizzi aprono la scheda giusta
     case 'pagamenti': page = <Pagamenti key="scadenzario" scheda={route.tab === 'incassi' || route.tab === 'dapagare' ? route.tab : 'scadenzario'} />; break
+    case 'budget': page = <Budget key={route.tab || 'panoramica'} scheda={route.tab as any} />; break
     case 'parcelle': page = <Pagamenti key="incassi" scheda="incassi" />; break
     case 'dapagare': page = <Pagamenti key="dapagare" scheda="dapagare" />; break
-    case 'comprimi': page = <ComprimiPdf />; break
+    case 'comprimi': page = <EditorPdf />; break
     case 'collegamenti': page = <Collegamenti />; break
     case 'documenti': page = <DocumentiPage />; break
     case 'anonimizza': page = <Anonimizza />; break

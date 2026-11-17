@@ -59,6 +59,8 @@ export const api = {
   indicizzaDocumento: (id: number, ocr = false): Promise<{ caratteri: number; stato: string } | null> => inv('documenti:indicizza', id, ocr),
   // sottocartelle (anche vuote) della cartella della pratica e di quella di Cliens, come percorsi relativi con «/»
   sottocartelleDocumenti: (praticaId: number): Promise<string[]> => inv('documenti:sottocartelle', praticaId),
+  /** cosa c'è sul disco nelle cartelle collegate: sottocartelle, file per cartella ('' = radice) e file non ancora collegati */
+  discoDocumenti: (praticaId: number): Promise<{ cartelle: string[]; file: Record<string, number>; daCollegare: number }> => inv('documenti:disco', praticaId),
   statoDocumenti: (praticaId?: number): Promise<Record<number, 'ok' | 'mancante' | 'copia'>> => inv('documenti:stato', praticaId),
   sincronizzaDocumenti: (praticaId?: number): Promise<RapportoSync> => inv('documenti:sincronizza', praticaId),
   sincronizzaDocumentiIn: (praticaId?: number): Promise<RapportoSync | null> => inv('documenti:sincronizzaIn', praticaId),
@@ -69,7 +71,7 @@ export const api = {
   apriCartellaPratica: (praticaId: number): Promise<string> => inv('documenti:apriCartella', praticaId),
   cliensCartella: (praticaId: number): Promise<RapportoCliens | null> => inv('documenti:cliensCartella', praticaId),
   cliensScollega: (praticaId: number) => inv('documenti:cliensScollega', praticaId),
-  cliensSincronizza: (praticaId: number): Promise<RapportoCliens> => inv('documenti:cliensSincronizza', praticaId),
+  cliensSincronizza: (praticaId: number, automatica = false): Promise<RapportoCliens> => inv('documenti:cliensSincronizza', praticaId, automatica),
   sezioniDocumenti: (praticaId: number): Promise<Record<number, SezioneDocumento>> => inv('documenti:sezioni', praticaId),
   cliensApri: (praticaId: number): Promise<string> => inv('documenti:cliensApri', praticaId),
   cliensRadice: (): Promise<AbbinamentiCliens | null> => inv('documenti:cliensRadice'),
@@ -127,7 +129,22 @@ export const api = {
   // Comprimi PDF (Strumenti): file nuovo accanto all'originale, che resta com'è
   scegliPdfDaComprimere: (): Promise<{ percorso: string; nome: string; byte: number }[]> => inv('pdf:scegliDaComprimere'),
   infoPdf: (percorso: string): Promise<{ percorso: string; nome: string; byte: number }> => inv('pdf:infoFile', percorso),
-  comprimiPdf: (percorso: string, livello: 'minima' | 'media' | 'massima', chiedi = false): Promise<EsitoCompressione | null> => inv('pdf:comprimi', percorso, livello, chiedi),
+  comprimiPdf: (percorso: string, livello: 'minima' | 'media' | 'massima', chiedi = false, password = ''): Promise<EsitoCompressione | null> => inv('pdf:comprimi', percorso, livello, chiedi, password),
+  // Editor PDF: unisci, dividi, modifica. Sempre file nuovi: gli originali restano come sono
+  unisciPdf: (file: { percorso: string; password?: string }[]): Promise<EsitoPdf | null> => inv('pdf:unisci', file),
+  dividiPdf: (percorso: string, opzioni: { modo: 'pagine' | 'ogni' | 'intervalli'; ogni?: number; intervalli?: string; unico?: boolean; password?: string }): Promise<EsitoDivisione | null> => inv('pdf:dividi', percorso, opzioni),
+  modificaPdf: (dati: { fonti: { percorso: string; password?: string }[]; pagine: unknown[]; numeri: unknown }): Promise<EsitoPdf | null> => inv('pdf:modifica', dati),
+  scegliImmaginePdf: (): Promise<{ nome: string; dati: string } | null> => inv('pdf:scegliImmagine'),
+  // Budget (1.0.4): conti, movimenti, fatture lette dal servizio di fatturazione (sola lettura), pacchetto per il commercialista
+  budget: (azione: string, dati: Record<string, unknown> = {}): Promise<any> => inv('budget:esegui', azione, dati),
+  budgetCartellaFatture: (): Promise<EsitoFatture | null> => inv('budget:cartellaFatture'),
+  budgetRileggiFatture: (): Promise<EsitoFatture> => inv('budget:rileggiFatture'),
+  budgetFileFatture: (): Promise<EsitoFatture | null> => inv('budget:fileFatture'),
+  budgetPacchetto: (p: { nome: string; file: { nome: string; testo: string }[]; riepilogo: string; contabili: { file: string; nome: string }[] }): Promise<{ cartella: string; contabili: number } | null> => inv('budget:pacchettoCommercialista', p),
+  budgetApriCartella: (cartella: string) => inv('budget:apriCartella', cartella),
+  editorPdfApri: (percorso: string, password = ''): Promise<PdfAperto> => inv('pdf:editorApri', percorso, password),
+  editorPdfPagina: (id: number, numero: number, larghezza: number, rotazione = 0): Promise<string> => inv('pdf:editorPagina', id, numero, larghezza, rotazione),
+  editorPdfChiudi: (id: number) => inv('pdf:editorChiudi', id),
   mostraPdfCompresso: (uscita: string, apri = false) => inv('pdf:mostraCompresso', uscita, apri),
   previewPdf: (html: string, pagina = 1, alta = false): Promise<{ immagine: string; pagina: number; pagine: number } | null> => inv('pdf:preview', html, pagina, alta),
   // calendari esterni (sola lettura)
@@ -167,7 +184,12 @@ export const api = {
   restore: (password = '', verifyOnly = false): Promise<{ safety?: string; valido?: boolean; integritaFile?: boolean; documenti?: number; mancanti?: number; portabile?: boolean } | null> => inv('backup:restore', password, verifyOnly).then((result) => { if (result?.safety) window.dispatchEvent(new Event('archive-restored')); return result }),
 }
 
-export interface EsitoCompressione { prima: number; dopo: number; pagine: number; immagini: number; ricompresse: number; flussi: number; tolti: number; invariato: boolean; uscita: string; nome: string }
+export interface EsitoCompressione { prima: number; dopo: number; pagine: number; immagini: number; ricompresse: number; flussi: number; tolti: number; doppioni?: number; rasterizzato?: boolean; invariato: boolean; uscita: string; nome: string }
+export interface EsitoFatture { nuove: number; gia: number; errori: { file: string; motivo: string }[]; cartella?: string }
+export interface EsitoPdf { pagine: number; rasterizzati: number; byte: number; uscita: string; nome: string }
+export interface EsitoDivisione { creati: { percorso: string; nome: string; pagine: number; byte: number }[]; totale: number; rasterizzato: boolean; cartella: string }
+/** PDF aperto nell'editor: `pagine` con larghezza e altezza in punti, come si vedono (rotazione della pagina compresa). */
+export interface PdfAperto { id: number; percorso: string; nome: string; byte: number; pagine: { w: number; h: number }[] }
 export type SezioneDocumento = 'cliens' | 'locale' | 'condivisa'
-export interface RapportoCliens { praticaId: number; cliens: number; locali: number; condivisi: number; nuovi: number; uniti: number; toltiDaCliens: number; incompleto: boolean; cartellaCliens: boolean; cartellaLocale: boolean }
+export interface RapportoCliens { praticaId: number; cliens: number; locali: number; condivisi: number; nuovi: number; spostati?: number; uniti: number; toltiDaCliens: number; incompleto: boolean; cartellaCliens: boolean; cartellaLocale: boolean }
 export interface AbbinamentiCliens { cartella: string; abbinamenti: { nome: string; percorso: string; pratica: { id: number; numero: string; titolo: string; giaCollegata: boolean } | null }[] }

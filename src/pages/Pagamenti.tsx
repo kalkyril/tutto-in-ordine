@@ -5,9 +5,10 @@ import { useData } from '../store'
 import { useNav } from '../nav'
 import { Btn, Empty, PageHeader, Segmented, Tabs, useAction } from '../components/ui'
 import { useGestione } from '../components/GestioneAttivita'
+import { useBudgetDati } from '../components/budget/dati'
 import { fmtDate, todayStr } from '../lib/dates'
 import { fmtNum, money } from '../lib/format'
-import { annuale, coloriMovimento, movimenti, NOMI_MOVIMENTO, perMese, ripartizione, STATI_MOVIMENTO, type MeseAnno, type Movimento, type StatoMovimento } from '../lib/pagamenti'
+import { annuale, coloriMovimento, movimenti, NOMI_MOVIMENTO, perMese, ripartizione, STATI_MOVIMENTO, usciteRicorrentiPreviste, type MeseAnno, type Movimento, type StatoMovimento } from '../lib/pagamenti'
 const ParcellePage = lazy(() => import('./Parcelle'))
 const DaPagare = lazy(() => import('./DaPagare'))
 
@@ -23,7 +24,7 @@ export default function Pagamenti({ scheda: iniziale = 'scadenzario' }: { scheda
   const nomeIncassi = settings.profilo === 'avvocato' ? settings.etichette.parcelle : 'Incassi'
   return (
     <div className="page pagamenti">
-      <PageHeader title="Pagamenti" subtitle={scheda === 'scadenzario' ? 'Il giro del denaro mese per mese: incassi ricevuti e attesi, pagamenti fatti e da fare.' : scheda === 'incassi' ? 'Documenti PDF e XML FatturaPA, preventivi e incassi: l’invio allo SdI resta al tuo canale (Fatture e Corrispettivi, intermediario o commercialista).' : settings.profilo === 'avvocato' ? 'Domiciliatari, consulenti, periti, spese extra e fornitori dello studio: cosa devi pagare e entro quando.' : 'Fornitori, collaboratori, consulenze, spese extra e imposte: cosa devi pagare e entro quando.'} />
+      <PageHeader title="Pagamenti" subtitle={scheda === 'scadenzario' ? 'Incassi e uscite, mese per mese.' : scheda === 'incassi' ? 'Preventivi e documenti di vendita in PDF e XML FatturaPA, con i loro incassi.' : 'Cosa devi pagare e entro quando.'} />
       <div className="pagamenti-schede"><Tabs<SchedaPagamenti> value={scheda} onChange={setScheda} tabs={[{ id: 'scadenzario', label: 'Scadenzario' }, { id: 'incassi', label: nomeIncassi }, { id: 'dapagare', label: 'Da pagare' }]} /></div>
       <Suspense fallback={<p role="status">Caricamento…</p>}>
         {scheda === 'scadenzario' && <Scadenzario />}
@@ -81,13 +82,15 @@ function PanoramicaAnnuale({ mesi, anno, colori, onMese }: { mesi: MeseAnno[]; a
 
 function Scadenzario() {
   const d = useGestione()
+  const { fatture } = useBudgetDati()
   const { parcelle, anagraficaById, praticaById, settings } = useData()
   const { go } = useNav()
   const run = useAction()
   const L = settings.etichette
   const colori = coloriMovimento(settings)
   const oggi = todayStr()
-  const tutti = useMemo(() => movimenti(parcelle, d.costi, d.pagamenti, oggi), [parcelle, d.costi, d.pagamenti, oggi])
+  // con le uscite ricorrenti previste per i prossimi dodici mesi (affitto, utenze, abbonamenti non ancora creati)
+  const tutti = useMemo(() => { const [y, m, g] = oggi.split('-'); return [...movimenti(parcelle, d.costi, d.pagamenti, oggi, 30, fatture, d.rate), ...usciteRicorrentiPreviste(d.costi, `${Number(y) + 1}-${m}-${g}`)].sort((a, b) => a.data.localeCompare(b.data) || a.chiave.localeCompare(b.chiave)) }, [parcelle, d.costi, d.pagamenti, oggi, fatture, d.rate])
   const anni = useMemo(() => [...new Set([...tutti.map((m) => Number(m.data.slice(0, 4))), new Date().getFullYear()])].sort((a, b) => b - a), [tutti])
   const [anno, setAnno] = useState(() => new Date().getFullYear())
   const [filtro, setFiltro] = useState<Filtro>('tutti')
@@ -100,13 +103,13 @@ function Scadenzario() {
   // scaduti degli anni precedenti: restano visibili in cima, perché sono ancora da sistemare
   const arretrati = tutti.filter((m) => m.scaduto && m.data < `${anno}-01-01` && anno === new Date().getFullYear())
   const entrata = (m: Movimento) => m.stato === 'incassate' || m.stato === 'da_incassare'
-  const chi = (m: Movimento) => m.parcella ? anagraficaById.get(m.parcella.cliente_id || 0)?.denominazione : anagraficaById.get(m.costo?.fornitore_id || 0)?.denominazione
+  const chi = (m: Movimento) => m.fattura ? m.fattura.controparte || undefined : m.parcella ? anagraficaById.get(m.parcella.cliente_id || 0)?.denominazione : anagraficaById.get(m.costo?.fornitore_id || 0)?.denominazione
   const esporta = () => {
-    const righe = visibili.map((m) => [fmtDate(m.data), NOMI_MOVIMENTO[m.stato], m.descrizione, m.dettaglio, chi(m), praticaById.get(m.pratica_id || 0)?.titolo, (entrata(m) ? m.importo : -m.importo).toFixed(2).replace('.', ','), m.scaduto ? 'Scaduto' : ''])
+    const righe = visibili.map((m) => [fmtDate(m.data), NOMI_MOVIMENTO[m.stato], m.descrizione, m.dettaglio, chi(m), praticaById.get(m.pratica_id || 0)?.titolo, (entrata(m) ? m.importo : -m.importo).toFixed(2).replace('.', ','), m.scaduto ? 'Scaduto' : m.previsto ? 'Prevista (uscita ricorrente)' : ''])
     run(() => api.salvaTesto(`Scadenzario-${anno}.csv`, '﻿' + [['Data', 'Stato', 'Voce', 'Dettaglio', 'Cliente / fornitore', L.pratica, 'Importo (€)', 'Note'], ...righe].map((r) => r.map(csvCell).join(';')).join('\r\n')), 'CSV salvato')
   }
   const apri = (m: Movimento) => { if (m.pratica_id) go({ page: 'pratica', id: m.pratica_id, tab: 'parcelle' }) }
-  const riga = (m: Movimento) => <tr key={m.chiave} className={m.scaduto ? 'scaduta' : undefined}>
+  const riga = (m: Movimento) => <tr key={m.chiave} className={m.scaduto ? 'scaduta' : m.previsto ? 'prevista' : undefined}>
     <td className="nowrap">{fmtDate(m.data)}</td>
     <td><span className="movimento-tipo"><i style={{ background: colori[m.stato] }} aria-hidden />{NOMI_MOVIMENTO[m.stato]}{m.scaduto && <strong className="late-text small"> · scaduto</strong>}</span></td>
     <td>{m.descrizione}{m.dettaglio && <><br /><small className="muted">{m.dettaglio}</small></>}</td>
@@ -144,6 +147,6 @@ function Scadenzario() {
       {tabella(m.movimenti)}
     </section>)}
     {!mesi.length && <Empty icon={<CalendarRange size={32} />} title={`Nessun movimento nel ${anno}`} text="Qui compaiono, mese per mese, gli incassi dei documenti emessi (ricevuti e da ricevere) e le voci da pagare con la loro scadenza." />}
-    <p className="muted small">Gli incassi attesi cadono alla scadenza di pagamento del documento (o 30 giorni dopo l’emissione); le voci da pagare alla data «da pagare entro». Bozze, preventivi e note pro forma non sono movimenti. Colori: Impostazioni › Aspetto.</p>
+    <p className="muted small">Gli incassi attesi cadono alla scadenza di pagamento del documento (o 30 giorni dopo l’emissione); le voci da pagare alla data «da pagare entro»; le uscite ricorrenti dei mesi successivi sono previste. Bozze, preventivi e note pro forma non sono movimenti. Colori: Impostazioni › Aspetto.</p>
   </>
 }

@@ -27,7 +27,7 @@ function attach({ getWindow, db }) {
       db.setSettings({ onboarding_fatto: true, studio: { nome: 'Studio Prova', iban: 'IT60X0542811101000000123456' } })
       const rossi = db.save('anagrafica', { denominazione: 'Mario Rossi', ruolo: 'cliente', tipo: 'persona', codice_fiscale: 'RSSMRA80B01F205X' })
       const neri = db.save('anagrafica', { denominazione: 'Luigi Neri', ruolo: 'altro', tipo: 'persona' })
-      const pA = db.save('pratiche', { numero: '2025/001', titolo: 'Rossi c. Neri', cliente_id: rossi.id, controparte_id: neri.id, stato: 'In corso', priorita: 'media', colore: '#3b82f6' })
+      const pA = db.save('pratiche', { numero: '2025/001', titolo: 'Rossi c. Neri', cliente_id: rossi.id, controparte_id: neri.id, stato: 'In corso', priorita: 1, colore: '#3b82f6' })
       const domani = new Date(); domani.setDate(domani.getDate() + 1)
       const ud = db.save('scadenze', { pratica_id: pA.id, titolo: 'Udienza di prima comparizione', tipo: 'udienza', data_ora: `${ymd(domani)}T09:30`, tutto_il_giorno: 0, luogo: 'Aula 4', promemoria: [60], completata: 0 })
       await js('location.reload()'); await sleep(1500)

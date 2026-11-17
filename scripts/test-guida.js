@@ -28,6 +28,11 @@ const immagini = [...html.matchAll(/src="([^"]+)"/g)].map((m) => m[1]).filter((s
 const mancanti = immagini.filter((s) => !fs.existsSync(path.join(dir, s)))
 assert.deepEqual(mancanti, [], 'immagini mancanti: ' + mancanti.join(', '))
 assert.ok([...html.matchAll(/<img [^>]*>/g)].every((m) => /\salt="[^"]*"/.test(m[0])), 'ogni immagine ha il testo alternativo')
+// ogni immagine citata esiste, nella guida e nel sito
+for (const [cartella, pagina] of [['guida', html], ['sito', require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'sito', 'index.html'), 'utf8')]]) {
+  const mancanti = [...pagina.matchAll(/<img [^>]*src="([^"]+)"/g)].map((m) => m[1]).filter((src) => !/^(?:https?:|data:)/.test(src) && !require('node:fs').existsSync(require('node:path').join(__dirname, '..', cartella, src)))
+  assert.deepEqual(mancanti, [], `immagini mancanti in ${cartella}: ${mancanti.join(', ')}`)
+}
 ok(`${immagini.length} immagini presenti, con testo alternativo`)
 
 const esterni = [html, fs.readFileSync(path.join(dir, 'guida.css'), 'utf8'), fs.readFileSync(path.join(dir, 'guida.js'), 'utf8')].join('\n').match(/(src|href)=["']?https?:|url\(\s*["']?https?:|fetch\(|XMLHttpRequest|@import/g)

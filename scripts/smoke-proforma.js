@@ -53,7 +53,7 @@ function attach({getWindow,db}){
   await js("document.querySelector('[aria-label=\"Verifica dei dati importati\"] input').click()");await sleep(100)
   await js("(()=>{const e=document.querySelector('.voci input[aria-label=\"Descrizione\"]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,'Descrizione modificata');e.dispatchEvent(new Event('input',{bubbles:true}))})()");await sleep(200)
   check('modifica di una voce richiede nuova verifica',await js("!!document.querySelector('[aria-label=\"Verifica dei dati importati\"] input')&&!document.querySelector('[aria-label=\"Verifica dei dati importati\"] input').checked"))
-  await js('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');await sleep(300)
+  await js('Promise.race([new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))),new Promise(resolve=>setTimeout(resolve,300))])');await sleep(300)
   fs.writeFileSync(path.join(out,'importazione-differenze.png'),(await wc.capturePage()).toPNG())
   // Documento PDF testuale di due pagine, con riepilogo separato dalle voci.
   const {BrowserWindow}=require('electron'),reader=new BrowserWindow({show:false,webPreferences:{sandbox:true,javascript:false}})

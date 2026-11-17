@@ -26,6 +26,16 @@ export function campiDisponibili(s: Settings): Campo[] {
     { id: 'destinatario.nome_completo', etichetta: 'Titolo e nome', gruppo: 'Destinatario' },
     { id: 'destinatario.telefono', etichetta: 'Telefono', gruppo: 'Destinatario' },
     { id: 'destinatario.sdi', etichetta: 'Codice SDI', gruppo: 'Destinatario' },
+    // 1.0.4: una seconda persona scelta alla creazione (delegato, collega, collaboratore, fornitore…)
+    { id: 'persona.nome', etichetta: 'Nome', gruppo: 'Altra persona' },
+    { id: 'persona.nome_completo', etichetta: 'Titolo e nome', gruppo: 'Altra persona' },
+    { id: 'persona.indirizzo', etichetta: 'Indirizzo', gruppo: 'Altra persona' },
+    { id: 'persona.cap_citta', etichetta: 'CAP e città', gruppo: 'Altra persona' },
+    { id: 'persona.cf', etichetta: 'Codice fiscale', gruppo: 'Altra persona' },
+    { id: 'persona.piva', etichetta: 'Partita IVA', gruppo: 'Altra persona' },
+    { id: 'persona.email', etichetta: 'Email', gruppo: 'Altra persona' },
+    { id: 'persona.pec', etichetta: 'PEC', gruppo: 'Altra persona' },
+    { id: 'persona.telefono', etichetta: 'Telefono', gruppo: 'Altra persona' },
     { id: 'pratica.numero', etichetta: 'Numero', gruppo: L.pratica },
     { id: 'pratica.titolo', etichetta: 'Titolo', gruppo: L.pratica },
     { id: 'pratica.rg', etichetta: L.rg, gruppo: L.pratica },
@@ -62,14 +72,27 @@ const dataLunga = (d = new Date()) => d.toLocaleDateString('it-IT', { day: 'nume
 const cittaDa = (capCitta: string) => (capCitta || '').replace(/^\d{5}\s*/, '').replace(/\s*\(.*\)\s*$/, '').trim()
 
 /** Valori dei campi a partire da destinatario, pratica e dati dell'attività. */
-export function valoriCampi(s: Settings, o: { destinatario?: Anagrafica | null; pratica?: Pratica | null; controparte?: Anagrafica | null; luogo?: string }): Record<string, string> {
-  const st = s.studio, d = o.destinatario, p = o.pratica
+/** I campi di una persona dell'archivio con un prefisso («destinatario.», «persona.»). */
+function campiPersona(pre: string, d: Anagrafica | null | undefined): Record<string, string> {
   return {
+    [pre + 'nome']: d?.denominazione || '', [pre + 'indirizzo']: d?.indirizzo || '',
+    [pre + 'cap_citta']: d ? [d.cap, d.citta, d.provincia ? `(${d.provincia})` : ''].filter(Boolean).join(' ') : '',
+    [pre + 'titolo']: d?.tipo !== 'azienda' ? d?.titolo || '' : '', [pre + 'nome_completo']: nomeConTitolo(d), [pre + 'telefono']: d?.telefono || '', [pre + 'sdi']: d?.sdi || '',
+    [pre + 'cf']: d?.codice_fiscale || '', [pre + 'piva']: d?.partita_iva || '', [pre + 'email']: d?.email || '', [pre + 'pec']: d?.pec || '',
+  }
+}
+/** Campi liberi dei modelli delle versioni precedenti che oggi si compilano dall'altra persona scelta. */
+const ALIAS_PERSONA: Record<string, string> = { 'nome del delegato': 'persona.nome', 'codice fiscale del delegato': 'persona.cf', 'nome del collega': 'persona.nome', 'nome del delegato o della delegata': 'persona.nome' }
+/** Il modello usa una seconda persona (delegato, collega…)? */
+export const usaAltraPersona = (campi: string[]) => campi.some((c) => c.startsWith('persona.') || c in ALIAS_PERSONA)
+
+export function valoriCampi(s: Settings, o: { destinatario?: Anagrafica | null; pratica?: Pratica | null; controparte?: Anagrafica | null; persona?: Anagrafica | null; luogo?: string }): Record<string, string> {
+  const st = s.studio, d = o.destinatario, p = o.pratica
+  const persona = campiPersona('persona.', o.persona)
+  return {
+    ...persona, ...Object.fromEntries(Object.entries(ALIAS_PERSONA).map(([k, v]) => [k, persona[v]]).filter(([, v]) => v)),
     oggi: dataLunga(), luogo: o.luogo || cittaDa(st.cap_citta),
-    'destinatario.nome': d?.denominazione || '', 'destinatario.indirizzo': d?.indirizzo || '',
-    'destinatario.cap_citta': d ? [d.cap, d.citta, d.provincia ? `(${d.provincia})` : ''].filter(Boolean).join(' ') : '',
-    'destinatario.titolo': d?.tipo !== 'azienda' ? d?.titolo || '' : '', 'destinatario.nome_completo': nomeConTitolo(d), 'destinatario.telefono': d?.telefono || '', 'destinatario.sdi': d?.sdi || '',
-    'destinatario.cf': d?.codice_fiscale || '', 'destinatario.piva': d?.partita_iva || '', 'destinatario.email': d?.email || '', 'destinatario.pec': d?.pec || '',
+    ...campiPersona('destinatario.', d),
     'pratica.numero': p?.numero || '', 'pratica.titolo': p?.titolo || '', 'pratica.rg': p?.rg || '', 'pratica.autorita': p?.autorita || '', 'pratica.giudice': p?.giudice || '',
     'pratica.controparte': o.controparte?.denominazione || '',
     'studio.nome': st.intestazione || st.nome || '', 'studio.titolare': st.titolare || '', 'studio.indirizzo': st.indirizzo || '', 'studio.cap_citta': st.cap_citta || '',
@@ -422,8 +445,8 @@ export const TIPI_DOCUMENTO: TipoDocumento[] = [
   { tipo: 'Diffida e messa in mora', descrizione: 'Sollecito formale per conto del cliente', profili: ['avvocato'], corpo: () => corpo(...DESTINATARIO, 'Oggetto: diffida e messa in mora', '', 'Per conto e nell’interesse di …, Le comunico che …', '', 'La invito pertanto a provvedere entro e non oltre 15 giorni dal ricevimento della presente. In mancanza, sarò costretto a tutelare i diritti del mio assistito nelle sedi opportune, senza ulteriore avviso.', '', 'Distinti saluti.', '', '{{studio.titolare}}') },
   { tipo: 'Sollecito di pagamento', descrizione: 'Promemoria per un documento non ancora saldato', profili: ['professionista', 'impresa'], corpo: () => corpo(...DESTINATARIO, 'Oggetto: sollecito di pagamento', '', 'Gentile cliente,', 'da un controllo risulta ancora da saldare il documento n. {{numero documento}} del {{data documento}}, per un importo di € {{importo}}.', '', 'La invito a provvedere al pagamento entro 15 giorni con bonifico sul conto {{studio.iban}}. Se ha già pagato, consideri questa comunicazione come non inviata.', ...FIRMA) },
   { tipo: 'Procura alle liti', descrizione: 'Mandato difensivo da far sottoscrivere al cliente', profili: ['avvocato'], corpo: () => corpo('#Procura alle liti', 'Il/La sottoscritto/a {{destinatario.nome}} (C.F. {{destinatario.cf}}) nomina e costituisce proprio difensore {{studio.titolare}}, conferendo ogni più ampia facoltà di legge, nel procedimento {{pratica.titolo}} ({{pratica.rg}}) davanti a {{pratica.autorita}}.', '', 'Elegge domicilio presso lo studio del difensore.', 'Dichiara di aver ricevuto l’informativa sul trattamento dei dati personali.', '', '{{luogo}}, {{oggi}}', '', 'Firma ______________________', '', 'Per autentica ______________________') },
-  { tipo: 'Delega', descrizione: 'Delega a una persona di fiducia per ritirare, consegnare o firmare per conto del delegante', profili: TUTTI, corpo: () => corpo('#Delega', 'Il/La sottoscritto/a {{destinatario.nome}}, nato/a a {{luogo di nascita}} il {{data di nascita}}, C.F. {{destinatario.cf}}, residente in {{destinatario.indirizzo}}, {{destinatario.cap_citta}},', '', 'DELEGA', '', '{{nome del delegato}}, nato/a a {{luogo di nascita del delegato}} il {{data di nascita del delegato}}, C.F. {{codice fiscale del delegato}},', '', 'a {{oggetto della delega}} in suo nome e per suo conto presso {{ufficio}}, sollevando l’ente da ogni responsabilità al riguardo.', '', 'Si allegano copia del documento d’identità del delegante e del delegato.', '', '{{luogo}}, {{oggi}}', '', 'Il delegante ______________________', '', 'Il delegato ______________________') },
-  { tipo: 'Delega di udienza', descrizione: 'Sostituzione in udienza da parte di un collega (art. 14 L. 247/2012)', profili: ['avvocato'], corpo: () => corpo('#Delega di udienza', 'Il sottoscritto {{studio.titolare}}, con studio in {{studio.indirizzo}}, {{studio.cap_citta}}, difensore di {{destinatario.nome}} nel procedimento {{pratica.titolo}} (R.G. {{pratica.rg}}) pendente davanti a {{pratica.autorita}}, giudice {{pratica.giudice}},', '', 'DELEGA', '', 'l’Avv. {{nome del collega}} del Foro di {{foro del collega}} a sostituirlo all’udienza del {{data udienza}} e a compiere tutte le attività processuali necessarie, con ogni facoltà di legge.', '', '{{luogo}}, {{oggi}}', '', '{{studio.titolare}}', '', '______________________') },
+  { tipo: 'Delega', descrizione: 'Delega a una persona di fiducia per ritirare, consegnare o firmare per conto del delegante', profili: TUTTI, corpo: () => corpo('#Delega', 'Il/La sottoscritto/a {{destinatario.nome}}, nato/a a {{luogo di nascita}} il {{data di nascita}}, C.F. {{destinatario.cf}}, residente in {{destinatario.indirizzo}}, {{destinatario.cap_citta}},', '', 'DELEGA', '', '{{persona.nome}}, nato/a a {{luogo di nascita del delegato}} il {{data di nascita del delegato}}, C.F. {{persona.cf}}, residente in {{persona.indirizzo}}, {{persona.cap_citta}},', '', 'a {{oggetto della delega}} in suo nome e per suo conto presso {{ufficio}}, sollevando l’ente da ogni responsabilità al riguardo.', '', 'Si allegano copia del documento d’identità del delegante e del delegato.', '', '{{luogo}}, {{oggi}}', '', 'Il delegante ______________________', '', 'Il delegato ______________________') },
+  { tipo: 'Delega di udienza', descrizione: 'Sostituzione in udienza da parte di un collega (art. 14 L. 247/2012)', profili: ['avvocato'], corpo: () => corpo('#Delega di udienza', 'Il sottoscritto {{studio.titolare}}, con studio in {{studio.indirizzo}}, {{studio.cap_citta}}, difensore di {{destinatario.nome}} nel procedimento {{pratica.titolo}} (R.G. {{pratica.rg}}) pendente davanti a {{pratica.autorita}}, giudice {{pratica.giudice}},', '', 'DELEGA', '', '{{persona.nome_completo}} del Foro di {{foro del collega}} a sostituirlo all’udienza del {{data udienza}} e a compiere tutte le attività processuali necessarie, con ogni facoltà di legge.', '', '{{luogo}}, {{oggi}}', '', '{{studio.titolare}}', '', '______________________') },
   { tipo: 'Incarico professionale', descrizione: 'Conferimento dell’incarico, compenso e trattamento dei dati', profili: ['avvocato', 'professionista'], corpo: () => corpo('#Conferimento di incarico professionale', 'Tra {{destinatario.nome}} (C.F. {{destinatario.cf}}), residente in {{destinatario.indirizzo}}, {{destinatario.cap_citta}}, di seguito «cliente», e {{studio.nome}} (C.F. {{studio.cf}} – P.IVA {{studio.piva}}), con sede in {{studio.indirizzo}}, {{studio.cap_citta}}, di seguito «professionista», si conviene quanto segue.', '#1. Oggetto dell’incarico', '{{pratica.titolo}}: …', '#2. Compenso, spese e tempi', 'Il compenso è determinato in € … oltre accessori di legge, secondo il preventivo allegato. Le spese anticipate sono rimborsate a parte. Tempi previsti: …', '#3. Obblighi delle parti', 'Il cliente fornisce informazioni e documenti completi e veritieri. Il professionista svolge l’incarico con diligenza e informa il cliente sull’andamento dell’attività.', '#4. Recesso', 'Ciascuna parte può recedere con comunicazione scritta; restano dovuti i compensi per l’attività svolta e le spese sostenute.', '#5. Trattamento dei dati personali', 'Il professionista è titolare del trattamento dei dati personali del cliente, trattati per eseguire l’incarico (art. 6, par. 1, lett. b, Regolamento UE 2016/679) e per adempiere agli obblighi di legge, anche fiscali e antiriciclaggio (art. 6, par. 1, lett. c). I dati sono conservati per la durata dell’incarico e per i termini di prescrizione e di legge successivi. Il cliente dichiara di aver ricevuto l’informativa ai sensi dell’art. 13 del Regolamento e può esercitare i diritti previsti dagli artt. 15-22 scrivendo a {{studio.email}}.', '#6. Strumenti di intelligenza artificiale', 'Ai sensi dell’art. 13 della legge 23 settembre 2025, n. 132, il professionista informa il cliente che nello svolgimento dell’incarico può avvalersi di sistemi di intelligenza artificiale solo per attività strumentali e di supporto (per esempio ricerca, sintesi e prima stesura di testi), sempre sotto il proprio controllo: valutazioni, scelte e atti restano frutto della sua attività intellettuale e della sua responsabilità. Sistemi utilizzati: {{sistemi di IA utilizzati}}. Prima di usarli i dati personali e riservati del cliente vengono rimossi o pseudonimizzati, salvo diverso accordo.', '#7. Copertura assicurativa', 'Il professionista dichiara gli estremi della polizza di responsabilità civile professionale: …', '', '{{luogo}}, {{oggi}}', '', 'Il cliente ______________________          Il professionista ______________________') },
   { tipo: 'Informativa privacy', descrizione: 'Informativa sul trattamento dei dati (art. 13 GDPR) per clienti e contatti', profili: ['avvocato', 'professionista', 'impresa'], corpo: () => corpo('#Informativa sul trattamento dei dati personali', 'ai sensi dell’art. 13 del Regolamento UE 2016/679 («GDPR»)', '', 'Gentile {{destinatario.nome}},', 'la presente informativa descrive come trattiamo i Suoi dati personali.', '#1. Titolare del trattamento', '{{studio.nome}}, {{studio.indirizzo}}, {{studio.cap_citta}} – C.F. {{studio.cf}}, P.IVA {{studio.piva}} – email {{studio.email}}, PEC {{studio.pec}}, telefono {{studio.telefono}}.', '#2. Dati trattati', 'Dati anagrafici e di contatto, dati fiscali e di pagamento, documenti e informazioni necessari per l’incarico; solo se indispensabili, categorie particolari di dati (art. 9) o dati giudiziari (art. 10), nei limiti consentiti dalla legge.', '#3. Finalità e basi giuridiche', '- esecuzione dell’incarico e delle misure precontrattuali richieste (art. 6, par. 1, lett. b);', '- adempimento di obblighi di legge, fiscali, contabili e, dove previsti, antiriciclaggio (art. 6, par. 1, lett. c);', '- tutela dei diritti del titolare in sede giudiziaria e gestione di eventuali contestazioni (art. 6, par. 1, lett. f).', '#4. Modalità e conservazione', 'I dati sono trattati con strumenti informatici e cartacei, con misure di sicurezza adeguate, e conservati per la durata del rapporto e successivamente per i termini di prescrizione e gli obblighi di legge (di norma 10 anni).', '#5. Destinatari', 'Collaboratori autorizzati e, quando necessario, commercialista, consulenti, autorità giudiziarie e amministrazioni, istituti bancari, fornitori di servizi informatici nominati responsabili del trattamento. I dati non sono diffusi né trasferiti fuori dallo Spazio economico europeo, salvo con le garanzie previste dal Regolamento.', '#6. Natura del conferimento', 'Il conferimento è necessario per svolgere l’incarico e adempiere agli obblighi di legge; in mancanza non è possibile dare seguito al rapporto.', '#7. Diritti dell’interessato', 'Può chiedere accesso, rettifica, cancellazione, limitazione, portabilità e opporsi al trattamento (artt. 15-22), scrivendo a {{studio.email}}. Ha inoltre diritto di proporre reclamo al Garante per la protezione dei dati personali (www.garanteprivacy.it).', '', '{{luogo}}, {{oggi}}', '', 'Per presa visione ______________________') },
   { tipo: 'Informativa uso dell’intelligenza artificiale', descrizione: 'Comunicazione al cliente sui sistemi di IA usati nell’incarico (art. 13 L. 132/2025)', profili: ['avvocato', 'professionista'], corpo: () => corpo(...DESTINATARIO, '#Informativa sull’uso di sistemi di intelligenza artificiale', 'ai sensi dell’art. 13, comma 2, della legge 23 settembre 2025, n. 132', '', 'Gentile {{destinatario.nome}},', 'con la presente La informo sull’eventuale uso di sistemi di intelligenza artificiale nello svolgimento dell’incarico {{pratica.titolo}}.', '#1. Sistemi utilizzati', '{{sistemi di IA utilizzati}} (per esempio: assistente per la ricerca e la sintesi di documenti, riconoscimento del testo nelle scansioni, strumenti di traduzione).', '#2. Finalità e limiti', 'I sistemi di intelligenza artificiale sono usati esclusivamente per attività strumentali e di supporto, come ricerca, sintesi, organizzazione dei documenti e prima stesura di testi. Le valutazioni, le scelte, la redazione definitiva degli atti e i consigli che Le fornisco restano frutto della mia attività intellettuale, che prevale in ogni caso.', '#3. Controllo e responsabilità', 'Ogni contenuto prodotto con questi strumenti è verificato da me prima dell’uso. La responsabilità professionale per la prestazione resta interamente in capo al sottoscritto.', '#4. Riservatezza e dati personali', 'Prima di usare sistemi forniti da terzi, i dati personali e le informazioni riservate che La riguardano vengono rimossi o sostituiti con segnaposto (pseudonimizzazione), salvo Suo diverso consenso. I dati sono trattati come descritto nell’informativa sul trattamento dei dati personali già ricevuta.', '#5. Richieste', 'Può chiedere in qualsiasi momento chiarimenti sui sistemi utilizzati, oppure che per il Suo incarico non ne vengano usati, scrivendo a {{studio.email}}.', '', '{{luogo}}, {{oggi}}', '', '{{studio.titolare}}', '', 'Per presa visione ______________________') },
@@ -446,6 +469,7 @@ export function nuovoModello(s: Settings, tipo: string, nome?: string): ModelloD
     numeriPagina: true, mostraLuogoData: !['Procura alle liti', 'Incarico professionale', 'Verbale', 'Informativa privacy', 'Informativa uso dell’intelligenza artificiale', 'Delega', 'Delega di udienza'].includes(tipo), aggiornato: new Date().toISOString(),
   }
 }
+const DIM_PT_RIGA: Record<string, number> = { grandissima: 26, grande: 18, media: 13, normale: 10, piccola: 9 }
 export const MARGINI_PREDEFINITI: MarginiPagina = { sopra: 16, sotto: 14, lati: 20 }
 /** Modello personalizzato da zero: pagina bianca col nome scelto; a richiesta intestazione, piè di pagina e font dei documenti di vendita. */
 export function modelloPersonalizzato(s: Settings, nome: string, conIntestazione: boolean): ModelloDocumento {
@@ -455,7 +479,8 @@ export function modelloPersonalizzato(s: Settings, nome: string, conIntestazione
     ...(!conIntestazione && { intestazione: [rigaVuota({ dimensione: 'grande', grassetto: true })], footer: [rigaVuota({ dimensione: 'piccola' })], logo: null, immagineFooter: null, fontDocumento: 'arial' }),
   }
 }
-export const duplicaModello = (m: ModelloDocumento): ModelloDocumento => ({ ...structuredClone(m), id: nuovoId(), nome: `${m.nome} (copia)`, predefinito: false, aggiornato: new Date().toISOString() })
+/** Copia del modello con un altro identificativo: il nome lo decide chi la crea. */
+export const duplicaModello = (m: ModelloDocumento): ModelloDocumento => ({ ...structuredClone(m), id: nuovoId(), predefinito: false, aggiornato: new Date().toISOString() })
 /** I modelli pronti del profilo (lettera, preventivo…), con l'intestazione delle parcelle: si usano subito e si modificano a piacere. */
 export const modelliPredefiniti = (s: Settings): ModelloDocumento[] => tipiDocumento(s).filter((t) => t.tipo !== 'Documento libero').map((t) => ({ ...nuovoModello(s, t.tipo), predefinito: true }))
 /** Modelli da proporre: quelli salvati; se l'utente non ha ancora aperto Documenti, quelli predefiniti. */
@@ -484,12 +509,20 @@ export function documentoHtml(m: ModelloDocumento, c: Compilazione, anteprima = 
   const corpoHtml = htmlDaBlocchi(corpoCompilato(m, c))
   const luogoData = testoLuogoData(m, c), pos = posizioneLuogoData(m)
   const ld = luogoData ? `<p class="luogo-data" style="text-align:${CSS_ALLINEA[pos.allineamento]};${pos.alto ? '' : 'margin:8mm 0 0'}">${esc(luogoData)}</p>` : ''
-  const footer = `<div class="piede">${footerImmagineHtml(m)}${righe(m.footer)}</div>`
+  const footer = `<div class="piede">${footerImmagineHtml(m)}${righe(m.footer)}${m.numeriPagina && anteprima ? '<span class="num-pagina">Pagina 1 di 1</span>' : ''}</div>`
   const haTesta = !!m.logo || !vuoto(m.intestazione)
+  // in cima a ogni pagina (nell'intestazione della tabella di impaginazione) oppure solo sulla prima, prima del testo
+  const testa = haTesta ? `<div class="testa">${logoHtml(m)}${righe(m.intestazione)}</div>` : ''
   const mg = { ...MARGINI_PREDEFINITI, ...m.margini }, pt = m.corpoPt ?? 11
-  return `<!doctype html><html lang="it"><head><meta charset="utf-8">${m.numeriPagina && !anteprima ? '<meta name="tio-numeri-pagina" content="1">' : ''}<title>${esc(compila(m.nome, v))}</title><style>
+  // «Pagina N di M» sta sulla stessa riga dell'ultima riga del piè di pagina, a destra: nel PDF è un riquadro del margine
+  // spostato in su di una riga; se quella riga è allineata a destra, lascia lo spazio al numero
+  const ultima = m.numeriPagina ? m.footer.filter((r) => compila(r.testo, v).trim()).at(-1) : undefined
+  const ptNum = ultima ? DIM_PT_RIGA[ultima.dimensione] || 10 : 8
+  const stileNum = `font:${ptNum}pt/1.3 ${ultima?.font ? famigliaFont(ultima.font, m.fontPersonali) : famigliaFont(m.fontDocumento, m.fontPersonali)};color:#536276;white-space:nowrap`
+  const numeriCss = m.numeriPagina && !anteprima ? `@bottom-right{content:"Pagina " counter(page) " di " counter(pages);${stileNum};vertical-align:top;margin-top:-${ultima ? (ptNum * 1.3).toFixed(2) : 0}pt}` : ''
+  return `<!doctype html><html lang="it"><head><meta charset="utf-8"><title>${esc(compila(m.nome, v))}</title><style>
   ${fontFaceCss({ ...m, pagamento: [] })}
-  @page{size:A4;margin:${mg.sopra}mm ${mg.lati}mm ${mg.sotto + (m.numeriPagina ? 4 : 0)}mm}*{box-sizing:border-box}
+  @page{size:A4;margin:${mg.sopra}mm ${mg.lati}mm ${mg.sotto + (m.numeriPagina && !ultima ? 4 : 0)}mm;${numeriCss}}*{box-sizing:border-box}
   body{font:${pt}pt/1.5 ${famigliaFont(m.fontDocumento, m.fontPersonali)};color:#14202e;margin:0;${anteprima ? `padding:${mg.sopra}mm ${mg.lati}mm ${mg.sotto}mm;min-height:297mm;position:relative;` : ''}}
   .testa{padding-bottom:3.5mm;margin-bottom:7mm;border-bottom:1pt solid #9aa5b1}.luogo-data{text-align:right;margin:0 0 6mm}
   .corpo{text-align:${CSS_ALLINEA[m.allineamento || 'sinistra']};${m.allineamento === 'giustificato' ? 'hyphens:auto;' : ''}${m.colonne === 2 ? 'column-count:2;column-gap:9mm;' : ''}}.corpo h1,.corpo h2,.corpo h3,.corpo h4{break-after:avoid}.corpo [data-colonne]{column-count:2;column-gap:9mm;margin:0 0 .55em}
@@ -500,10 +533,10 @@ export function documentoHtml(m: ModelloDocumento, c: Compilazione, anteprima = 
   .corpo td,.corpo th{border:.6pt solid #8a96a3;padding:1.4mm 2mm;vertical-align:top}.corpo th{background:#eef1f4;font-weight:700}
   .corpo figure{margin:0 0 .6em}.corpo figure img{max-width:100%;height:auto}.corpo hr[data-interruzione]{break-after:page;border:0;margin:0;height:0}
   .layout{width:100%;border-collapse:collapse}.layout>thead{display:table-header-group}.layout>tfoot{display:table-footer-group}.layout td{padding:0}.riserva{visibility:hidden}
-  .piede{font-size:8pt;line-height:1.4;color:#536276;padding-top:4mm}
+  .piede{font-size:8pt;line-height:1.4;color:#536276;padding-top:4mm;position:relative}${ultima?.allineamento === 'destra' ? '.piede>div:last-of-type{padding-right:30mm}' : ''}.num-pagina{position:absolute;right:0;bottom:0;${stileNum}}
   footer{${anteprima ? `position:absolute;left:${mg.lati}mm;right:${mg.lati}mm;bottom:${Math.max(3, mg.sotto - 2)}mm;` : 'position:fixed;left:0;right:0;bottom:0;'}}
   </style></head><body>
-  ${anteprima ? '' : '<table class="layout"><thead><tr><td>'}${haTesta ? `<div class="testa">${logoHtml(m)}${righe(m.intestazione)}</div>` : ''}${anteprima ? '' : '</td></tr></thead><tbody><tr><td>'}
+  ${anteprima ? '' : '<table class="layout"><thead><tr><td>'}${!m.intestazioneSoloPrima || anteprima ? testa : ''}${anteprima ? '' : '</td></tr></thead><tbody><tr><td>'}${m.intestazioneSoloPrima && !anteprima ? testa : ''}
   ${pos.alto ? ld : ''}<div class="corpo">${corpoHtml}</div>${pos.alto ? '' : ld}
   ${anteprima ? '' : `</td></tr></tbody><tfoot><tr><td><div class="riserva" aria-hidden="true">${footer}</div></td></tr></tfoot></table>`}
   <footer>${footer}</footer></body></html>`
@@ -548,7 +581,7 @@ export async function documentoEsportabile(m: ModelloDocumento, c: Compilazione)
   const ld = luogoData ? [{ tipo: 'p' as const, allineamento: pos.allineamento, runs: [{ t: luogoData }] }] : []
   const font = nomeFont(m.fontDocumento, m)
   return {
-    titolo: compila(m.nome, v), font, numeriPagina: m.numeriPagina, ...(m.margini && { margini: { ...MARGINI_PREDEFINITI, ...m.margini } }), ...(m.corpoPt && { corpoPt: m.corpoPt }), allineamento: m.allineamento || 'sinistra', colonne: m.colonne === 2 ? 2 : 1,
+    titolo: compila(m.nome, v), font, numeriPagina: m.numeriPagina, intestazioneSoloPrima: !!m.intestazioneSoloPrima, ...(m.margini && { margini: { ...MARGINI_PREDEFINITI, ...m.margini } }), ...(m.corpoPt && { corpoPt: m.corpoPt }), allineamento: m.allineamento || 'sinistra', colonne: m.colonne === 2 ? 2 : 1,
     intestazione: righe(m.intestazione), footer: righe(m.footer),
     logo: await png(m.logo, m.logoAltezza, m.logoAllineamento),
     immagineFooter: await png(m.immagineFooter, m.immagineFooterAltezza ?? 36, m.immagineFooterAllineamento || 'centro'),
@@ -557,11 +590,11 @@ export async function documentoEsportabile(m: ModelloDocumento, c: Compilazione)
 }
 
 export const FORMATI_DOCUMENTO = [
-  { id: 'docx', nome: 'Word (.docx)', nota: 'si apre con Word, Pages e LibreOffice' },
-  { id: 'pdf', nome: 'PDF', nota: 'pronto da firmare, inviare o depositare' },
-  { id: 'odt', nome: 'OpenDocument (.odt)', nota: 'LibreOffice e OpenOffice' },
-  { id: 'rtf', nome: 'RTF', nota: 'compatibile con qualsiasi programma di videoscrittura' },
-  { id: 'html', nome: 'Pagina web (.html)', nota: 'da aprire nel browser o incollare in un’email' },
-  { id: 'md', nome: 'Markdown (.md)', nota: 'testo con formattazione leggera' },
-  { id: 'txt', nome: 'Testo semplice (.txt)', nota: 'senza formattazione' },
+  { id: 'docx', nome: 'Word (.docx)' },
+  { id: 'pdf', nome: 'PDF (.pdf)' },
+  { id: 'odt', nome: 'OpenDocument (.odt)' },
+  { id: 'rtf', nome: 'RTF (.rtf)' },
+  { id: 'html', nome: 'Pagina web (.html)' },
+  { id: 'md', nome: 'Markdown (.md)' },
+  { id: 'txt', nome: 'Testo (.txt)' },
 ] as const

@@ -66,8 +66,25 @@ function collega(praticaId, src, { categoria = null, oraId = null, impronta: imp
   if (st.isSymbolicLink() ? !isFile(assoluto) : !st.isFile()) throw new Error('Non è un file')
   const gia = db.list('documenti', { pratica_id: praticaId }).find((d) => d.percorso === assoluto && (d.ora_id || null) === (oraId || null))
   if (gia) return gia
+  includi(praticaId, assoluto)
   return db.save('documenti', { pratica_id: praticaId, nome: path.basename(assoluto), file: '', percorso: assoluto, impronta: imp || impronta(assoluto), rel: relativoA(assoluto, pratica.cartella), dimensione: fs.statSync(assoluto).size, categoria, ora_id: oraId })
 }
+
+// ---- file a cui l'utente ha tolto il collegamento: restano fuori dalla sincronizzazione automatica delle cartelle ----
+/** Ricorda che il file del documento (se sta in una cartella collegata alla pratica) non va ricollegato da solo. */
+function escludi(d) {
+  if (!d?.percorso || !d.pratica_id) return
+  const p = db.get('pratiche', d.pratica_id); if (!p) return
+  const ass = path.resolve(d.percorso)
+  if (![p.cartella, p.cartella_cliens].some((r) => r && dentro(ass, path.resolve(r)))) return
+  db.getDb().prepare('INSERT OR IGNORE INTO documenti_esclusi(pratica_id, percorso) VALUES(?, ?)').run(d.pratica_id, ass)
+}
+/** Il file torna fra quelli da collegare (collegato a mano, annullata l'eliminazione, sincronizzazione chiesta dall'utente). */
+function includi(praticaId, percorso = null) {
+  if (percorso) db.getDb().prepare('DELETE FROM documenti_esclusi WHERE pratica_id = ? AND percorso = ?').run(praticaId, path.resolve(percorso))
+  else db.getDb().prepare('DELETE FROM documenti_esclusi WHERE pratica_id = ?').run(praticaId)
+}
+const esclusi = (praticaId) => new Set(db.getDb().prepare('SELECT percorso FROM documenti_esclusi WHERE pratica_id = ?').all(praticaId).map((r) => r.percorso))
 
 /** Collega un documento al file indicato dall'utente (percorso cambiato a mano). */
 function ricollega(id, nuovo) {
@@ -255,24 +272,47 @@ async function impostaCartella(praticaId, nuova) {
 }
 
 /**
- * Sottocartelle delle cartelle collegate alla pratica (la sua e quella di Cliens), anche vuote: percorsi relativi con «/».
+ * Sottocartelle delle cartelle collegate alla pratica (la sua e quella del provider), anche vuote: percorsi relativi con «/».
  * Stesse regole di percorri(): niente collegamenti simbolici, niente cartelle nascoste o di sistema, profondità e numero limitati.
  */
-function sottocartelle(praticaId, { max = 2000, maxProf = 10 } = {}) {
+async function sottocartelle(praticaId, opzioni) { return (await contenutoDisco(praticaId, opzioni)).cartelle }
+
+const NON_DOCUMENTI = /^(\..*|Thumbs\.db|desktop\.ini|~\$.*|.*\.tmp|.*\.crdownload|.*\.part)$/i
+/**
+ * Cosa c'è sul disco nelle cartelle collegate alla pratica: le sottocartelle (anche vuote) e, per ciascuna cartella
+ * ('' = radice), quanti file contiene direttamente. `daCollegare`: file presenti sul disco ma non ancora collegati
+ * (esclusi quelli a cui l'utente ha tolto il collegamento). Solo nomi e conteggi: nessun file viene letto.
+ * Letture asincrone con pause e un tempo massimo: una cartella in rete o enorme non blocca mai la finestra
+ * (`incompleto` dice se ci si è fermati prima della fine).
+ */
+async function contenutoDisco(praticaId, { max = 2000, maxProf = 10, maxFile = 20000, maxMs = 5000 } = {}) {
   const p = db.get('pratiche', praticaId); if (!p) throw new Error('Pratica non trovata')
-  const out = new Set()
-  const vai = (radice, rel, prof) => {
-    let elenco; try { elenco = fs.readdirSync(path.join(radice, rel), { withFileTypes: true }) } catch { return }
+  const cartelle = new Set(), file = {}
+  const collegati = new Set(db.list('documenti', { pratica_id: praticaId }).flatMap((d) => [d.percorso, d.percorso_cliens]).filter(Boolean).map((x) => path.resolve(x).normalize('NFC').toLowerCase()))
+  const fuori = new Set([...esclusi(praticaId)].map((x) => x.normalize('NFC').toLowerCase()))
+  const visti = new Set(), t0 = Date.now(); let daCollegare = 0, contati = 0, voci = 0, incompleto = false
+  const vai = async (radice, rel, prof) => {
+    if (incompleto) return
+    let elenco; try { elenco = await fs.promises.readdir(path.join(radice, rel), { withFileTypes: true }) } catch { return }
     for (const e of elenco) {
-      if (out.size >= max) return
-      if (!e.isDirectory() || e.isSymbolicLink() || SALTA.test(e.name)) continue
-      const sotto = rel ? `${rel}/${e.name}` : e.name
-      out.add(sotto)
-      if (prof < maxProf) vai(radice, sotto, prof + 1)
+      if (Date.now() - t0 > maxMs) { incompleto = true; return }
+      if (++voci % 200 === 0) await respira()
+      if (e.isSymbolicLink()) continue
+      if (e.isDirectory()) {
+        if (cartelle.size >= max || SALTA.test(e.name)) continue
+        const sotto = rel ? `${rel}/${e.name}` : e.name
+        cartelle.add(sotto)
+        if (prof < maxProf) await vai(radice, sotto, prof + 1)
+      } else if (e.isFile() && !NON_DOCUMENTI.test(e.name) && contati < maxFile) {
+        const ass = path.resolve(radice, rel, e.name), k = ass.normalize('NFC').toLowerCase()
+        if (visti.has(k)) continue; visti.add(k); contati++
+        file[rel] = (file[rel] || 0) + 1
+        if (!collegati.has(k) && !fuori.has(k)) daCollegare++
+      }
     }
   }
-  for (const r of [p.cartella, p.cartella_cliens]) if (r && isDir(r)) vai(r, '', 1)
-  return [...out]
+  for (const r of [p.cartella, p.cartella_cliens]) if (r && isDir(r)) await vai(path.resolve(r), '', 1)
+  return { cartelle: [...cartelle], file, daCollegare, incompleto }
 }
 
 /** Collega tutti i file di una cartella (sottocartelle comprese) alla pratica. */
@@ -298,4 +338,4 @@ async function collegaCartella(praticaId, dir, { maxFile = 5000, avanza: cb = nu
   return { collegati, gia, incompleto: incompleto || file.length > maxFile, documenti: nuovi }
 }
 
-module.exports = { init, risolvi, esiste, impronta, improntaAsync, percorriAsync, avanzamento, respira, collega, ricollega, stato, sincronizza, impostaCartella, collegaCartella, sottocartelle, cartellaPer, salvaGenerato, baseGenerati, percorri }
+module.exports = { init, risolvi, esiste, impronta, improntaAsync, percorriAsync, avanzamento, respira, collega, ricollega, stato, sincronizza, impostaCartella, collegaCartella, sottocartelle, contenutoDisco, escludi, includi, esclusi, cartellaPer, salvaGenerato, baseGenerati, percorri }

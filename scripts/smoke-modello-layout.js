@@ -115,8 +115,10 @@ function attach({ getWindow, db }) {
       const issues = await js("axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}}).then(r=>r.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})))")
       fs.writeFileSync(path.join(out, 'accessibilita.json'), JSON.stringify(issues, null, 2))
       check('nuovi controlli senza violazioni automatiche WCAG', issues.length === 0)
-      win.setSize(980, 640); await sleep(300)
-      check('foglio intero visibile su finestra compatta', await sheetVisible())
+      win.setSize(980, 640)
+      // il ridisegno dopo il cambio di misura può arrivare tardi con il computer carico: si aspetta fino a 3 secondi
+      let compatto = false; for (let i = 0; i < 12 && !compatto; i++) { await sleep(250); compatto = await sheetVisible() }
+      check('foglio intero visibile su finestra compatta', compatto)
       check('nessuno scorrimento orizzontale nella finestra compatta', await js('document.documentElement.scrollWidth<=document.documentElement.clientWidth+1 && document.querySelector(".content").scrollWidth<=document.querySelector(".content").clientWidth+1'))
       fs.writeFileSync(path.join(out, 'modello-compatto.png'), (await wc.capturePage()).toPNG())
       win.setSize(1360,860); await sleep(150)

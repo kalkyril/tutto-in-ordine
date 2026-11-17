@@ -8,6 +8,7 @@ import { GestioneForm, useGestione, type Costo } from '../components/GestioneAtt
 import { usePagination } from '../components/Pagination'
 import { fmtDate, todayStr } from '../lib/dates'
 import { money } from '../lib/format'
+import { NOMI_RIPETI } from '../lib/pagamenti'
 
 type Filtro = 'da_pagare' | 'pagate' | 'tutte'
 const csvCell = (x: unknown) => { let s = String(x ?? '').replace(/[\r\n]/g, ' ').trim(); if (/^[=+@\-\t]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"' }
@@ -45,7 +46,7 @@ export default function DaPagare({ incorporata = false }: { incorporata?: boolea
   const { visible, controls } = usePagination(righe, filtro)
 
   const segna = async (x: Costo, pagata: boolean) => { const ok = await run(async () => { await api.gestione('costo', { ...x, pagata: pagata ? 1 : 0 }); toast(pagata ? `«${x.descrizione}» segnata come pagata` : `«${x.descrizione}» di nuovo da pagare`); return true }); if (ok && pagata && !x.contabile) setChiediContabile(x) }
-  const elimina = async (x: Costo) => { if (await confirm({ title: 'Eliminare la voce?', text: `«${x.descrizione}» (${money(x.importo)}) verrà eliminata.`, ok: 'Elimina', danger: true })) await run(() => api.gestione('eliminaCosto', { id: x.id })) }
+  const elimina = async (x: Costo) => { if (await confirm({ title: 'Eliminare la voce?', text: `«${x.descrizione}» (${money(x.importo)}) verrà eliminata.${x.ripeti ? ' Le prossime della serie continueranno: per fermarle, modifica la voce e scegli «No, una volta sola».' : ''}`, ok: 'Elimina', danger: true })) await run(() => api.gestione('eliminaCosto', { id: x.id })) }
   const esporta = () => {
     const rows = righe.map((x) => [x.descrizione, x.categoria, anagraficaById.get(x.fornitore_id || 0)?.denominazione, x.importo.toFixed(2).replace('.', ','), x.scadenza, x.pagata ? 'Pagata' : 'Da pagare', fmtDate(x.data), praticaById.get(x.pratica_id || 0)?.titolo, x.recuperabile ? 'Sì' : ''])
     const header = ['Descrizione', 'Categoria', 'A chi', 'Importo', 'Da pagare entro', 'Stato', 'Data', L.pratica, 'Da riaddebitare']
@@ -61,7 +62,7 @@ export default function DaPagare({ incorporata = false }: { incorporata?: boolea
           <Btn variant="ghost" onClick={esporta} disabled={!righe.length}><Download size={16} /> Esporta CSV</Btn>
           <Btn variant="primary" onClick={() => setForm({ categoria: 'Prestazioni e consulenze' })}><Plus size={16} /> Nuova voce da pagare</Btn>
         </>
-        return incorporata ? <div className="toolbar azioni-sezione">{azioni}</div> : <PageHeader title="Da pagare" subtitle={settings.profilo === 'avvocato' ? 'Domiciliatari, consulenti, periti, spese extra e fornitori dello studio: cosa devi pagare e entro quando.' : 'Fornitori, collaboratori, consulenze, spese extra e imposte: cosa devi pagare e entro quando.'} actions={azioni} /> })()}
+        return incorporata ? <div className="toolbar azioni-sezione">{azioni}</div> : <PageHeader title="Da pagare" subtitle="Cosa devi pagare e entro quando." actions={azioni} /> })()}
       {d.errore && <p role="alert" className="stato-err">{d.errore}</p>}
       <div className="kpis fascia-numeri">
         <div className="kpi static"><span>Da pagare</span><b>{money(somma(aperte))}</b></div>
@@ -76,7 +77,7 @@ export default function DaPagare({ incorporata = false }: { incorporata?: boolea
         {righe.length > 0 && <div className="table-wrap"><table className="table">
           <thead><tr><th>Voce</th><th className="nowrap">A chi</th><th>{L.pratica}</th><th className="n">Importo</th><th>Entro</th><th>Stato</th><th>Azioni</th></tr></thead>
           <tbody>{visible.map((x) => <tr key={x.id} className={x.pagata ? 'pagata' : undefined}>
-            <td>{x.descrizione}<br /><small className="muted">{x.categoria}{x.recuperabile ? ' · da riaddebitare al cliente' : ''}</small></td>
+            <td>{x.descrizione}<br /><small className="muted">{x.categoria}{x.ripeti && NOMI_RIPETI[x.ripeti] ? ` · si ripete ${NOMI_RIPETI[x.ripeti]}` : ''}{x.recuperabile ? ' · da riaddebitare al cliente' : ''}</small></td>
             <td>{anagraficaById.get(x.fornitore_id || 0)?.denominazione || '—'}</td>
             <td>{x.pratica_id ? <button type="button" className="link-btn" onClick={() => go({ page: 'pratica', id: x.pratica_id! })}>{praticaById.get(x.pratica_id)?.titolo}</button> : 'Generale'}</td>
             <td className="n nowrap">{money(x.importo)}</td>

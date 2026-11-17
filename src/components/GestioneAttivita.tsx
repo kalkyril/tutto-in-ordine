@@ -10,13 +10,16 @@ import { fmtDate, todayStr } from '../lib/dates'
 import { primoLavorativo } from '../lib/termini'
 import { money, parseNumber } from '../lib/format'
 import type { Ora, Parcella, Spesa } from '../types'
+import { TriangleAlert } from 'lucide-react'
+import { avvisiPratica, consumoPratiche, type AvvisoPratica } from '../lib/budgetPratica'
+import type { RataBase } from '../lib/pagamenti'
 
 interface Pagamento { id: number; parcella_id: number; data: string | null; importo: number; metodo: string; note: string }
-export interface Costo { id: number; pratica_id: number | null; fornitore_id: number | null; data: string; descrizione: string; categoria: string; importo: number; scadenza: string | null; pagata: number; recuperabile: number; contabile?: string | null }
+export interface Costo { id: number; pratica_id: number | null; fornitore_id: number | null; data: string; descrizione: string; categoria: string; importo: number; scadenza: string | null; pagata: number; recuperabile: number; contabile?: string | null; ripeti?: string | null; serie?: number | null; ripeti_giorno?: number | null }
 interface Ricorrenza { id: number; pratica_id: number | null; titolo: string; frequenza: string; prossima: string; attiva: number; lavorativo?: number }
-interface Gestione { pagamenti: Pagamento[]; costi: Costo[]; ricorrenze: Ricorrenza[] }
+interface Gestione { pagamenti: Pagamento[]; costi: Costo[]; ricorrenze: Ricorrenza[]; rate: RataBase[] }
 export function useGestione() {
-  const [dati, setDati] = useState<Gestione>({ pagamenti: [], costi: [], ricorrenze: [] })
+  const [dati, setDati] = useState<Gestione>({ pagamenti: [], costi: [], ricorrenze: [], rate: [] })
   const [errore, setErrore] = useState('')
   useEffect(() => {
     let attivo=true, ticket=0
@@ -76,17 +79,31 @@ export function GestioneForm({tipo,iniziale,onClose,titolo}:{tipo:'pagamenti'|'c
     {tipo!=='ricorrenze'&&<><Field label="Data *"><Input type="date" value={f.data} onChange={e=>set('data',e.target.value)}/></Field><Field label="Importo (€) *"><Input inputMode="decimal" value={f.importo} onChange={e=>set('importo',e.target.value)}/></Field></>}
     {tipo==='pagamenti'&&<><Field label="Metodo"><Select value={f.metodo} onChange={e=>set('metodo',e.target.value)}>{['Bonifico','Carta','Contanti','Assegno','Altro'].map(x=><option key={x}>{x}</option>)}</Select></Field><Field label="Note"><Textarea value={f.note||''} onChange={e=>set('note',e.target.value)}/></Field></>}
     {tipo!=='pagamenti'&&<Field label={settings.etichette.pratica+' (facoltativo)'} span={2}><PraticaSelect value={f.pratica_id||null} onChange={id=>set('pratica_id',id)}/></Field>}
-    {tipo==='costi'&&<><Field label="Fornitore o professionista"><Select value={f.fornitore_id||''} onChange={e=>set('fornitore_id',e.target.value?Number(e.target.value):null)}><option value="">Non specificato</option>{anagrafica.map(a=><option key={a.id} value={a.id}>{a.denominazione}</option>)}</Select></Field><Field label="Categoria"><Select value={f.categoria} onChange={e=>set('categoria',e.target.value)}>{categorieCosto(settings.profilo==='avvocato',f.categoria).map(x=><option key={x}>{x}</option>)}</Select></Field><Field label="Da pagare entro"><Input type="date" value={f.scadenza||''} onChange={e=>set('scadenza',e.target.value||null)}/></Field><Field label="Pagamento"><label className="check"><input type="checkbox" checked={!!f.pagata} onChange={e=>set('pagata',e.target.checked?1:0)}/> Già pagato</label></Field><Field label="Rimborso"><label className="check"><input type="checkbox" checked={!!f.recuperabile} onChange={e=>set('recuperabile',e.target.checked?1:0)}/> Recuperabile dal cliente</label></Field></>}
+    {tipo==='costi'&&<><Field label="Fornitore o professionista"><Select value={f.fornitore_id||''} onChange={e=>set('fornitore_id',e.target.value?Number(e.target.value):null)}><option value="">Non specificato</option>{anagrafica.map(a=><option key={a.id} value={a.id}>{a.denominazione}</option>)}</Select></Field><Field label="Categoria"><Select value={f.categoria} onChange={e=>set('categoria',e.target.value)}>{categorieCosto(settings.profilo==='avvocato',f.categoria).map(x=><option key={x}>{x}</option>)}</Select></Field><Field label="Da pagare entro"><Input type="date" value={f.scadenza||''} onChange={e=>set('scadenza',e.target.value||null)}/></Field><Field label="Pagamento"><label className="check"><input type="checkbox" checked={!!f.pagata} onChange={e=>set('pagata',e.target.checked?1:0)}/> Già pagato</label></Field><Field label="Rimborso"><label className="check"><input type="checkbox" checked={!!f.recuperabile} onChange={e=>set('recuperabile',e.target.checked?1:0)}/> Recuperabile dal cliente</label></Field><Field label="Si ripete" hint={f.serie&&!f.ripeti?'Le prossime voci non ancora pagate di questa serie verranno tolte':undefined}><Select value={f.ripeti||''} onChange={e=>set('ripeti',e.target.value)}><option value="">No, una volta sola</option><option value="mensile">Ogni mese</option><option value="trimestrale">Ogni 3 mesi</option><option value="annuale">Ogni anno</option></Select></Field></>}
     {tipo==='ricorrenze'&&<><Field label="Prossima scadenza *"><Input type="date" value={f.prossima} onChange={e=>set('prossima',e.target.value)}/></Field><Field label="Frequenza"><Select value={f.frequenza} onChange={e=>set('frequenza',e.target.value)}><option value="settimanale">Settimanale</option><option value="mensile">Mensile</option><option value="annuale">Annuale</option></Select></Field><Field label="Stato"><label className="check"><input type="checkbox" checked={!!f.attiva} onChange={e=>set('attiva',e.target.checked?1:0)}/> Attiva</label></Field><Field label="Sabati e festivi"><label className="check"><input type="checkbox" checked={!!f.lavorativo} onChange={e=>set('lavorativo',e.target.checked?1:0)}/> Sposta al primo giorno lavorativo</label></Field></>}
   </FormGrid></Modal>
 }
 
 export function BudgetLavoro({praticaId,ore,spese}:{praticaId:number;ore:Ora[];spese:Spesa[]}) {
-  const {praticaById}=useData(),d=useGestione(),run=useAction(),p=praticaById.get(praticaId),[edit,setEdit]=useState(false)
+  const {praticaById,settings}=useData(),d=useGestione(),run=useAction(),p=praticaById.get(praticaId),[edit,setEdit]=useState(false)
   const [f,setF]=useState<any>({})
   if(!p)return null
-  const oreTotali=ore.reduce((s,o)=>s+o.minuti/60,0),valoreOre=ore.reduce((s,o)=>s+o.minuti/60*o.tariffa_oraria,0),costi=spese.reduce((s,x)=>s+x.importo,0)+d.costi.filter(c=>c.pratica_id===praticaId).reduce((s,c)=>s+c.importo,0)
-  return <section className="card pad"><header className="card-head"><h2>Budget e consegna</h2><Btn size="sm" onClick={()=>{setF({budget_ore:p.budget_ore??'',budget_importo:p.budget_importo??'',consegna:p.consegna||''});setEdit(true)}}>Modifica budget</Btn></header><p>Ore registrate: <b>{oreTotali.toLocaleString('it-IT',{maximumFractionDigits:2})}</b>{p.budget_ore!=null&&<> / previste <b>{p.budget_ore}</b>{oreTotali>p.budget_ore&&<strong className="late-text"> · Budget ore superato</strong>}</>} · Costi registrati: <b>{money(costi)}</b></p><p>Importo concordato (imponibile): <b>{p.budget_importo==null?'Non impostato':money(p.budget_importo)}</b>{p.budget_importo!=null&&<> · Residuo dopo costi e valore delle ore: <b>{money(p.budget_importo-costi-valoreOre)}</b></>}</p><p className="muted small">Il residuo è una stima operativa, non l'utile fiscale. Consegna: {p.consegna?fmtDate(p.consegna):'non impostata'}.</p>{d.errore&&<p role="alert">{d.errore}</p>}
+  const consumo=consumoPratiche(ore,spese,d.costi).get(praticaId)||{ore:0,valoreOre:0,costi:0}
+  const chiusa=settings.stati_pratica.some(s=>s.chiusa&&s.nome===p.stato)
+  const avvisi=avvisiPratica(p,consumo,todayStr(),chiusa)
+  const di=(t:string)=>avvisi.find(a=>a.tipo===t)
+  const speso=consumo.costi+consumo.valoreOre
+  const riga=(etichetta:string,valore:string,quota:number|null,avviso?:AvvisoPratica)=><div className="budget-lavoro-riga">
+    <p className="budget-riga"><span>{etichetta}</span><b className="nowrap">{valore}</b></p>
+    {quota!=null&&<span className={`budget-barra ${avviso?avviso.livello:'ok'}`} aria-hidden><i style={{width:`${Math.min(100,Math.max(quota>0?2:0,quota*100))}%`}}/></span>}
+    {avviso&&<p className={`small ${avviso.livello==='superato'?'late-text':'testo-attenzione'}`} role="status"><TriangleAlert size={13} aria-hidden/> {avviso.testo[0].toUpperCase()+avviso.testo.slice(1)}</p>}
+  </div>
+  return <section className="card pad budget-scheda"><header className="card-head"><h2>Budget e consegna</h2><Btn size="sm" onClick={()=>{setF({budget_ore:p.budget_ore??'',budget_importo:p.budget_importo??'',consegna:p.consegna||''});setEdit(true)}}>Modifica budget</Btn></header>
+    {riga('Ore registrate',`${consumo.ore.toLocaleString('it-IT',{maximumFractionDigits:1})}${p.budget_ore!=null?` su ${p.budget_ore.toLocaleString('it-IT')} previste`:''}`,p.budget_ore?consumo.ore/p.budget_ore:null,di('ore'))}
+    {riga('Costi e valore delle ore',`${money(speso)}${p.budget_importo!=null?` su ${money(p.budget_importo)} concordati`:''}`,p.budget_importo?speso/p.budget_importo:null,di('importo'))}
+    {p.budget_importo!=null&&<p className="budget-riga"><span>Residuo stimato</span><b className={`nowrap ${p.budget_importo-speso<0?'late-text':''}`}>{money(p.budget_importo-speso)}</b></p>}
+    {riga('Consegna',p.consegna?fmtDate(p.consegna):'non impostata',null,di('consegna'))}
+    <p className="muted small">Costi: spese anticipate e voci da pagare collegate ({money(consumo.costi)}); valore delle ore: ore per tariffa ({money(consumo.valoreOre)}). Il residuo è una stima operativa, non l’utile fiscale. Avvisi all’80% e oltre il 100%.</p>{d.errore&&<p role="alert">{d.errore}</p>}
     {edit&&<Modal title="Budget del lavoro" onClose={()=>setEdit(false)} footer={<><Btn variant="ghost" onClick={()=>setEdit(false)}>Annulla</Btn><Btn variant="primary" onClick={async()=>{const r=await run(()=>api.save('pratiche',{id:praticaId,budget_ore:f.budget_ore===''?null:parseNumber(String(f.budget_ore)),budget_importo:f.budget_importo===''?null:parseNumber(String(f.budget_importo)),consegna:f.consegna||null}),'Budget salvato');if(r)setEdit(false)}}>Salva</Btn></>}><FormGrid><Field label="Ore previste"><Input inputMode="decimal" value={f.budget_ore} onChange={e=>setF({...f,budget_ore:e.target.value})}/></Field><Field label="Importo concordato (€), imponibile"><Input inputMode="decimal" value={f.budget_importo} onChange={e=>setF({...f,budget_importo:e.target.value})}/></Field><Field label="Consegna"><Input type="date" value={f.consegna} onChange={e=>setF({...f,consegna:e.target.value})}/></Field></FormGrid></Modal>}
   </section>
 }

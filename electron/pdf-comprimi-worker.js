@@ -14,7 +14,7 @@ const LIVELLI = {
   media: { lato: 1800, qualita: 72, soglia: 0.95, togliMetadati: false },
   massima: { lato: 1200, qualita: 55, soglia: 0.98, togliMetadati: true },
 }
-const MAX_BYTE = 300 * 1024 * 1024
+const strumenti = require('./pdf-strumenti')
 
 function avanza(fatto, totale, fase) { parentPort.postMessage({ avanzamento: { fatto, totale, fase } }) }
 
@@ -35,24 +35,21 @@ function togliPredittore(dati, colonne, colori, bpc) {
   return out
 }
 
-async function comprimi({ file, uscita, livello }) {
+async function comprimi({ file, uscita, livello, password }) {
   const L = LIVELLI[livello] || LIVELLI.media
-  const st = fs.statSync(file)
-  if (st.size > MAX_BYTE) throw new Error('Il PDF supera i 300 MB')
-  const { PDFDocument, PDFName, PDFRawStream, PDFDict, PDFArray, PDFRef, PDFNumber, PDFStream } = require('pdf-lib')
+  const { PDFName, PDFRawStream, PDFDict, PDFArray, PDFRef, PDFNumber, PDFStream } = require('pdf-lib')
   const { createCanvas, loadImage } = require('@napi-rs/canvas')
-  const originale = fs.readFileSync(file)
-  if (originale.subarray(0, 1024).indexOf('%PDF') < 0) throw new Error('Il file non è un PDF')
+  const crypto = require('node:crypto')
   avanza(0, 1, 'lettura')
-  let doc
-  try { doc = await PDFDocument.load(originale, { updateMetadata: false, throwOnInvalidObject: false }) }
-  catch (e) { throw new Error(/encrypt/i.test(e.message) ? 'Il PDF è protetto da password: rimuovi la protezione e riprova' : 'PDF non leggibile: ' + e.message) }
+  // i PDF protetti o che pdf-lib non legge vengono ricostruiti come immagini delle pagine (poi compresse come le altre)
+  const { doc, rasterizzato, byte } = await strumenti.apri(file, { password, avanza: (a, b) => avanza(a, b, 'pagine') })
+  const originale = { length: byte }
   const ctx = doc.context
   const nome = (d, k) => { const v = d.get(PDFName.of(k)); const r = v instanceof PDFRef ? ctx.lookup(v) : v; return r }
   const nomeStr = (v) => (v && v.asString ? v.asString() : v && v.toString ? v.toString() : '')
   const numero = (d, k) => { const v = nome(d, k); return v instanceof PDFNumber ? v.asNumber() : Number(v?.toString?.()) }
   const filtri = (d) => { const f = nome(d, 'Filter'); if (!f) return []; if (f instanceof PDFArray) return f.asArray().map((x) => nomeStr(x instanceof PDFRef ? ctx.lookup(x) : x)); return [nomeStr(f)] }
-  const esito = { immagini: 0, ricompresse: 0, flussi: 0, tolti: 0 }
+  const esito = { immagini: 0, ricompresse: 0, flussi: 0, tolti: 0, doppioni: 0, rasterizzato }
 
   // 1) immagini
   const oggetti = ctx.enumerateIndirectObjects()
@@ -100,6 +97,24 @@ async function comprimi({ file, uscita, livello }) {
     } catch { /* immagine non decodificabile: resta com'era */ }
   }
 
+  // 1b) immagini identiche ripetute (lo stesso logo o la stessa scansione su più pagine, tipico dei PDF uniti): ne resta una
+  const perImpronta = new Map(), sostituti = new Map()
+  for (const [ref, o] of ctx.enumerateIndirectObjects()) {
+    if (!(o instanceof PDFRawStream) || o.contents.length < 512 || nomeStr(nome(o.dict, 'Subtype')) !== '/Image') continue
+    const k = crypto.createHash('sha1').update(o.dict.toString()).update(o.contents).digest('hex')
+    const primo = perImpronta.get(k)
+    if (primo) { sostituti.set(ref.toString(), primo); esito.doppioni++ } else perImpronta.set(k, ref)
+  }
+  if (sostituti.size) {
+    const cambia = (x) => (x instanceof PDFRef ? sostituti.get(x.toString()) : null)
+    const sistema = (o) => {
+      if (o instanceof PDFDict) { for (const [k, v] of o.entries()) { const s = cambia(v); if (s) o.set(k, s); else if (!(v instanceof PDFRef)) sistema(v) } }
+      else if (o instanceof PDFArray) { for (let i = 0; i < o.size(); i++) { const v = o.get(i), s = cambia(v); if (s) o.set(i, s); else if (!(v instanceof PDFRef)) sistema(v) } }
+      else if (o instanceof PDFStream) sistema(o.dict)
+    }
+    for (const [, o] of ctx.enumerateIndirectObjects()) sistema(o)
+  }
+
   // 2) flussi senza compressione (contenuto delle pagine, font, moduli): Deflate senza perdita
   avanza(0, 1, 'flussi')
   for (const [ref, o] of ctx.enumerateIndirectObjects()) {
@@ -138,7 +153,7 @@ async function comprimi({ file, uscita, livello }) {
   const dati = await doc.save({ useObjectStreams: true, addDefaultPage: false, updateFieldAppearances: false })
   // se non si guadagna nulla si tiene una copia dell'originale: mai un file più pesante
   const piuLeggero = dati.length < originale.length
-  fs.writeFileSync(uscita, piuLeggero ? dati : originale)
+  if (piuLeggero) fs.writeFileSync(uscita, dati); else fs.copyFileSync(file, uscita)
   return { prima: originale.length, dopo: piuLeggero ? dati.length : originale.length, pagine: doc.getPageCount(), ...esito, invariato: !piuLeggero }
 }
 

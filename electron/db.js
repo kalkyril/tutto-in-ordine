@@ -271,6 +271,37 @@ function open(dir, { restoring = false } = {}) {
   // Colonne facoltative che le versioni precedenti ignorano: la versione dello schema non cambia.
   { const c = db.prepare('PRAGMA table_info(pratiche)').all().map((x) => x.name); for (const nome of ['persone', 'ruolo']) if (!c.includes(nome)) db.exec(`ALTER TABLE pratiche ADD COLUMN ${nome} TEXT`) }
   if (!db.prepare('PRAGMA table_info(anagrafica)').all().some((c) => c.name === 'indirizzi')) db.exec('ALTER TABLE anagrafica ADD COLUMN indirizzi TEXT')
+  // 1.0.4: file delle cartelle collegate a cui l'utente ha tolto il collegamento: la sincronizzazione automatica non li ricollega
+  db.exec('CREATE TABLE IF NOT EXISTS documenti_esclusi (pratica_id INTEGER NOT NULL REFERENCES pratiche(id) ON DELETE CASCADE, percorso TEXT NOT NULL, PRIMARY KEY (pratica_id, percorso))')
+  // 1.0.4: uscite ricorrenti (affitto, utenze, abbonamenti): frequenza, serie a cui appartiene la voce, ultima scadenza già
+  // creata e giorno del mese da rispettare. Colonne facoltative: la versione dello schema non cambia.
+  { const c = db.prepare('PRAGMA table_info(costi)').all().map((x) => x.name); for (const [nome, tipo] of [['ripeti', 'TEXT'], ['serie', 'INTEGER'], ['ripeti_ultima', 'TEXT'], ['ripeti_giorno', 'INTEGER']]) if (!c.includes(nome)) db.exec(`ALTER TABLE costi ADD COLUMN ${nome} ${tipo}`) }
+  // 1.0.4: sezione Budget. Conti (banca, carta, contanti) con il saldo a una data, movimenti scritti a mano (prelievi,
+  // spese bancarie, giroconti) e fatture lette dai file esportati dal servizio di fatturazione dell'utente: TIO le legge
+  // soltanto; qui ricorda solo ciò che decide l'utente (incassata o pagata, su quale conto, categoria, nascosta).
+  db.exec(`CREATE TABLE IF NOT EXISTS conti (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, tipo TEXT NOT NULL DEFAULT 'banca', iban TEXT,
+    saldo_iniziale REAL NOT NULL DEFAULT 0, data_saldo TEXT NOT NULL, predefinito INTEGER NOT NULL DEFAULT 0, archiviato INTEGER NOT NULL DEFAULT 0, note TEXT);
+    CREATE TABLE IF NOT EXISTS movimenti_conto (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, conto_id INTEGER NOT NULL REFERENCES conti(id) ON DELETE CASCADE, data TEXT NOT NULL,
+    importo REAL NOT NULL, descrizione TEXT NOT NULL, categoria TEXT, verso_conto_id INTEGER REFERENCES conti(id) ON DELETE SET NULL);
+    CREATE TABLE IF NOT EXISTS fatture_servizio (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, impronta TEXT NOT NULL UNIQUE, verso TEXT NOT NULL, tipo TEXT, numero TEXT NOT NULL, data TEXT NOT NULL,
+    controparte TEXT, piva TEXT, cf TEXT, descrizione TEXT, imponibile REAL NOT NULL DEFAULT 0, iva REAL NOT NULL DEFAULT 0, ritenuta REAL NOT NULL DEFAULT 0,
+    cassa REAL NOT NULL DEFAULT 0, bollo REAL NOT NULL DEFAULT 0, totale REAL NOT NULL DEFAULT 0, netto REAL NOT NULL DEFAULT 0, scadenza TEXT, file TEXT,
+    letta_il TEXT NOT NULL, regolata_il TEXT, conto_id INTEGER REFERENCES conti(id) ON DELETE SET NULL, categoria TEXT, nascosta INTEGER NOT NULL DEFAULT 0);
+    CREATE INDEX IF NOT EXISTS idx_fatture_servizio_data ON fatture_servizio(data);
+    CREATE INDEX IF NOT EXISTS idx_movimenti_conto ON movimenti_conto(conto_id, data);`)
+  // 1.0.4: piano di pagamento di un documento di vendita: le rate attese (data e importo). Gli incassi restano quelli di
+  // sempre (stato, importo incassato o registro dei pagamenti) e coprono le rate in ordine di data; tabella facoltativa:
+  // le versioni precedenti la ignorano e il documento torna ad avere una sola scadenza.
+  db.exec(`CREATE TABLE IF NOT EXISTS rate_documento (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, parcella_id INTEGER NOT NULL REFERENCES parcelle(id) ON DELETE CASCADE, data TEXT NOT NULL, importo REAL NOT NULL CHECK(importo>0));
+    CREATE INDEX IF NOT EXISTS idx_rate_documento ON rate_documento(parcella_id, data);`)
+  if (!db.prepare('PRAGMA table_info(pagamenti)').all().some((c) => c.name === 'conto_id')) db.exec('ALTER TABLE pagamenti ADD COLUMN conto_id INTEGER REFERENCES conti(id) ON DELETE SET NULL')
+  { const c = db.prepare('PRAGMA table_info(costi)').all().map((x) => x.name); if (!c.includes('conto_id')) db.exec('ALTER TABLE costi ADD COLUMN conto_id INTEGER REFERENCES conti(id) ON DELETE SET NULL'); if (!c.includes('pagata_il')) db.exec('ALTER TABLE costi ADD COLUMN pagata_il TEXT') }
+  // 1.0.4: priorità della pratica (0 bassa, 1 media, 2 alta), come quella dei compiti. Colonna facoltativa: la versione dello schema non cambia.
+  if (!db.prepare('PRAGMA table_info(pratiche)').all().some((c) => c.name === 'priorita')) db.exec('ALTER TABLE pratiche ADD COLUMN priorita INTEGER NOT NULL DEFAULT 1')
   db.exec("UPDATE parcelle SET incassato = netto WHERE stato = 'pagata' AND incassato = 0")
   db.exec(`CREATE INDEX IF NOT EXISTS idx_parcelle_serie ON parcelle(anno,tipo,numero);
     CREATE TRIGGER IF NOT EXISTS parcelle_numero_insert BEFORE INSERT ON parcelle WHEN EXISTS(SELECT 1 FROM parcelle WHERE anno=NEW.anno AND tipo=NEW.tipo AND numero=NEW.numero) BEGIN SELECT RAISE(ABORT,'Numero di documento già utilizzato in questa serie'); END;
@@ -726,6 +757,8 @@ module.exports = { openForBackup,
 module.exports.SCHEMA_VERSION = SCHEMA_VERSION
 module.exports.aggiornaIncassi = aggiornaIncassi
 module.exports.creaNotaCredito = creaNotaCredito
+// colonne che un backup deve avere per essere ripristinato: solo quelle presenti dalla versione dello schema in poi.
+// Le colonne e le tabelle facoltative aggiunte dopo (1.0.3, 1.0.4) non vanno qui, o i backup precedenti verrebbero rifiutati.
 module.exports.backupBusinessSchema = {
   pagamenti:['id','parcella_id','data','importo','metodo','note','richiesta'], costi:['id','pratica_id','fornitore_id','data','descrizione','categoria','importo','scadenza','pagata','recuperabile'], ricorrenze:['id','pratica_id','titolo','frequenza','prossima','giorno','attiva'],
   pratiche:['budget_ore','budget_importo','consegna'], parcelle:['validita','esito_preventivo','origine_preventivo_id','contributo_nome','contributo_ritenuta','incassi_dettagliati'],

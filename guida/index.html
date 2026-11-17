@@ -15,7 +15,7 @@
 <div class="guida">
 
 <aside class="indice" aria-label="Indice della guida">
-  <a class="marchio" href="#inizio"><img src="img/icona.png" alt=""><span>Guida di TIO<small>Versione 1.0.3</small></span></a>
+  <a class="marchio" href="#inizio"><img src="img/icona.png" alt=""><span>Guida di TIO<small>Versione 1.0.4</small></span></a>
   <button class="apri-indice" type="button" data-apri-indice aria-expanded="false">Indice</button>
   <nav>
     <div class="cerca">
@@ -88,10 +88,13 @@
           <li><a href="#scadenze-fiscali">Scadenze fiscali</a></li>
         </ol>
       </li>
-      <li><a href="#da-pagare">10. Pagamenti e da pagare</a>
+      <li><a href="#da-pagare">10. Pagamenti e budget</a>
         <ol>
           <li><a href="#scadenzario">Scadenzario</a></li>
           <li><a href="#contabile">Contabile del pagamento</a></li>
+          <li><a href="#budget-sezione">Budget</a></li>
+          <li><a href="#fatture-servizio">Fatture del servizio di fatturazione</a></li>
+          <li><a href="#commercialista">Per il commercialista</a></li>
         </ol>
       </li>
       <li><a href="#collegamenti">11. Collegamenti</a></li>
@@ -103,7 +106,7 @@
           <li><a href="#campi">I campi automatici</a></li>
           <li><a href="#crea-documento">Creare un documento</a></li>
           <li><a href="#modelli-word">Modelli Word</a></li>
-          <li><a href="#comprimi-pdf">Comprimi PDF</a></li>
+          <li><a href="#comprimi-pdf">Editor PDF</a></li>
         </ol>
       </li>
       <li><a href="#anonimizza">13. Anonimizza</a>
@@ -142,9 +145,9 @@
 <div class="testo">
 
 <header class="copertina" id="inizio">
-  <p class="sopra">Guida completa · TIO 1.0.3</p>
+  <p class="sopra">Guida completa · TIO 1.0.4</p>
   <h1>Tutto In Ordine, spiegato bene.</h1>
-  <p class="sotto">Il manuale di TIO, l’app unica per tutto il lavoro: dall’installazione al primo documento, dall’agenda ai pagamenti e alla fattura elettronica, fino a Documenti, Anonimizza e Comprimi PDF, e a come TIO si collega ai programmi che usi già. Gratuito, sul tuo computer, anche senza internet.</p>
+  <p class="sotto">Il manuale di TIO, l’app unica per tutto il lavoro: dall’installazione al primo documento, dall’agenda ai pagamenti e alla fattura elettronica, fino a Documenti, Anonimizza ed Editor PDF, e a come TIO si collega ai programmi che usi già. Gratuito, sul tuo computer, anche senza internet.</p>
 </header>
 
 <!-- ================================================================ 1 -->
@@ -168,16 +171,16 @@
 <div class="tabella"><table>
   <thead><tr><th>Sistema</th><th>File da scaricare</th></tr></thead>
   <tbody>
-    <tr><td>Mac con chip Apple (M1, M2…)</td><td><code>TIO-1.0.3-arm64.dmg</code> · macOS 13 Ventura o successivo</td></tr>
-    <tr><td>Mac con processore Intel</td><td><code>TIO-1.0.3.dmg</code> · macOS 13 o successivo</td></tr>
-    <tr><td>Windows</td><td><code>TIO-Setup-1.0.3.exe</code> · Windows 10 o 11 a 64 bit</td></tr>
+    <tr><td>Mac con chip Apple (M1, M2…)</td><td><code>TIO-1.0.4-arm64.dmg</code> · macOS 13 Ventura o successivo</td></tr>
+    <tr><td>Mac con processore Intel</td><td><code>TIO-1.0.4.dmg</code> · macOS 13 o successivo</td></tr>
+    <tr><td>Windows</td><td><code>TIO-Setup-1.0.4.exe</code> · Windows 10 o 11 a 64 bit</td></tr>
   </tbody>
 </table></div>
 <p>L’app occupa circa 420 MB su Mac e 510 MB su Windows, più l’archivio e i backup. Non sai che Mac hai? Menu Apple › <span class="percorso">Informazioni su questo Mac</span>: «Chip Apple M…» indica Apple Silicon, «Processore Intel» un Mac Intel.</p>
 <p>Gli installer sono nella pagina <strong>Releases</strong> del progetto su GitHub, insieme al file <code>SHA256SUMS.txt</code>. Per controllare che il file scaricato sia integro e sia proprio quello pubblicato, confronta il suo codice:</p>
 <ul>
-  <li>Mac, nel Terminale: <code>shasum -a 256 TIO-1.0.3-arm64.dmg</code></li>
-  <li>Windows, nel Prompt dei comandi: <code>certutil -hashfile TIO-Setup-1.0.3.exe SHA256</code></li>
+  <li>Mac, nel Terminale: <code>shasum -a 256 TIO-1.0.4-arm64.dmg</code></li>
+  <li>Windows, nel Prompt dei comandi: <code>certutil -hashfile TIO-Setup-1.0.4.exe SHA256</code></li>
 </ul>
 
 <h3 id="installare-mac">Su Mac</h3>
@@ -191,7 +194,7 @@
 
 <h3 id="installare-windows">Su Windows</h3>
 <ol class="passi">
-  <li>Scarica <code>TIO-Setup-1.0.3.exe</code>. Se il browser dice che il file «non viene scaricato comunemente», scegli di conservarlo (in Edge: menu <strong>…</strong> › <strong>Mantieni</strong> › <strong>Mantieni comunque</strong>).</li>
+  <li>Scarica <code>TIO-Setup-1.0.4.exe</code>. Se il browser dice che il file «non viene scaricato comunemente», scegli di conservarlo (in Edge: menu <strong>…</strong> › <strong>Mantieni</strong> › <strong>Mantieni comunque</strong>).</li>
   <li>Fai doppio clic. Se compare <strong>«Windows ha protetto il PC»</strong> (SmartScreen), premi <strong>Ulteriori informazioni</strong> e poi <strong>Esegui comunque</strong>. L’avviso dipende dalla mancanza di una firma digitale a pagamento.</li>
   <li>Segui l’installazione in italiano: non servono permessi da amministratore. TIO crea l’icona sul desktop e nel menu Start e alla fine si apre.</li>
 </ol>
@@ -241,7 +244,7 @@
   <tbody>
     <tr><td>Lavoro</td><td><a href="#panoramica">Panoramica</a>, <a href="#pratiche">Pratiche</a>, <a href="#agenda">Agenda</a>, <a href="#compiti">Compiti</a>. Accanto ad Agenda un numero rosso conta le scadenze in ritardo, accanto a Compiti quelli da fare.</td></tr>
     <tr><td>Gestione</td><td><a href="#anagrafica">Anagrafica</a>, <a href="#da-pagare">Pagamenti</a> (scadenzario, <a href="#parcelle">incassi</a> e da pagare), <a href="#collegamenti">Collegamenti</a>.</td></tr>
-    <tr><td>Strumenti</td><td><a href="#documenti">Documenti</a>, <a href="#anonimizza">Anonimizza</a> e <a href="#comprimi-pdf">Comprimi PDF</a>.</td></tr>
+    <tr><td>Strumenti</td><td><a href="#documenti">Documenti</a>, <a href="#anonimizza">Anonimizza</a> e <a href="#comprimi-pdf">Editor PDF</a>.</td></tr>
     <tr><td>In fondo</td><td><a href="#impostazioni">Impostazioni</a>.</td></tr>
   </tbody>
 </table></div>
@@ -275,7 +278,7 @@
     <tr><td>Calendario, agenda di carta, promemoria sul telefono</td><td><a href="#agenda">Agenda e avvisi</a> e <a href="#compiti">Compiti</a>, con gli avvisi anche a finestra chiusa</td></tr>
     <tr><td>Programma di fatturazione, foglio Excel degli incassi</td><td><a href="#parcelle">Parcelle, fatture e preventivi</a> e <a href="#da-pagare">Pagamenti</a>: scadenzario, incassi, voci da pagare con la contabile, prima nota</td></tr>
     <tr><td>Word con la carta intestata, modelli da ricopiare</td><td><a href="#documenti">Documenti</a>: modelli compilati da soli, editor completo, testi lunghi, firma, modelli Word</td></tr>
-    <tr><td>Servizi online per anonimizzare o comprimere i PDF</td><td><a href="#anonimizza">Anonimizza</a> e <a href="#comprimi-pdf">Comprimi PDF</a>, senza inviare nulla</td></tr>
+    <tr><td>Servizi online per anonimizzare o comprimere i PDF</td><td><a href="#anonimizza">Anonimizza</a> e <a href="#comprimi-pdf">Editor PDF</a>, senza inviare nulla</td></tr>
     <tr><td>Chiavetta con le copie, «spero di non perdere niente»</td><td><a href="#backup">Backup</a> automatico ogni giorno, anche cifrato e su un disco esterno</td></tr>
   </tbody>
 </table></div>
@@ -286,8 +289,8 @@
 <div class="tabella"><table>
   <thead><tr><th>Con</th><th>Cosa fa</th><th>Dove</th></tr></thead>
   <tbody>
-    <tr><td>Google Calendar, Outlook, iCloud, Cliens Più</td><td>Mostra in Agenda gli impegni dei calendari collegati (in sola lettura), con i loro avvisi; dai calendari di Cliens riconosce le pratiche. L’agenda di TIO si esporta in <code>.ics</code>.</td><td><a href="#calendari-collegati">Calendari collegati</a></td></tr>
-    <tr><td>Cliens Cube</td><td>Importa l’esportazione dei fascicoli; unisce la cartella dei documenti scaricati da Cliens a quella di ogni pratica.</td><td><a href="#documenti-cliens">Documenti di Cliens</a></td></tr>
+    <tr><td>Provider calendario (gestionale o calendario online)</td><td>Mostra in Agenda gli impegni dei calendari collegati (in sola lettura), con i loro avvisi; dagli eventi riconosce le pratiche. L’agenda di TIO si esporta in <code>.ics</code>.</td><td><a href="#calendari-collegati">Calendari collegati</a></td></tr>
+    <tr><td>Provider documenti (gestionale o cloud)</td><td>Importa l’elenco delle pratiche; unisce la cartella dei documenti scaricati dal provider a quella di ogni pratica.</td><td><a href="#documenti-cliens">Documenti del provider</a></td></tr>
     <tr><td>Fatture e Corrispettivi, intermediario, commercialista</td><td>Prepara il file XML FatturaPA controllato, con il codice SDI del cliente.</td><td><a href="#fattura-elettronica">Fattura elettronica XML</a></td></tr>
     <tr><td>Word, Pages, LibreOffice</td><td>Usa la tua carta intestata Word come modello; crea documenti in Word, OpenDocument, RTF, PDF, HTML, Markdown e testo.</td><td><a href="#modelli-word">Modelli Word</a>, <a href="#crea-documento">Creare un documento</a></td></tr>
     <tr><td>Excel, Numbers, file CSV</td><td>Importa clienti, pratiche, scadenze e documenti contabili; esporta prima nota, scadenzario, voci da pagare e redditività.</td><td><a href="#importare">Importare i dati</a>, <a href="#prima-nota">Prima nota</a></td></tr>
@@ -342,7 +345,7 @@
     <tr><td>Panoramica</td><td>Dati principali, <strong>tutte le persone</strong> del lavoro con il loro ruolo, il <strong>tuo ruolo</strong>, prossime scadenze, compiti aperti e la <strong>cronologia</strong>: ogni modifica, documento e scadenza con data e ora.</td></tr>
     <tr><td>Compiti</td><td>Le cose da fare per questo lavoro.</td></tr>
     <tr><td>Scadenze</td><td>Udienze, scadenze e appuntamenti, con gli avvisi.</td></tr>
-    <tr><td>Documenti</td><td>I file collegati e le <strong>sottocartelle</strong> della cartella del lavoro, la ricerca nel loro testo, «Da modello…» e «Anonimizza…».</td></tr>
+    <tr><td>Documenti</td><td>I file collegati e le <strong>sottocartelle</strong> della cartella del lavoro, la ricerca nel loro testo, «Nuovo documento» e «Anonimizza…».</td></tr>
     <tr><td>Note</td><td>Appunti liberi, ricercabili.</td></tr>
     <tr><td>Attività e spese</td><td>Ore lavorate, spese anticipate, budget e consegna.</td></tr>
     <tr><td>Parcelle</td><td>I documenti contabili del lavoro (fatture, preventivi, note pro forma).</td></tr>
@@ -355,19 +358,19 @@
 <ul>
   <li><strong>Ricerca nel testo</strong> di PDF, Word, Excel ed email; le <strong>scansioni</strong> si leggono con l’OCR italiano, sul computer.</li>
   <li><strong>Anteprima</strong> dei PDF e delle immagini senza aprire altri programmi; «Mostra nella cartella» per trovarli nel Finder o in Esplora file.</li>
-  <li><strong>Sottocartelle:</strong> se la cartella del lavoro (o quella di Cliens) ha sottocartelle, le sfogli come sul computer: un clic apre la cartella, il percorso in alto riporta indietro, una cartella senza file è indicata come <strong>Vuota</strong>. <strong>Tutti i file insieme</strong> mostra l’elenco unico.</li>
+  <li><strong>Sottocartelle:</strong> la cartella del lavoro (o quella del provider) si sfoglia come sul computer: in ogni cartella vedi insieme le sottocartelle e i file, un clic apre la cartella, il percorso in alto riporta indietro. Ogni sottocartella dice quanti file contiene; <strong>Vuota</strong> compare solo se lo è davvero. I file che aggiungi dal computer entrano in elenco da soli quando apri la scheda o torni sulla finestra; un file spostato in un’altra sottocartella resta lo stesso documento. Se togli il collegamento a un file, non torna da solo: lo ricollega <strong>Sincronizza</strong>. <strong>Tutti i file insieme</strong> mostra l’elenco unico.</li>
   <li>Per sicurezza TIO non avvia programmi o script contenuti nei documenti collegati.</li>
 </ul>
 <p><strong>Più persone nello stesso lavoro.</strong> In <strong>Modifica</strong>, oltre a cliente e controparte principali, <strong>Altre persone</strong> aggiunge altri clienti, controparti, fornitori e collaboratori: scegli il contatto dalla rubrica (o creane uno con <strong>+</strong>) e il suo ruolo in questo lavoro. <strong>Il tuo ruolo</strong> è quello che ricopri tu (Difensore, Domiciliatario, Progettista, Direttore dei lavori, CTU… o un testo libero). L’avviso di possibile conflitto di interessi considera solo cliente e controparte principali.</p>
 
-<h3 id="documenti-cliens">Documenti di Cliens</h3>
-<p>Se scarichi i documenti dei fascicoli da Cliens in una cartella del computer, nella scheda Documenti della pratica scegli <strong>Collega cartella di Cliens…</strong> (oppure, per tutte le pratiche insieme, la cartella principale in <span class="percorso">Impostazioni › Integrazioni › Cartella di Cliens</span>: ogni sottocartella viene abbinata alla sua pratica per numero o titolo). TIO mostra un’unica vista con tre sezioni:</p>
+<h3 id="documenti-cliens">Documenti del provider</h3>
+<p>Se scarichi i documenti dei fascicoli dal tuo gestionale o da un servizio cloud in una cartella del computer, nella scheda Documenti della pratica scegli <strong>Collega cartella del provider…</strong> (oppure, per tutte le pratiche insieme, la cartella principale in <span class="percorso">Impostazioni › Integrazioni › Provider documenti</span>: ogni sottocartella viene abbinata alla sua pratica per numero o titolo). TIO mostra i documenti in tre gruppi:</p>
 <ul>
-  <li><strong>In comune con Cliens</strong>: lo stesso file è nella cartella di Cliens e in quella della pratica; compare una volta sola e si apre dalla copia sul computer;</li>
-  <li><strong>Solo su Cliens</strong> e <strong>Solo sul computer</strong>: i file presenti in una sola delle due cartelle.</li>
+  <li><strong>In comune con il provider</strong>: lo stesso file è nella cartella del provider e in quella della pratica; compare una volta sola e si apre dalla copia sul computer;</li>
+  <li><strong>Solo sul provider</strong> e <strong>Solo sul computer</strong>: i file presenti in una sola delle due cartelle.</li>
 </ul>
-<p><strong>Sincronizza cartelle</strong> (nella pratica) e <strong>Sincronizza tutte le pratiche</strong> (nelle Integrazioni) collegano i file nuovi delle due cartelle e uniscono gli eventuali doppioni. TIO legge soltanto: non copia, non sposta e non cancella nulla, né su Cliens né sul computer. Con cartelle grandi la finestra resta utilizzabile: in alto compare l’avanzamento, e le sincronizzazioni successive rileggono solo i file nuovi o modificati.</p>
-<p>L’esportazione dei fascicoli di Cliens Cube (<code>EXPORT_FASCICOLI.csv</code>) e l’elenco delle pratiche di Cliens Più (XLS o CSV) si importano da <span class="percorso">Impostazioni › Integrazioni › Importa i dati esistenti</span>: TIO riconosce cliente, controparte (anche dall’oggetto «ROSSI MARIO c/ BIANCHI SRL»), autorità, RG e giudice, conserva nelle note le colonne senza un campo e, riimportando, completa i campi vuoti senza creare doppioni. Quando cliente e controparte vengono dall’intestazione, prima di importare scegli <strong>chi è il cliente</strong>: la prima parte (di regola), la seconda (se assisti il convenuto) oppure <em>Decido riga per riga</em>, con l’elenco delle pratiche e una casella «Inverti» per ciascuna.</p>
+<p><strong>Sincronizza</strong> (nella pratica) e <strong>Sincronizza tutte le pratiche</strong> (nelle Integrazioni) collegano i file nuovi delle due cartelle, ritrovano quelli spostati e uniscono gli eventuali doppioni. TIO legge soltanto: non copia, non sposta e non cancella nulla. Con cartelle grandi la finestra resta utilizzabile: in alto compare l’avanzamento.</p>
+<p>L’elenco delle pratiche esportato dal tuo gestionale (XLSX o CSV) si importa da <span class="percorso">Impostazioni › Integrazioni › Importa i dati esistenti</span>: TIO riconosce cliente, controparte (anche dall’oggetto «ROSSI MARIO c/ BIANCHI SRL»), autorità, RG e giudice, e conserva nelle note le colonne senza un campo corrispondente.</p>
 
 <h3 id="attivita-spese">Attività, ore e spese</h3>
 <p>In <strong>Attività e spese</strong> registri le ore lavorate (data, durata, descrizione, tariffa oraria) e le spese anticipate (con o senza IVA), anche con un allegato. Nel menu della <strong>tariffa oraria</strong> scegli <strong>Inserisci</strong> per scriverla subito o <strong>Da decidere</strong> per fissarla dopo: l’attività conta le ore e, nel documento contabile, diventa una voce a 0 € con la nota «tariffa oraria da decidere», da completare. Quando prepari un documento contabile dal lavoro, ore e spese non ancora fatturate si possono importare come voci; se elimini il documento tornano «da fatturare».</p>
@@ -376,7 +379,7 @@
 <p>Nella scheda <strong>Parcelle</strong> (per professionisti e ditte <strong>Fatture e pagamenti</strong>) di ogni lavoro, <strong>Valore della pratica</strong> riassume fatture incassate e da incassare, voci pagate e da pagare collegate al lavoro, con un <strong>grafico a torta</strong> e il margine previsto. I colori del grafico si scelgono in <span class="percorso">Impostazioni › Generale › Aspetto</span>.</p>
 
 <h3 id="budget">Budget e consegna</h3>
-<p>Con <strong>Modifica budget</strong> imposti ore previste, importo concordato e data di consegna. TIO confronta ore registrate e costi con il preventivato e segnala quando il budget ore è superato. Il residuo è una stima operativa, non l’utile fiscale.</p>
+<p>Con <strong>Modifica budget</strong> imposti ore previste, importo concordato e data di consegna. TIO confronta le ore registrate con le previste e i costi (spese anticipate, voci da pagare collegate e valore delle ore) con l’importo concordato, con una barra per ciascuno. Avvisa all’80% e oltre il 100%, e per la consegna nei 7 giorni prima e quando è passata. Gli avvisi compaiono anche nella Panoramica, con un’icona accanto al lavoro (rossa se superato, gialla se vicino), e nella Panoramica del Budget. Il residuo è una stima operativa, non l’utile fiscale.</p>
 
 <h3 id="eliminare">Eliminare e annullare</h3>
 <p>Eliminando un lavoro si eliminano anche scadenze, compiti, note, collegamenti e riferimenti ai documenti (i file sul disco restano). Dopo un’eliminazione compare <strong>Annulla</strong> per qualche secondo: usalo se hai sbagliato.</p>
@@ -414,7 +417,7 @@
 <p>TIO mostra tutti i passaggi del conteggio e crea direttamente la scadenza. Il calcolo è <strong>sperimentale</strong>: verificalo sempre.</p>
 
 <h3 id="calendari-collegati">Calendari collegati</h3>
-<p>In <span class="percorso">Impostazioni › Integrazioni</span>, «Collega un calendario»: incolli il link iCal (Google Calendar: <span class="percorso">Impostazioni › il tuo calendario › Integra il calendario › Indirizzo segreto in formato iCal</span>; Outlook, iCloud, Cliens Più: <span class="percorso">Agenda › Esporta</span>) oppure scegli un file <code>.ics</code>. Gli impegni compaiono in agenda e negli avvisi, in sola lettura: TIO non scrive mai negli altri calendari e non chiede password.</p>
+<p>In <span class="percorso">Impostazioni › Integrazioni</span>, «Collega un calendario»: incolli il link iCal del tuo provider calendario (lo trovi nelle impostazioni del calendario, alla voce <em>Esporta</em>, <em>Condividi</em> o <em>Indirizzo iCal</em>) oppure scegli un file <code>.ics</code>. Gli impegni compaiono in agenda e negli avvisi, in sola lettura; i link vengono riletti automaticamente.</p>
 <p>Per gli avvocati, <strong>Pratiche…</strong> accanto a un calendario riconosce negli eventi le parti, il numero di ruolo, l’ufficio e il giudice e importa, dopo un’anteprima, le pratiche che scegli (vedi <a href="#importare">Portare dentro i dati</a>).</p>
 
 <h3 id="stampa-agenda">Stampa ed esportazione</h3>
@@ -525,6 +528,7 @@
   <li><strong>Pagamenti</strong>: registra ogni incasso con data, importo e metodo (bonifico, carta, contanti…). Il residuo si aggiorna e il documento diventa «pagato» quando è saldato.</li>
   <li><strong>Da incassare</strong>: i documenti emessi non ancora saldati. Per ognuno TIO prepara il <strong>testo del sollecito</strong>, da copiare o aprire nella tua email.</li>
 </ul>
+<p><strong>Pagamento a rate.</strong> Nell’editor di un documento emesso, sotto la scadenza, <strong>Dividi in rate…</strong> apre il piano di pagamento: scegli quante rate, ogni quanto e la data della prima, poi <strong>Dividi il netto</strong> (i centesimi che avanzano vanno sull’ultima), oppure scrivi le rate una per una. Gli incassi si registrano come sempre e coprono le rate in ordine di data. Scadenzario, previsione di cassa e solleciti usano le rate: il sollecito parla della rata scaduta e del suo importo. Ciò che le rate non coprono si attende alla scadenza del documento; <strong>Togli le rate</strong> torna a una sola scadenza.</p>
 
 <h3 id="prima-nota">Prima nota e redditività</h3>
 <ul>
@@ -557,7 +561,7 @@
 
 <!-- ================================================================ 10 -->
 <section class="capitolo" id="da-pagare">
-<h2><span class="num">10.</span>Pagamenti e da pagare</h2>
+<h2><span class="num">10.</span>Pagamenti e budget</h2>
 <p>Nella barra laterale <strong>Pagamenti</strong> (<kbd>⌘</kbd><kbd>6</kbd>) riunisce in tre schede tutto il denaro dell’attività: <strong>Scadenzario</strong>, <strong>Incassi</strong> (per lo studio legale <strong>Parcelle</strong>: documenti contabili, preventivi e incassi, descritti nel <a href="#parcelle">capitolo 9</a>) e <strong>Da pagare</strong>.</p>
 
 <h3 id="scadenzario">Scadenzario</h3>
@@ -575,6 +579,38 @@
   <li><strong>Esporta CSV</strong> per Excel o il commercialista.</li>
 </ul>
 <p>Le voci sono gli stessi costi di Incassi › Costi e fornitori e contano nella redditività dei lavori e nel grafico del valore della pratica.</p>
+<p><strong>Uscite ricorrenti.</strong> Per affitto, utenze, abbonamenti, assicurazioni o rate, nel modulo della voce scegli <strong>Si ripete</strong>: ogni mese, ogni 3 mesi o ogni anno, a partire dalla data «Da pagare entro». La voce successiva compare da sola 30 giorni prima della scadenza, con lo stesso importo dell’ultima (se cambi l’importo, vale per le prossime). Le scadenze dei mesi successivi si vedono già nello <strong>Scadenzario</strong> come «previste», scritte più tenui. Una voce eliminata non torna; per fermare la serie modifica una voce e scegli <strong>No, una volta sola</strong>: le successive non ancora pagate vengono tolte.</p>
+
+<h3 id="budget-sezione">Budget</h3>
+<p><strong>Budget</strong> è una voce a sé della barra laterale, subito sotto Pagamenti. Pagamenti è dove registri il denaro; Budget guarda avanti e prepara ciò che serve al commercialista. Sette schede:</p>
+<figure><img src="img/funzione-budget.webp" width="1600" height="1012" loading="lazy" alt="La Panoramica del Budget: saldo dei conti, entrate e uscite dei prossimi 30 giorni, tasse da mettere da parte, disponibile davvero, un avviso sugli incassi scaduti e il grafico del saldo previsto per dodici mesi con i numeri di gennaio"><figcaption>Budget › Panoramica: quanto hai davvero a disposizione e come andrà la cassa.</figcaption></figure>
+<ul>
+  <li><strong>Panoramica</strong>: saldo dei conti oggi, entrate attese ed uscite dei prossimi 30 giorni, tasse da mettere da parte e <strong>Disponibile davvero</strong> (saldo meno tasse da parte meno uscite dei 30 giorni). Sotto, gli avvisi (saldo previsto sotto zero, incassi scaduti, budget superati, soglia del forfettario) e il <strong>saldo previsto</strong> dei prossimi dodici mesi: la linea piena è lo scenario atteso, quella tratteggiata dice cosa succede se gli incassi arrivano con 30 giorni di ritardo e quelli scaduti da oltre 60 giorni non arrivano. Passa con il mouse (o usa le frecce) per leggere i numeri di un mese; «Mese per mese» apre la tabella. Senza conti il grafico mostra solo entrate meno uscite.</li>
+  <li><strong>Conti</strong>: conto corrente, carta, contanti, ognuno con il saldo letto sull’estratto conto a una data. Da lì TIO calcola il saldo reale con incassi e pagamenti; quelli senza conto vanno sul conto <strong>predefinito</strong>. <strong>Movimento</strong> registra ciò che non è un documento né una voce da pagare (spese bancarie, interessi, prelievi personali); <strong>Giroconto</strong> sposta denaro da un conto all’altro.</li>
+  <li><strong>Spese e budget</strong>: obiettivo di incasso dell’anno, soglia del forfettario (85.000 € e 100.000 €), spese dell’anno e, per ogni categoria, un budget annuo con pagato e da pagare (comprese le uscite ricorrenti previste). La barra diventa gialla all’80% e rossa oltre il 100%; «Mostra tutte le categorie» serve per impostare un budget prima di spendere.</li>
+  <li><strong>Indicatori</strong>: giorni medi per incassare (pesati sull’importo, documenti pagati negli ultimi 12 mesi), quota pagata entro la scadenza, incassato da inizio anno rispetto allo stesso periodo dell’anno prima, media mensile di entrate e uscite, crediti scaduti e da quanto. Poi quanto pesano i clienti (il primo e i primi tre sul fatturato) e il <strong>margine</strong> di clienti e lavori: fatturato meno costi diretti, cioè spese anticipate e voci da pagare collegate. Il margine non conta il tempo: per quello c’è il budget del lavoro.</li>
+  <li><strong>Tasse</strong>: quanto mettere da parte per imposte e contributi, in due modi. <strong>Percentuale degli incassi</strong>: quella che ti indica il commercialista. <strong>Stima per regime</strong>: nel forfettario incassi × coefficiente di redditività, contributi e imposta sostitutiva; nell’ordinario compensi meno costi, contributi, IRPEF media meno le ritenute subite, più l’IVA dei documenti emessi meno quella delle fatture ricevute. In entrambi i casi si toglie quanto hai già pagato nella categoria «Imposte e contributi». Accanto, le date di saldo e acconti e il tasto per mettere le scadenze fiscali in agenda.</li>
+</ul>
+<p>Sono stime per organizzarsi, non il calcolo della dichiarazione: deduzioni, detrazioni, minimi contributivi e regole della tua cassa li conosce il commercialista.</p>
+
+<h3 id="fatture-servizio">Fatture del servizio di fatturazione</h3>
+<p>Se emetti o ricevi le fatture elettroniche con un altro servizio (Fatture in Cloud, Aruba, TeamSystem, Danea, il portale Fatture e Corrispettivi dell’Agenzia delle Entrate…), TIO può leggerle <strong>in sola lettura</strong>: non si collega al servizio, non lo modifica e non invia nulla.</p>
+<ol>
+  <li>Dal servizio esporta le fatture emesse e ricevute come file XML, XML firmati (.p7m) o un archivio ZIP, sempre nella stessa cartella. Sottocartelle comprese; le ricevute dello SdI vengono ignorate.</li>
+  <li>In <span class="percorso">Budget › Fatture del servizio</span> premi <strong>Scegli la cartella delle fatture…</strong>, oppure <strong>Aggiungi file…</strong> per file singoli.</li>
+  <li>Quando ne aggiungi di nuove premi <strong>Rileggi la cartella</strong>: le fatture già lette non si ripetono.</li>
+</ol>
+<figure><img src="img/funzione-budget-fatture.webp" width="1600" height="1012" loading="lazy" alt="Budget › Fatture del servizio: due fatture ricevute lette dai file esportati, una da pagare con la sua scadenza e una segnata come pagata sul conto corrente con la categoria Utenze"><figcaption>Le fatture del servizio di fatturazione, lette dai file esportati.</figcaption></figure>
+<p>TIO capisce se una fattura è emessa o ricevuta dalla partita IVA e dal codice fiscale in Impostazioni. Le fatture ricevute non pagate entrano tra le uscite previste, quelle emesse tra le entrate attese; una fattura emessa con lo stesso numero di un documento di TIO non si conta due volte. Di ogni fattura puoi segnare in TIO quando è stata <strong>incassata</strong> o <strong>pagata</strong>, su quale conto e (per le ricevute) la categoria di spesa, oppure <strong>nasconderla</strong> se non deve contare: sono annotazioni di TIO, il servizio resta com’è.</p>
+
+<h3 id="commercialista">Per il commercialista</h3>
+<p>In <span class="percorso">Budget › Commercialista</span> scegli l’anno e il periodo (anno intero o trimestre) e premi <strong>Prepara il pacchetto…</strong>: TIO crea una cartella con</p>
+<ul>
+  <li><strong>Riepilogo.pdf</strong>: documenti emessi, incassi, uscite per categoria, fatture ricevute, saldi dei conti e, se l’hai impostata, la stima di tasse e contributi;</li>
+  <li>un file <strong>CSV</strong> per ogni elenco (documenti emessi, incassi, uscite, fatture ricevute, saldi e movimenti dei conti, e per l’anno intero la prima nota), che si apre con Excel, Numbers o LibreOffice;</li>
+  <li>la cartella <strong>Contabili</strong> con le ricevute dei pagamenti, rinominate con data e descrizione.</li>
+</ul>
+<p>Poi puoi comprimerla e mandarla per email o metterla in una cartella condivisa. Le fatture XML restano nel servizio di fatturazione, che il commercialista di solito consulta già.</p>
 <a class="torna" href="#inizio">↑ Torna all’inizio</a>
 </section>
 
@@ -636,7 +672,7 @@
   <li>Con «Salva nella cartella della pratica» il file finisce nella cartella del lavoro ed è collegato ai suoi documenti.</li>
 </ol>
 <p>Se il modello contiene <code>{{corpo.documento}}</code>, la finestra mostra anche l’editor <strong>Testo del documento</strong>: incolla lì il testo lungo. <strong>Anteprima</strong> mostra il risultato prima di salvare.</p>
-<p>Dalla scheda <strong>Documenti</strong> di un lavoro, <strong>Da modello…</strong> fa lo stesso senza passare dallo strumento, con il lavoro già scelto.</p>
+<p>Dalla scheda <strong>Documenti</strong> di un lavoro, <strong>Nuovo documento</strong> fa lo stesso senza passare dallo strumento, con il lavoro già scelto. Destinatario e <strong>Altra persona</strong> si scelgono tra le persone del lavoro (cliente, controparte, fornitori, collaboratori, con il loro ruolo) o da tutta la rubrica; con <strong>+</strong> ne aggiungi una nuova. Nella delega, per esempio, scegli il delegante e il delegato: nome, codice fiscale e indirizzo si scrivono da soli. Nei tuoi modelli usa i campi del gruppo <em>Altra persona</em> (<code>{{persona.nome}}</code>, <code>{{persona.cf}}</code>…).</p>
 
 <h3 id="modelli-word">Modelli Word</h3>
 <figure><img src="img/strumento-word.webp" width="1600" height="1012" loading="lazy" alt="Un modello Word importato con l’elenco dei campi trovati"><figcaption>Un modello Word importato: TIO mostra i campi trovati e il testo.</figcaption></figure>
@@ -652,9 +688,16 @@
   <li>Dai modelli Word si crea un file Word con la stessa impaginazione; se ti serve il PDF, salvalo da Word.</li>
 </ul>
 
-<h3 id="comprimi-pdf">Comprimi PDF</h3>
-<figure><img src="img/strumento-comprimi.webp" width="1600" height="1012" loading="lazy" alt="Comprimi PDF con il livello medio e due PDF compressi, con il peso prima e dopo"><figcaption>Due scansioni più leggere dell’81%; gli originali restano com’erano.</figcaption></figure>
-<p>Lo strumento <strong>Comprimi PDF</strong>, nella barra laterale sotto Anonimizza, rende più leggeri i PDF pesanti (scansioni, foto, allegati) per PEC, email e depositi telematici. Tutto avviene sul computer: nessun file viene inviato.</p>
+<h3 id="comprimi-pdf">Editor PDF</h3>
+<figure><img src="img/strumento-comprimi.webp" width="1600" height="1012" loading="lazy" alt="Editor PDF, scheda Comprimi: livello medio e due PDF compressi, con il peso prima e dopo"><figcaption>Comprimi: due scansioni più leggere; gli originali restano com’erano.</figcaption></figure>
+<p>Lo strumento <strong>Editor PDF</strong>, nella barra laterale sotto Anonimizza, ha quattro schede. Tutto avviene sul computer: nessun file viene inviato e gli originali restano come sono (ogni strumento scrive un file nuovo). I PDF protetti si aprono lo stesso, chiedendo la password se serve; in quel caso le pagine vengono salvate come immagini.</p>
+<ul>
+  <li><strong>Comprimi</strong>: rende più leggeri i PDF pesanti (scansioni, foto, allegati) per PEC, email e depositi telematici, con tre livelli.</li>
+  <li><strong>Unisci</strong>: più PDF in un file solo, nell’ordine dell’elenco (trascina le righe per cambiarlo).</li>
+  <li><strong>Dividi</strong>: per intervalli di pagine («1-3, 5, 8-10», anche in un file solo), ogni N pagine oppure una pagina per file.</li>
+  <li><strong>Modifica</strong>: riordini, ruoti, duplichi ed elimini le pagine, aggiungi pagine bianche o quelle di un altro PDF; scrivi sul foglio, copri o evidenzi una parte, metti firma o timbro (PNG o JPEG) e i numeri di pagina. «Annulla» torna indietro di un passo; «Salva PDF…» crea il file «… (modificato).pdf».</li>
+</ul>
+<figure><img src="img/strumento-pdf.webp" width="1600" height="1012" loading="lazy" alt="Editor PDF, scheda Modifica: miniature delle pagine a sinistra, la pagina grande con una riga evidenziata, una nota scritta e il numero di pagina"><figcaption>Modifica: miniature a sinistra, strumenti in alto, la pagina al centro.</figcaption></figure>
 <ol class="passi">
   <li>Scegli il livello: <strong>Minima</strong> (qualità quasi identica), <strong>Media</strong> (consigliata per PEC e depositi) o <strong>Massima</strong> (il file più leggero; toglie anche miniature e metadati).</li>
   <li>Trascina i PDF nel riquadro oppure premi <strong>Scegli i PDF…</strong>; puoi comprimerne più di uno alla volta.</li>
@@ -784,7 +827,7 @@
 <section class="capitolo" id="importare">
 <h2><span class="num">17.</span>Portare dentro i dati</h2>
 <ul>
-  <li><strong>Da Excel o CSV</strong> (anche «Esporta lista» di Cliens Più): anagrafiche, pratiche, udienze e scadenze, parcelle. TIO mostra un’anteprima e salta i doppioni. Per un’agenda cartacea ci sono modelli da compilare.</li>
+  <li><strong>Da Excel o CSV</strong> (anche l’elenco esportato dal tuo gestionale): anagrafiche, pratiche, udienze e scadenze, parcelle. TIO mostra un’anteprima e salta i doppioni. Per un’agenda cartacea ci sono modelli da compilare.</li>
   <li><strong>Da un calendario</strong>: con il link iCal o un file <code>.ics</code> (vedi <a href="#calendari-collegati">Calendari collegati</a>). Gli studi legali, con <strong>Pratiche…</strong>, importano le pratiche riconosciute negli eventi (parti, numero di ruolo, ufficio, giudice) dopo un’anteprima; se vuoi, quelle nuove arrivano da sole a ogni aggiornamento. Non è un collegamento all’archivio completo di altri gestionali e non ne importa i documenti.</li>
   <li><strong>Da una cartella di documenti</strong>: ogni sottocartella si abbina a un lavoro (o ne crea uno) e i file vengono collegati, mai spostati.</li>
 </ul>
@@ -800,7 +843,7 @@
   <li>per il <strong>controllo degli aggiornamenti</strong>, se non lo spegni (GitHub riceve solo la richiesta del numero di versione e vede l’indirizzo IP);</li>
   <li>quando apri un <strong>link</strong> o un collegamento nel browser.</li>
 </ul>
-<p>L’anonimizzazione, l’OCR, la ricerca nei documenti, i PDF e la fattura elettronica funzionano interamente sul computer. Il testo completo è nel file <code>PRIVACY.md</code> del progetto.</p>
+<p>L’anonimizzazione, l’OCR, la ricerca nei documenti, i PDF, la fattura elettronica e il Budget funzionano interamente sul computer. Le fatture del tuo servizio di fatturazione si leggono dai file che esporti: TIO non si collega al servizio e non gli invia nulla. Il testo completo è nel file <code>PRIVACY.md</code> del progetto.</p>
 <a class="torna" href="#inizio">↑ Torna all’inizio</a>
 </section>
 

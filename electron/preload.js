@@ -1,7 +1,7 @@
 'use strict'
 const { contextBridge, ipcRenderer } = require('electron')
 
-const INVOKE = /^(db|settings|pratica|parcella|todos|documenti|shell|app|notifiche|alerts|ics|pdf|backup|tariffe|import|calendari|eventi|anonimizza|modelli):[A-Za-z]+$/
+const INVOKE = /^(db|settings|pratica|parcella|todos|documenti|shell|app|notifiche|alerts|ics|pdf|backup|tariffe|import|calendari|eventi|anonimizza|modelli|budget):[A-Za-z]+$/
 const EVENTS = new Set(['data-changed', 'navigate', 'blocca', 'menu', 'time-changed', 'avanzamento'])
 
 contextBridge.exposeInMainWorld('mngmnt', {

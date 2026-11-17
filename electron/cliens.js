@@ -60,11 +60,14 @@ function dimenticaMancanti(cartella, presenti) {
  * Le letture dei file (lente su cartelle grandi o in rete) si fanno prima, senza bloccare la finestra;
  * poi le modifiche all'archivio in un'unica transazione.
  */
-async function sincronizzaPratica(praticaId, { avanza: cb = null } = {}) {
+async function sincronizzaPratica(praticaId, { avanza: cb = null, automatica = false } = {}) {
   const avanza = docfile.avanzamento(cb)
   const p = db.get('pratiche', praticaId); if (!p) throw new Error('Pratica non trovata')
-  const rep = { praticaId: p.id, cliens: 0, locali: 0, condivisi: 0, nuovi: 0, uniti: 0, toltiDaCliens: 0, incompleto: false, cartellaCliens: !!p.cartella_cliens && isDir(p.cartella_cliens), cartellaLocale: !!p.cartella && isDir(p.cartella) }
-  if (p.cartella_cliens && !rep.cartellaCliens) throw new Error(`La cartella di Cliens di questa pratica non si trova più («${p.cartella_cliens}»). Scegline un'altra.`)
+  // chiesta dall'utente: ricollega tutto; automatica (apertura della scheda): lascia fuori i file a cui è stato tolto il collegamento
+  if (!automatica) docfile.includi(p.id)
+  const fuori = docfile.esclusi(p.id)
+  const rep = { praticaId: p.id, cliens: 0, locali: 0, condivisi: 0, nuovi: 0, spostati: 0, uniti: 0, toltiDaCliens: 0, incompleto: false, cartellaCliens: !!p.cartella_cliens && isDir(p.cartella_cliens), cartellaLocale: !!p.cartella && isDir(p.cartella) }
+  if (p.cartella_cliens && !rep.cartellaCliens) throw new Error(`La cartella del provider di questa pratica non si trova più («${p.cartella_cliens}»). Scegline un'altra.`)
   const cl = rep.cartellaCliens ? await fileDi(p.cartella_cliens, avanza) : { file: [], incompleto: false }
   // la cartella di Cliens dentro quella locale (o viceversa) non deve far contare due volte gli stessi file
   const loc = rep.cartellaLocale ? await fileDi(p.cartella, avanza) : { file: [], incompleto: false }
@@ -87,8 +90,17 @@ async function sincronizzaPratica(praticaId, { avanza: cb = null } = {}) {
     let docs = db.list('documenti', { pratica_id: p.id }).filter((d) => d.percorso && !d.ora_id)
     const perPercorso = new Map(docs.map((d) => [path.resolve(d.percorso), d]))
     // 1) file locali nuovi
+    // un documento il cui file non c'è più e un file nuovo con lo stesso contenuto: è lo stesso file, spostato (per esempio in una sottocartella)
+    const persi = new Map(); for (const d of docs) if (d.impronta && !isFile(d.percorso)) persi.set(d.impronta, d)
     for (const f of locali) {
-      if (perPercorso.has(path.resolve(f.percorso)) || !f.impronta) continue
+      const ass = path.resolve(f.percorso)
+      if (perPercorso.has(ass) || !f.impronta || fuori.has(ass)) continue
+      const perso = persi.get(f.impronta)
+      if (perso) {
+        db.save('documenti', { id: perso.id, percorso: ass, rel: dentro(ass, p.cartella) ? path.relative(path.resolve(p.cartella), ass) : null, dimensione: f.byte })
+        perPercorso.delete(path.resolve(perso.percorso)); perso.percorso = ass; perPercorso.set(ass, perso); persi.delete(f.impronta); rep.spostati++
+        continue
+      }
       try { const d = docfile.collega(p.id, f.percorso, { categoria: categoria(f.percorso, p.cartella), impronta: f.impronta }); perPercorso.set(path.resolve(f.percorso), d); docs.push(d); rep.nuovi++ } catch { /* illeggibile */ }
     }
     // indice dei documenti non di Cliens: per contenuto e per nome + dimensione
@@ -112,7 +124,7 @@ async function sincronizzaPratica(praticaId, { avanza: cb = null } = {}) {
         continue
       }
       if (giaCliens) { if (giaCliens.origine !== 'cliens') db.save('documenti', { id: giaCliens.id, origine: 'cliens' }); continue }
-      if (!imp) continue // illeggibile
+      if (!imp || fuori.has(ass)) continue // illeggibile, o collegamento tolto dall'utente
       try { const d = docfile.collega(p.id, ass, { categoria: categoria(ass, p.cartella_cliens), impronta: imp }); db.save('documenti', { id: d.id, origine: 'cliens' }); d.origine = 'cliens'; perPercorso.set(ass, d); docs.push(d); rep.nuovi++ } catch { /* illeggibile */ }
     }
     // 3) doppioni fra documenti già collegati (stesso contenuto, uno in Cliens e uno in locale)
@@ -137,7 +149,7 @@ async function sincronizzaPratica(praticaId, { avanza: cb = null } = {}) {
       if (o === 'cliens') rep.cliens++; else if (o === 'condivisa') rep.condivisi++; else rep.locali++
     }
   }))
-  if (rep.nuovi || rep.uniti) db.scriviCronologia(p.id, 'documenti', null, 'modificato', `Sincronizzazione con Cliens: ${rep.nuovi} nuovi, ${rep.uniti} doppioni uniti`)
+  if (rep.nuovi || rep.uniti) db.scriviCronologia(p.id, 'documenti', null, 'modificato', `Sincronizzazione delle cartelle: ${rep.nuovi} nuovi, ${rep.uniti} doppioni uniti`)
   return rep
 }
 
@@ -158,7 +170,7 @@ function sezione(d, p) {
 
 /** Abbina le sottocartelle della cartella principale di Cliens alle pratiche (per numero, codice o titolo). */
 function abbinaCartelle(radice) {
-  if (!isDir(radice)) throw new Error('La cartella di Cliens non esiste')
+  if (!isDir(radice)) throw new Error('La cartella del provider non esiste')
   const pratiche = db.list('pratiche')
   const sotto = fs.readdirSync(radice, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith('.')).map((e) => e.name)
   return sotto.map((nome) => {

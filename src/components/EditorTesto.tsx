@@ -150,6 +150,8 @@ export function EditorTesto({ valore, campi, allineamento, colonne, onChange, op
   const noti = useMemo(() => new Set(campi.map((c) => c.id)), [campi])
   const personali = [...new Set(opzioni.campiPersonali || [])].filter((c) => !noti.has(c))
   const bottone = (titolo: string, attivoOra: boolean, fn: () => void, icona: React.ReactNode) => <button type="button" className={`tool ${attivoOra ? 'on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={fn} title={titolo} aria-label={titolo} aria-pressed={attivoOra}>{icona}</button>
+  // parole e caratteri del testo (senza i tag): utile per atti con limiti di lunghezza
+  const conta = useMemo(() => { const t = valore.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&[a-z]+;/g, 'x').replace(/\s+/g, ' ').trim(); return { parole: t ? t.split(' ').length : 0, caratteri: t.length } }, [valore])
   return <div className={`editor-testo ${opzioni.classe || ''}`}>
     <div className="editor-barra" role="toolbar" aria-label="Formattazione">
       <div className="tool-group">
@@ -226,6 +228,7 @@ export function EditorTesto({ valore, campi, allineamento, colonne, onChange, op
         onDragOver={(e) => { if ([...e.dataTransfer.types].includes('Files')) e.preventDefault() }}
         onDrop={(e) => { const f = [...e.dataTransfer.files].filter((x) => x.type.startsWith('image/')); if (f.length) { e.preventDefault(); e.stopPropagation(); aggiungiImmagini(f) } }}
         onPaste={incolla} />
+      <p className="muted small editor-conta" aria-live="off">{conta.parole} {conta.parole === 1 ? 'parola' : 'parole'} · {conta.caratteri} caratteri</p>
     </div>
     {!opzioni.senzaCampi && <p className="muted small"><Braces size={12} aria-hidden /> I campi tra doppie graffe, come {'{{destinatario.nome}}'}, si compilano quando crei il documento. Con «+ Nuovo campo personalizzato…» ne inventi di nuovi, per esempio {'{{n.giorni}}'} o {'{{compenso}}'}: TIO te li chiederà. {'{{corpo.documento}}'} lascia il posto a un testo lungo da incollare al momento.</p>}
     {nuovaTabella && <Modal title="Nuova tabella" width={420} onClose={() => setNuovaTabella(null)} protectChanges={false}

@@ -1,3 +1,4 @@
+import { PianoRate } from './PianoRate'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Download, Eye, FileCode2, LayoutTemplate, Plus, Trash2, Undo2 } from 'lucide-react'
 import { api } from '../api'
@@ -191,6 +192,8 @@ export function ParcellaEditor({ parcella, preset, onClose }: { parcella?: Parce
         {f.tipo === 'parcella' && <><Field label="Scadenza pagamento"><Input type="date" value={f.scadenza_pagamento || ''} onChange={(e) => set('scadenza_pagamento', e.target.value || null)} /></Field><Field label={usaCalcolo ? 'Incassato (€)' : 'Incassi / acconti ricevuti (€)'} hint={usaCalcolo ? undefined : 'Importo cumulativo già ricevuto, da zero al netto del documento'}><Input inputMode="decimal" title="Importo cumulativo già ricevuto, da zero al netto del documento" value={f.stato === 'pagata' ? tot.netto : f.incassato || 0} disabled={f.stato === 'pagata' || !!f.incassi_dettagliati} onChange={(e) => set('incassato', parseNumber(e.target.value))} /></Field></>}
         <Field label="Oggetto (facoltativo)" span={usaCalcolo ? 2 : 3}><Input value={f.oggetto || ''} onChange={(e) => set('oggetto', e.target.value)} placeholder={forense ? "Es. Assistenza stragiudiziale" : "Es. Progettazione, consulenza o manutenzione"} /></Field>
       </FormGrid>
+      {/* 1.0.4: piano di pagamento a rate, per i documenti già emessi (salvati) */}
+      {f.tipo === 'parcella' && parcella && (parcella.stato === 'emessa' || parcella.stato === 'pagata') && <PianoRate p={parcella} />}
       {usaCalcolo && <div style={{ marginTop: 12 }}><Field label="Note / condizioni"><Textarea rows={2} value={f.note || ''} onChange={(e) => set('note', e.target.value)} placeholder="Es. Pagamento entro 30 giorni." /></Field></div>}
       </div>
 

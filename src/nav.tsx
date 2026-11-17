@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
-export type Page = 'dashboard' | 'pratiche' | 'pratica' | 'agenda' | 'todo' | 'anagrafica' | 'parcelle' | 'dapagare' | 'pagamenti' | 'comprimi' | 'collegamenti' | 'documenti' | 'anonimizza' | 'impostazioni'
+export type Page = 'dashboard' | 'pratiche' | 'pratica' | 'agenda' | 'todo' | 'anagrafica' | 'parcelle' | 'dapagare' | 'pagamenti' | 'budget' | 'comprimi' | 'collegamenti' | 'documenti' | 'anonimizza' | 'impostazioni'
 export interface Route { page: Page; id?: number; tab?: string; focus?: number }
 
 interface Nav {
@@ -31,7 +31,8 @@ export function NavProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // click su un avviso desktop => apri l'elemento corrispondente
     return window.mngmnt.on('navigate', (p: { rif_tipo?: string; rif_id?: number; pratica_id?: number }) => {
-      if (p.pratica_id) go({ page: 'pratica', id: p.pratica_id, tab: p.rif_tipo === 'todo' ? 'todo' : 'scadenze', focus: p.rif_id })
+      if (p.rif_tipo === 'rata') go({ page: 'pagamenti', tab: 'incassi' })
+      else if (p.pratica_id) go({ page: 'pratica', id: p.pratica_id, tab: p.rif_tipo === 'todo' ? 'todo' : 'scadenze', focus: p.rif_id })
       else if (p.rif_tipo === 'todo') go('todo')
       else if (p.rif_tipo === 'aggiornamento') go({ page: 'impostazioni', tab: 'backup' })
       else go('agenda')

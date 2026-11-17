@@ -18,7 +18,7 @@ const INTERVALLI = [[15, 'ogni 15 minuti'], [30, 'ogni 30 minuti'], [60, 'ogni o
 export function SolaLetturaNota() {
   return (
     <div className="nota-lettura"><Lock size={16} />
-      <p><b>Collegamenti di sola lettura.</b> TIO scarica soltanto i dati che indichi (una richiesta di lettura al link del calendario, oppure i file che scegli tu): non scrive, non modifica e non cancella mai nulla in Cliens Più, Google Calendar o altri servizi, e non chiede mai le tue password.</p>
+      <p><b>Collegamenti di sola lettura.</b> TIO scarica soltanto i dati che indichi (una richiesta di lettura al link del calendario, oppure i file che scegli tu): non scrive, non modifica e non cancella mai nulla nei servizi collegati, e non chiede mai le tue password.</p>
     </div>
   )
 }
@@ -46,7 +46,7 @@ export function CalendariPanel() {
           <Btn size="sm" variant="primary" className="cal-add" aria-label="Collega un calendario" title="Collega un calendario" onClick={() => setEdit({ colore: '#0ea5e9', intervallo_min: 30, promemoria: '[60]', attivo: 1 })}><Plus size={16} aria-hidden="true" /></Btn>
         </div>
       </div>
-      <p className="muted small">Udienze e impegni di Cliens Più, Google Calendar, Outlook o iCloud compaiono nell'agenda e negli avvisi, aggiornati in automatico. Si collegano con il link del calendario.</p>
+      <p className="muted small">Provider calendario: udienze e impegni del gestionale o del calendario che usi compaiono nell'agenda e negli avvisi, aggiornati in automatico. Si collegano con il link del calendario.</p>
       <SolaLetturaNota />
       {!calendari.length && <p className="muted pad">Nessun calendario collegato.</p>}
       {calendari.map((c) => (
@@ -104,7 +104,7 @@ function CalendarioForm({ item, onClose }: { item: Partial<Calendario>; onClose:
       footer={<><Btn variant="ghost" onClick={onClose}>Annulla</Btn><Btn variant="primary" onClick={salva} disabled={!valido}>{item.id ? 'Salva' : 'Collega e importa'}</Btn></>}>
       <form onSubmit={(e) => { e.preventDefault(); salva() }}>
         <FormGrid>
-          <Field label="Nome *" span={2}><Input value={f.nome} onChange={(e) => set('nome', e.target.value)} placeholder="Es. Udienze (Cliens Più)" /></Field>
+          <Field label="Nome *" span={2}><Input value={f.nome} onChange={(e) => set('nome', e.target.value)} placeholder="Es. Udienze" /></Field>
           <Field label="Link del calendario *" span={2} hint={daFile ? 'File sul computer: TIO lo rilegge a ogni aggiornamento, quindi se riscarichi il calendario nello stesso punto gli eventi si aggiornano. Per aggiornamenti davvero automatici usa il link.' : "Incolla l'indirizzo in formato iCal/ICS (inizia con https:// o webcal://). Trattalo come una password: chi ha il link può leggere il calendario."}>
             <div className="row"><Input value={f.url} onChange={(e) => set('url', e.target.value)} placeholder="https://…" autoComplete="off" spellCheck={false} /><Btn type="button" onClick={verifica} disabled={!f.url.trim() || provando}>{provando ? 'Verifico…' : 'Prova il link'}</Btn></div>
             <Btn type="button" size="sm" variant="ghost" onClick={usaFile} style={{ marginTop: 6 }}><FileUp size={14} /> Hai già scaricato il file .ics? Usa il file…</Btn>
@@ -125,11 +125,9 @@ function CalendarioForm({ item, onClose }: { item: Partial<Calendario>; onClose:
       <details className="guida" open={!item.id}>
         <summary>Dove trovo il link del calendario?</summary>
         <ul>
-          <li><b>Cliens Più</b>: apri <i>Agenda</i> e premi <i>Esporta</i> (in alto a sinistra): compare il link da usare nelle applicazioni di calendario. Copialo e incollalo qui. La guida del servizio indica che il feed contiene gli impegni di cui sei responsabile, da una settimana nel passato a un anno nel futuro: le pratiche senza eventi nel feed non arrivano da questo collegamento.</li>
-          <li><b>Cliens Cube</b>: se la tua versione mette a disposizione un link iCal o un file .ics, puoi usarlo qui. Con «Pratiche…» riconosci i fascicoli dai dati presenti negli eventi, con anteprima da controllare; il collegamento non scarica direttamente l'archivio completo delle pratiche o i documenti di Cube.</li>
-          <li><b>Google Calendar</b> (dal computer, su calendar.google.com): <i>⚙ Impostazioni</i> → nella colonna a sinistra, sotto <i>Impostazioni per i miei calendari</i>, il tuo calendario → <i>Integra il calendario</i> → <i>Indirizzo segreto in formato iCal</i>: premi l'icona di copia e incolla qui (termina con <i>basic.ics</i>). <b>Non cliccare il link</b>: il browser scaricherebbe un file .ics invece di copiarlo. Se l'hai già scaricato, usa «Usa il file…».</li>
-          <li><b>Outlook / Microsoft 365</b>: <i>Impostazioni → Calendario → Calendari condivisi</i> → <i>Pubblica un calendario</i> → copia il link ICS.</li>
-          <li><b>Apple iCloud</b>: condividi il calendario come <i>Calendario pubblico</i> e copia il link (webcal://).</li>
+          <li><b>Provider calendario</b> (gestionale, calendario online o del telefono): nelle impostazioni del calendario cerca <i>Esporta</i>, <i>Condividi</i>, <i>Pubblica</i> o <i>Indirizzo iCal / ICS</i> e copia il link (inizia con https:// o webcal:// e di solito termina con .ics). Incollalo qui.</li>
+          <li><b>Hai solo un file .ics?</b> Usa «Usa il file…». Se facendo clic sul link il browser scarica un file invece di mostrarlo, copia il link con il tasto destro.</li>
+          <li><b>Pratiche dagli eventi</b>: con «Pratiche…» TIO riconosce i fascicoli dai dati presenti negli eventi, con un’anteprima da controllare.</li>
           <li><b>Agenda cartacea</b>: usa «Importa da file» con il modello Excel/CSV da compilare.</li>
         </ul>
       </details>
@@ -154,7 +152,7 @@ export function ImportPanel() {
   return (
     <section className="card pad-lg" id="importazione">
       <h2><FileSpreadsheet size={16} /> Importa i dati esistenti</h2>
-      <p className="muted small">Porta in TIO i dati che hai già, senza rifarli da zero: da Cliens Più (<i>Esporta lista</i> in XLS o CSV), da Excel o da un'agenda cartacea trascritta. Puoi ripetere l'importazione quando vuoi: i dati già presenti non vengono duplicati.</p>
+      <p className="muted small">Porta in TIO i dati che hai già, senza rifarli da zero: dal tuo provider gestionale (elenco esportato in XLSX o CSV), da Excel o da un'agenda cartacea trascritta. Puoi ripetere l'importazione quando vuoi: i dati già presenti non vengono duplicati.</p>
       <SolaLetturaNota />
       <div className="import-grid">
         {SCHEDE.map(({ tipo, icona: Icona, titolo, testo }) => (
@@ -180,7 +178,7 @@ export function ImportPanel() {
   )
 }
 
-/** Documenti di Cliens: la cartella in cui si scaricano (una sottocartella per pratica), abbinata alle pratiche e sincronizzata a mano. */
+/** Documenti del provider: la cartella in cui si scaricano (una sottocartella per pratica), abbinata alle pratiche e sincronizzata a mano. */
 function CartellaCliens() {
   const { settings } = useData()
   const run = useAction()
@@ -193,23 +191,23 @@ function CartellaCliens() {
     setLavoro(true)
     try {
       const r = await run(() => api.cliensTutte())
-      if (r) { toast(`${r.pratiche} pratiche sincronizzate${r.collegate ? ` · ${r.collegate} cartelle di Cliens collegate` : ''} · ${r.nuovi} file nuovi · ${r.condivisi} in comune${r.uniti ? ` · ${r.uniti} doppioni uniti` : ''}`); if (r.errori.length) toast(`${r.errori.length} pratiche non sincronizzate: ${r.errori[0].pratica} – ${r.errori[0].motivo}`, 'err') }
+      if (r) { toast(`${r.pratiche} pratiche sincronizzate${r.collegate ? ` · ${r.collegate} cartelle del provider collegate` : ''} · ${r.nuovi} file nuovi · ${r.condivisi} in comune${r.uniti ? ` · ${r.uniti} doppioni uniti` : ''}`); if (r.errori.length) toast(`${r.errori.length} pratiche non sincronizzate: ${r.errori[0].pratica} – ${r.errori[0].motivo}`, 'err') }
       if (settings.cartella_cliens) mostra()
     } finally { setLavoro(false) }
   }
   const trovate = abb?.abbinamenti.filter((a) => a.pratica).length ?? 0
   return <div className="import-card">
     <Cloud size={22} className="import-ico" />
-    <h3>Cartella di Cliens</h3>
-    <p className="muted small">Scegli la cartella in cui scarichi i documenti da Cliens (una sottocartella per pratica): TIO abbina ogni sottocartella alla sua pratica e, a ogni sincronizzazione, mostra in un’unica vista i file di Cliens e quelli del computer. Un file presente in entrambe compare una sola volta. TIO legge soltanto: non modifica nulla.</p>
+    <h3>Provider documenti</h3>
+    <p className="muted small">La cartella in cui scarichi i documenti dal tuo gestionale o dal cloud, con una sottocartella per pratica: TIO abbina ogni sottocartella alla sua pratica e mostra insieme quei file e quelli del computer, senza doppioni. Legge soltanto.</p>
     {settings.cartella_cliens && <p className="small"><b>Cartella:</b> <span className="muted" title={settings.cartella_cliens}>{settings.cartella_cliens}</span></p>}
     <div className="row wrap">
-      <Btn size="sm" variant="primary" onClick={scegli}>{settings.cartella_cliens ? 'Cambia la cartella di Cliens…' : 'Collega la cartella di Cliens…'}</Btn>
+      <Btn size="sm" variant="primary" onClick={scegli}>{settings.cartella_cliens ? 'Cambia la cartella del provider…' : 'Collega la cartella del provider…'}</Btn>
       {settings.cartella_cliens && <Btn size="sm" disabled={lavoro} aria-busy={lavoro} onClick={sincronizza}><FolderSync size={14} /> {lavoro ? 'Sincronizzazione…' : 'Sincronizza tutte le pratiche'}</Btn>}
       {settings.cartella_cliens && !abb && <Btn size="sm" variant="ghost" onClick={mostra}>Mostra abbinamenti</Btn>}
     </div>
     {abb && <div className="cliens-abbinamenti">
-      <p className="small muted">{abb.abbinamenti.length} sottocartelle · {trovate} abbinate a una pratica{abb.abbinamenti.length - trovate ? ` · ${abb.abbinamenti.length - trovate} senza pratica (importa prima le pratiche da Cliens, o collegala dalla scheda Documenti della pratica)` : ''}</p>
+      <p className="small muted">{abb.abbinamenti.length} sottocartelle · {trovate} abbinate a una pratica{abb.abbinamenti.length - trovate ? ` · ${abb.abbinamenti.length - trovate} senza pratica (importa prima le pratiche, o collega la cartella dalla scheda Documenti della pratica)` : ''}</p>
       <ul>{abb.abbinamenti.slice(0, 200).map((a) => <li key={a.percorso} className="small"><span>{a.nome}</span><span className={a.pratica ? '' : 'muted'}>{a.pratica ? `→ ${[a.pratica.numero, a.pratica.titolo].filter(Boolean).join(' · ')}${a.pratica.giaCollegata ? ' ✓' : ''}` : 'nessuna pratica'}</span></li>)}</ul>
     </div>}
   </div>

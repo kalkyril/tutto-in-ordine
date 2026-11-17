@@ -85,6 +85,7 @@ module.exports = function registra({ handle, changed, onSettings, getWindow, aut
     if (t === 'documenti' && !riga.percorso) throw new Error('Questo documento è una copia interna dell\'app: usa l\'eliminazione con conferma')
     const docIds = t === 'ore' ? db.list('documenti', { ora_id: id }).map((d) => d.id) : []
     db.remove(t, id)
+    if (t === 'documenti') require('../docfile').escludi(riga) // tolto il collegamento: la sincronizzazione automatica non lo ricollega
     changed(t, 'cronologia', ...(docIds.length ? ['documenti'] : []))
     const token = require('node:crypto').randomUUID()
     undoSnapshots.set(token, { archive: db.getDb(), t, riga, docIds, expires: Date.now() + 30000 })
@@ -97,6 +98,7 @@ module.exports = function registra({ handle, changed, onSettings, getWindow, aut
     if (!snap || !ANNULLABILI.has(snap.t) || !snap.riga || !Number.isInteger(snap.riga.id)) throw new Error('Nulla da annullare')
     const r = db.transaction(() => {
       const nuova = db.ripristina(snap.t, snap.riga)
+      if (snap.t === 'documenti' && snap.riga.percorso) require('../docfile').includi(snap.riga.pratica_id, snap.riga.percorso)
       for (const d of snap.docIds || []) if (db.get('documenti', d)) db.save('documenti', { id: d, ora_id: snap.riga.id })
       return nuova
     })

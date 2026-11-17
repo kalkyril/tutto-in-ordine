@@ -24,9 +24,8 @@ async function renderPdf(html) {
     win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
     win.webContents.on('will-navigate', event => event.preventDefault())
     await win.loadFile(source.file)
-    // i documenti creati dai modelli possono chiedere «Pagina N di M» in fondo a ogni pagina
-    const numeri = /<meta name="tio-numeri-pagina" content="1">/.test(html)
-    return await win.webContents.printToPDF({ pageSize: 'A4', printBackground: true, preferCSSPageSize: true, ...(numeri ? { displayHeaderFooter: true, headerTemplate: '<span></span>', footerTemplate: '<div style="width:100%;font:8px Arial,sans-serif;color:#555;text-align:right;padding:0 12mm 4mm 0">Pagina <span class="pageNumber"></span> di <span class="totalPages"></span></div>' } : {}) })
+    // «Pagina N di M» dei documenti creati dai modelli è nel CSS della pagina (riquadro @bottom-right), sulla riga del piè di pagina
+    return await win.webContents.printToPDF({ pageSize: 'A4', printBackground: true, preferCSSPageSize: true })
   } finally {
     if (win && !win.isDestroyed()) win.destroy()
     source.cleanup()

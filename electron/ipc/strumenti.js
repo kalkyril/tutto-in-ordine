@@ -41,19 +41,20 @@ function lavoroPdf(dati, ms) {
 function lavoroComprimi(dati, avanza) {
   const { Worker } = require('node:worker_threads')
   return new Promise((resolve, reject) => {
-    const w = new Worker(path.join(__dirname, '..', 'pdf-comprimi-worker.js').replace(/app\.asar([\\/])/, 'app.asar.unpacked$1'), { workerData: dati, resourceLimits: { maxOldGenerationSizeMb: 1536 } })
-    const timer = setTimeout(() => { w.terminate(); reject(new Error('Il PDF ha superato il tempo massimo di elaborazione (10 minuti)')) }, 600000)
+    const w = new Worker(path.join(__dirname, '..', dati.azione ? 'pdf-strumenti-worker.js' : 'pdf-comprimi-worker.js').replace(/app\.asar([\\/])/, 'app.asar.unpacked$1'), { workerData: dati, resourceLimits: { maxOldGenerationSizeMb: 8192 } })
+    const timer = setTimeout(() => { w.terminate(); reject(new Error('Il PDF ha superato il tempo massimo di elaborazione (un’ora)')) }, 3600000)
     w.on('message', (r) => { if (r.avanzamento) { avanza(r.avanzamento); return } clearTimeout(timer); w.terminate(); r.error ? reject(new Error(r.error)) : resolve(r.esito) })
     w.once('error', (e) => { clearTimeout(timer); reject(e) })
     w.once('exit', (c) => { clearTimeout(timer); if (c !== 0) reject(new Error('Elaborazione interrotta: il PDF potrebbe essere troppo grande per la memoria disponibile')) })
   })
 }
 /** «Contratto.pdf» → «Contratto (compresso).pdf», «Contratto (compresso 2).pdf»… senza sovrascrivere nulla. */
-function nomeCompresso(file, cartella) {
+function nomeNuovo(file, cartella, suffisso) {
   const base = path.basename(file, path.extname(file))
-  for (let i = 1; i < 1000; i++) { const p = path.join(cartella, `${base} (compresso${i > 1 ? ' ' + i : ''}).pdf`); if (!fs.existsSync(p)) return p }
-  throw new Error('Troppi file compressi con lo stesso nome nella cartella')
+  for (let i = 1; i < 1000; i++) { const p = path.join(cartella, `${base} (${suffisso}${i > 1 ? ' ' + i : ''}).pdf`); if (!fs.existsSync(p)) return p }
+  throw new Error('Troppi file con lo stesso nome nella cartella')
 }
+const nomeCompresso = (file, cartella) => nomeNuovo(file, cartella, 'compresso')
 
 module.exports = function registra({ handle, changed, getWindow, autorizza }) {
   // ---------- Comprimi PDF: si leggono solo i file scelti dall'utente, si scrive un file nuovo, l'originale resta com'è
@@ -66,7 +67,7 @@ module.exports = function registra({ handle, changed, getWindow, autorizza }) {
     return r.filePaths.map((p) => { autorizzati.add(p); return { percorso: p, nome: path.basename(p), byte: fs.statSync(p).size } })
   })
   handle('pdf:infoFile', (percorso) => { if (!process.env.MNGMNT_TEST) autorizza(percorso); autorizzati.add(percorso); const st = fs.statSync(percorso); if (!st.isFile() || !/\.pdf$/i.test(percorso)) throw new Error('Non è un PDF'); return { percorso, nome: path.basename(percorso), byte: st.size } })
-  handle('pdf:comprimi', async (percorso, livello, chiedi) => {
+  handle('pdf:comprimi', async (percorso, livello, chiedi, password) => {
     if (typeof percorso !== 'string' || !autorizzati.has(percorso)) throw new Error('Scegli di nuovo il file da comprimere')
     if (!['minima', 'media', 'massima'].includes(livello)) throw new Error('Livello di compressione non valido')
     let uscita = null
@@ -81,11 +82,105 @@ module.exports = function registra({ handle, changed, getWindow, autorizza }) {
     if (path.resolve(uscita) === path.resolve(percorso)) throw new Error('Scegli un nome diverso dall’originale')
     const avanza = (info) => { const w = getWindow(); if (w && !w.isDestroyed()) w.webContents.send('avanzamento', { operazione: 'comprimi', fase: info.fase, fatti: info.fatto, totale: info.totale }) }
     try {
-      const esito = await lavoroComprimi({ file: percorso, uscita, livello }, avanza)
-      compressi.add(uscita)
+      const esito = await lavoroComprimi({ file: percorso, uscita, livello, password: typeof password === 'string' ? password : '' }, avanza)
+      compressi.add(uscita); autorizzati.add(uscita)
       return { ...esito, uscita, nome: path.basename(uscita) }
     } finally { const w = getWindow(); if (w && !w.isDestroyed()) w.webContents.send('avanzamento', { operazione: 'comprimi', fine: true }) }
   })
+  // ---------- Editor PDF: unisci, dividi, modifica. Stesse regole: solo file scelti dall'utente, solo file nuovi in uscita
+  const scrivibile = (cartella) => { try { fs.accessSync(cartella, fs.constants.W_OK); return true } catch { return false } }
+  const diProva = () => (process.env.MNGMNT_TEST && process.env.MNGMNT_TEST_PDF_DIR) || null
+  const controlla = (percorso) => { if (typeof percorso !== 'string' || !autorizzati.has(percorso)) throw new Error('Scegli di nuovo il file PDF'); return percorso }
+  const pwd = (x) => (typeof x === 'string' ? x.slice(0, 256) : '')
+  const conAvanzamento = async (operazione, dati) => {
+    const avanza = (info) => { const w = getWindow(); if (w && !w.isDestroyed()) w.webContents.send('avanzamento', { operazione, fase: info.fase, fatti: Math.floor(info.fatto), totale: info.totale }) }
+    try { return await lavoroComprimi(dati, avanza) } finally { const w = getWindow(); if (w && !w.isDestroyed()) w.webContents.send('avanzamento', { operazione, fine: true }) }
+  }
+  const salvaCome = async (titolo, proposto) => {
+    if (diProva()) return path.join(diProva(), path.basename(proposto))
+    const r = await dialog.showSaveDialog(getWindow(), { title: titolo, defaultPath: proposto, filters: [{ name: 'PDF', extensions: ['pdf'] }] })
+    return r.canceled || !r.filePath ? null : r.filePath
+  }
+  handle('pdf:unisci', async (file) => {
+    if (!Array.isArray(file) || file.length < 2 || file.length > 2000) throw new Error('Scegli almeno due PDF da unire')
+    const lista = file.map((f) => ({ percorso: controlla(f?.percorso), password: pwd(f?.password) }))
+    const primo = lista[0].percorso, cartella = scrivibile(path.dirname(primo)) ? path.dirname(primo) : app.getPath('documents')
+    const uscita = await salvaCome('Salva il PDF unito', nomeNuovo(primo, cartella, 'unito')); if (!uscita) return null
+    if (lista.some((f) => path.resolve(f.percorso) === path.resolve(uscita))) throw new Error('Scegli un nome diverso da quello dei file da unire')
+    const esito = await conAvanzamento('unisci', { azione: 'unisci', dati: { file: lista, uscita } })
+    compressi.add(uscita); autorizzati.add(uscita)
+    return { ...esito, uscita, nome: path.basename(uscita) }
+  })
+  handle('pdf:dividi', async (percorso, opzioni) => {
+    controlla(percorso)
+    const o = opzioni && typeof opzioni === 'object' ? opzioni : {}
+    if (!['pagine', 'ogni', 'intervalli'].includes(o.modo)) throw new Error('Modo di divisione non valido')
+    let cartella = diProva()
+    if (!cartella) {
+      const r = await dialog.showOpenDialog(getWindow(), { title: 'Cartella in cui salvare le parti', defaultPath: path.dirname(percorso), buttonLabel: 'Salva qui', properties: ['openDirectory', 'createDirectory'] })
+      if (r.canceled || !r.filePaths[0]) return null
+      cartella = r.filePaths[0]
+    }
+    const esito = await conAvanzamento('dividi', { azione: 'dividi', dati: { percorso, password: pwd(o.password), modo: o.modo, ogni: Number(o.ogni) || 0, intervalli: String(o.intervalli || '').slice(0, 5000), unico: !!o.unico, cartella } })
+    for (const c of esito.creati) { compressi.add(c.percorso); autorizzati.add(c.percorso) }
+    compressi.add(cartella)
+    return esito
+  })
+  handle('pdf:modifica', async (dati) => {
+    const fonti = (Array.isArray(dati?.fonti) ? dati.fonti : []).map((f) => ({ percorso: controlla(f?.percorso), password: pwd(f?.password) }))
+    if (!fonti.length && !(dati?.pagine || []).some((p) => p?.bianca)) throw new Error('Apri un PDF da modificare')
+    if (!Array.isArray(dati?.pagine) || JSON.stringify(dati.pagine).length > 200 * 1024 * 1024) throw new Error('Modifiche non valide o troppo grandi')
+    const primo = fonti[0]?.percorso || path.join(app.getPath('documents'), 'Documento.pdf')
+    const cartella = scrivibile(path.dirname(primo)) ? path.dirname(primo) : app.getPath('documents')
+    const uscita = await salvaCome('Salva il PDF modificato', nomeNuovo(primo, cartella, 'modificato')); if (!uscita) return null
+    if (fonti.some((f) => path.resolve(f.percorso) === path.resolve(uscita))) throw new Error('Scegli un nome diverso dall’originale: il file aperto non viene mai sovrascritto')
+    const esito = await conAvanzamento('modifica', { azione: 'modifica', dati: { fonti, pagine: dati.pagine, numeri: dati.numeri && typeof dati.numeri === 'object' ? dati.numeri : null, uscita } })
+    compressi.add(uscita); autorizzati.add(uscita)
+    return { ...esito, uscita, nome: path.basename(uscita) }
+  })
+  handle('pdf:scegliImmagine', async () => {
+    let file = process.env.MNGMNT_TEST && process.env.MNGMNT_TEST_PDF_IMMAGINE
+    if (!file) {
+      const r = await dialog.showOpenDialog(getWindow(), { title: 'Immagine da mettere sulla pagina (firma, timbro, logo)', properties: ['openFile'], filters: [{ name: 'Immagini', extensions: ['png', 'jpg', 'jpeg'] }] })
+      if (r.canceled || !r.filePaths[0]) return null
+      file = r.filePaths[0]
+    }
+    const dati = fs.readFileSync(file)
+    if (dati.length > 12 * 1024 * 1024) throw new Error('L’immagine supera i 12 MB')
+    const png = dati.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])), jpg = dati[0] === 0xff && dati[1] === 0xd8
+    if (!png && !jpg) throw new Error('Usa un’immagine PNG o JPEG')
+    return { nome: path.basename(file), dati: `data:image/${png ? 'png' : 'jpeg'};base64,${dati.toString('base64')}` }
+  })
+  // anteprima delle pagine: un processo per documento aperto nell'editor, chiuso quando l'editor lo lascia
+  const { Worker } = require('node:worker_threads')
+  const editor = new Map()
+  let prossimoEditor = 1
+  const chiudiEditor = (id) => { const e = editor.get(id); if (!e) return; editor.delete(id); for (const a of e.attese.values()) a.reject(new Error('Documento chiuso')); e.worker.terminate() }
+  handle('pdf:editorApri', (percorso, password) => {
+    controlla(percorso)
+    while (editor.size >= 24) chiudiEditor(editor.keys().next().value) // documenti rimasti aperti (finestra ricaricata): si chiude il più vecchio
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(path.join(__dirname, '..', 'pdf-pagine-worker.js').replace(/app\.asar([\\/])/, 'app.asar.unpacked$1'), { workerData: { percorso, password: pwd(password) }, resourceLimits: { maxOldGenerationSizeMb: 4096 } })
+      const id = prossimoEditor++, attese = new Map()
+      let pronto = false
+      worker.on('message', (m) => {
+        if (m.pronto) { pronto = true; editor.set(id, { worker, attese, n: 0, pagine: m.pronto.pagine.length }); resolve({ id, percorso, nome: path.basename(percorso), byte: m.pronto.byte, pagine: m.pronto.pagine }); return }
+        if (!pronto) { reject(new Error(m.error || 'PDF non leggibile')); worker.terminate(); return }
+        const a = attese.get(m.id); if (!a) return
+        attese.delete(m.id); m.error ? a.reject(new Error(m.error)) : a.resolve(m.immagine)
+      })
+      worker.once('error', (e) => { if (!pronto) reject(e); else chiudiEditor(id) })
+      worker.once('exit', () => { if (!pronto) reject(new Error('PDF non leggibile')); else chiudiEditor(id) })
+    })
+  })
+  handle('pdf:editorPagina', (id, numero, larghezza, rotazione) => {
+    const e = editor.get(id); if (!e) throw new Error('Documento non più aperto: riaprilo')
+    if (!Number.isInteger(numero) || numero < 1 || numero > e.pagine) throw new Error('Pagina non valida')
+    const l = Math.min(2400, Math.max(60, Math.round(Number(larghezza) || 200))), r = [0, 90, 180, 270].includes(rotazione) ? rotazione : 0
+    return new Promise((resolve, reject) => { const k = ++e.n; e.attese.set(k, { resolve, reject }); e.worker.postMessage({ tipo: 'pagina', id: k, numero, larghezza: l, rotazione: r }) })
+  })
+  handle('pdf:editorChiudi', (id) => { chiudiEditor(id); return true })
+
   handle('pdf:mostraCompresso', (uscita, apri) => {
     if (!compressi.has(uscita)) throw new Error('File non trovato')
     if (apri) return shell.openPath(uscita).then((e) => { if (e) throw new Error(e); return true })

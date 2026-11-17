@@ -2,7 +2,7 @@ import { usePagination } from '../components/Pagination'
 import { useMemo, useState } from 'react'
 import { Download, Upload, Mail, Plus, Receipt } from 'lucide-react'
 import { api } from '../api'
-import { GestioneAttivita, type AreaGestione } from '../components/GestioneAttivita'
+import { GestioneAttivita, useGestione, type AreaGestione } from '../components/GestioneAttivita'
 import { useData } from '../store'
 import { useNav } from '../nav'
 import { Btn, ColorDot, Empty, PageHeader, Pill, Segmented, Modal, useAction } from '../components/ui'
@@ -40,7 +40,8 @@ export default function ParcellePage({ incorporata = false }: { incorporata?: bo
   const daIncassare = fatt.filter((p) => p.stato === 'emessa').reduce((s, p) => s + residuo(p), 0)
   const preventivi = doc.filter((p) => p.tipo === 'preventivo' && p.stato !== 'annullata').reduce((s, p) => s + p.totale, 0)
 
-  const sol = useMemo(() => solleciti(parcelle, anagraficaById), [parcelle, anagraficaById])
+  const gestione = useGestione()
+  const sol = useMemo(() => solleciti(parcelle, anagraficaById, new Date(), 30, gestione.rate), [parcelle, anagraficaById, gestione.rate])
   const red = useMemo(() => redditivita(pratiche, ore, spese, parcelle), [pratiche, ore, spese, parcelle])
   const esporta = () => run(() => api.salvaTesto(`Prima-nota-${anno}.csv`, primaNotaCsv(parcelle, anagraficaById, praticaById, anno, L.parcella)), 'Prima nota salvata')
   const invia = (i: number) => { const t = testoSollecito(sol[i], settings.studio); const em = sol[i].cliente?.email || ''; run(() => api.openExternal(`mailto:${em}?subject=${encodeURIComponent(t.oggetto)}&body=${encodeURIComponent(t.corpo)}`)) }
@@ -52,7 +53,7 @@ export default function ParcellePage({ incorporata = false }: { incorporata?: bo
           {settings.profilo !== 'avvocato' && <Btn variant="ghost" title="Dati e voci dei documenti, da verificare e adattare al proprio servizio di fatturazione; nessun invio allo SdI" onClick={()=>run(async()=>{const completi=await Promise.all(doc.filter(p=>p.stato!=='annullata').map(p=>api.getParcella(p.id)));return api.salvaTesto(`Dati-fatturazione-${anno}.csv`,datiFatturazioneCsv(completi,anagraficaById))},'CSV salvato')}>Dati per servizio fiscale (CSV)</Btn>}
           <Btn variant="ghost" disabled={importing} onClick={async () => { setImporting(true); try { const data = await run(() => api.importaProforma()); if (data) setImported(data) } finally { setImporting(false) } }}><Upload size={16} /> {importing ? 'Lettura…' : 'Importa PDF / Word'}</Btn>
           <Btn variant="primary" onClick={() => setEd({})}><Plus size={16} /> Nuovo documento</Btn></>
-        return incorporata ? <div className="toolbar azioni-sezione">{azioni}</div> : <PageHeader title={`${L.parcelle} e preventivi`} subtitle="Documenti PDF e XML FatturaPA, spese e incassi — l’invio allo SdI resta al tuo canale (Fatture e Corrispettivi, intermediario o commercialista)" actions={azioni} /> })()}
+        return incorporata ? <div className="toolbar azioni-sezione">{azioni}</div> : <PageHeader title={`${L.parcelle} e preventivi`} subtitle="Preventivi e documenti di vendita in PDF e XML FatturaPA, con i loro incassi." actions={azioni} /> })()}
       <div className="kpis fascia-numeri">
         <div className="kpi static"><span>Emesso {anno}</span><b>{money(emesso)}</b></div>
         <div className="kpi static"><span>Incassato (netto)</span><b>{money(incassato)}</b></div>
@@ -65,8 +66,8 @@ export default function ParcellePage({ incorporata = false }: { incorporata?: bo
         <div className="table-wrap"><table className="table">
           <thead><tr><th>N.</th><th>{L.cliente}</th><th>Emessa il</th><th>Scadenza pagamento</th><th>Stato</th><th className="n">Da incassare</th><th><span className="sr-only">Azioni</span></th></tr></thead>
           <tbody>{sol.map((x, i) => (
-            <tr key={x.parcella.id}><td className="nowrap"><b>{x.parcella.numero}</b></td><td>{x.cliente?.denominazione}</td><td className="nowrap">{fmtDate(x.parcella.data)}</td><td className="nowrap">{fmtDate(x.scadenza)}</td>
-              <td>{x.giorni > 0 ? <Pill color="#ef4444">scaduta da {x.giorni} gg</Pill> : <Pill>{x.giorni === 0 ? 'scade oggi' : `tra ${-x.giorni} gg`}</Pill>}</td><td className="n">{money(residuo(x.parcella))}</td>
+            <tr key={x.parcella.id}><td className="nowrap"><b>{x.parcella.numero}</b></td><td>{x.cliente?.denominazione}</td><td className="nowrap">{fmtDate(x.parcella.data)}</td><td className="nowrap">{fmtDate(x.scadenza)}{x.rata && <><br /><small className="muted">{x.rata}</small></>}</td>
+              <td>{x.giorni > 0 ? <Pill color="#ef4444">scaduta da {x.giorni} gg</Pill> : <Pill>{x.giorni === 0 ? 'scade oggi' : `tra ${-x.giorni} gg`}</Pill>}</td><td className="n">{money(residuo(x.parcella))}{x.importo != null && x.importo < residuo(x.parcella) - 0.004 && <><br /><small className="muted">{x.giorni >= 0 ? 'scaduti' : 'prossima rata'} {money(x.importo)}</small></>}</td>
               <td className="nowrap"><Btn size="sm" onClick={() => invia(i)} title="Apre il tuo programma di posta con il messaggio già scritto: l'invio lo confermi tu"><Mail size={13} /> Prepara email</Btn> <Btn size="sm" variant="ghost" onClick={() => run(async () => { await copia(i); return true }, 'Testo copiato')}>Copia testo</Btn></td></tr>))}</tbody>
         </table>{!sol.length && <p className="muted pad">Nessun documento emesso in attesa di pagamento.</p>}</div>)}
       {vista === 'pratiche' && (

@@ -10,7 +10,7 @@ let sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 const RADICE = path.join(__dirname, '..')
 const GUIDA = new Set(['funzione-agenda', 'funzione-backup', 'funzione-fatture', 'funzione-lavoro', 'funzione-panoramica', 'funzione-ricerca', 'funzione-scadenzario', 'funzione-commessa',
-  'strumento-anonimizza-pratica', 'strumento-anonimizza', 'strumento-crea', 'strumento-modelli', 'strumento-ripristino', 'strumento-word', 'strumento-editor', 'strumento-comprimi'])
+  'strumento-anonimizza-pratica', 'strumento-anonimizza', 'strumento-crea', 'strumento-modelli', 'strumento-ripristino', 'strumento-word', 'strumento-editor', 'strumento-comprimi', 'strumento-pdf', 'funzione-budget', 'funzione-budget-fatture'])
 const pad = (n) => String(n).padStart(2, '0')
 const giorno = (n, ora) => { const d = new Date(); d.setDate(d.getDate() + n); const s = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; return ora ? `${s}T${ora}` : s }
 
@@ -37,6 +37,10 @@ function attach({ getWindow, db }) {
   async function foto(nome, w = 1600, h = 1012) {
     win.setContentSize(Math.round(w / 1.1765), Math.round(h / 1.1765)); await sleep(700)
     await js(`document.activeElement?.blur?.(); getSelection().removeAllRanges(); document.documentElement.classList.add('sem-transizioni'); true`); await sleep(250)
+    // la finestra di prova può restare indietro di un fotogramma: si forza il ridisegno, si aspettano due fotogrammi
+    // (al massimo 300 ms: in una finestra nascosta i fotogrammi non arrivano) e si scarta la prima cattura (altrimenti ogni immagine mostrava la schermata precedente)
+    wc.invalidate(); await js('Promise.race([new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(true)))), new Promise((r) => setTimeout(() => r(true), 300))])'); await wc.capturePage(); await sleep(350)
+    wc.invalidate(); await js('Promise.race([new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(true)))), new Promise((r) => setTimeout(() => r(true), 300))])')
     const img = (await wc.capturePage()).resize({ width: w, quality: 'best' })
     await js(`document.documentElement.classList.remove('sem-transizioni'); true`)
     const { loadImage, createCanvas } = require('@napi-rs/canvas')
@@ -117,8 +121,22 @@ function attach({ getWindow, db }) {
     g.esegui('costo', { pratica_id: pBar.id, fornitore_id: forn.id, data: giorno(-9), descrizione: 'Cavi, canaline e quadro di zona', categoria: 'Materiali', importo: 1180, scadenza: giorno(-1), pagata: 1 })
     g.esegui('costo', { pratica_id: pBar.id, fornitore_id: coll.id, data: giorno(-2), descrizione: 'Assistenza alla posa (Geom. Rinaldi)', categoria: 'Prestazioni e consulenze', importo: 650, scadenza: giorno(12) })
     g.esegui('costo', { pratica_id: pHotel.id, fornitore_id: forn.id, data: giorno(-20), descrizione: 'Corpi illuminanti LED', categoria: 'Materiali', importo: 2100, scadenza: giorno(4) })
-    g.esegui('costo', { pratica_id: null, data: giorno(-15), descrizione: 'Affitto del magazzino', categoria: 'Affitto', importo: 750, scadenza: giorno(-12), pagata: 1 })
+    g.esegui('costo', { pratica_id: null, data: giorno(-15), descrizione: 'Affitto del magazzino', categoria: 'Affitto', importo: 750, scadenza: giorno(-12), pagata: 1, ripeti: 'mensile' })
     g.esegui('costo', { pratica_id: null, data: giorno(-1), descrizione: 'Assicurazione del furgone', categoria: 'Servizi', importo: 480, scadenza: giorno(15) })
+    // 1.0.4: sezione Budget, con un conto, il budget dell'anno e due fatture ricevute lette dai file del servizio di fatturazione
+    const budget = require('../electron/budget')
+    budget.esegui('conto', { nome: 'Conto corrente BPER', tipo: 'banca', saldo_iniziale: 7340, data_saldo: giorno(-25), iban: 'IT60X0542811101000000123456' })
+    budget.esegui('conto', { nome: 'Cassa', tipo: 'contanti', saldo_iniziale: 180, data_saldo: giorno(-25) })
+    db.setSettings({ budget: { obiettivo: 90000, accantonamento: 30, categorie: { Materiali: 14000, Affitto: 9000, Servizi: 2500, 'Prestazioni e consulenze': 6000 } } })
+    const xml = (numero, data, nome, piva, imponibile, scad) => `<?xml version="1.0" encoding="UTF-8"?><p:FatturaElettronica versione="FPR12" xmlns:p="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2"><FatturaElettronicaHeader><CedentePrestatore><DatiAnagrafici><IdFiscaleIVA><IdPaese>IT</IdPaese><IdCodice>${piva}</IdCodice></IdFiscaleIVA><Anagrafica><Denominazione>${nome}</Denominazione></Anagrafica></DatiAnagrafici></CedentePrestatore><CessionarioCommittente><DatiAnagrafici><IdFiscaleIVA><IdPaese>IT</IdPaese><IdCodice>03456780366</IdCodice></IdFiscaleIVA><Anagrafica><Denominazione>Impianti Galli di Luca Galli</Denominazione></Anagrafica></DatiAnagrafici></CessionarioCommittente></FatturaElettronicaHeader><FatturaElettronicaBody><DatiGenerali><DatiGeneraliDocumento><TipoDocumento>TD01</TipoDocumento><Data>${data}</Data><Numero>${numero}</Numero><ImportoTotaleDocumento>${(imponibile * 1.22).toFixed(2)}</ImportoTotaleDocumento></DatiGeneraliDocumento></DatiGenerali><DatiBeniServizi><DatiRiepilogo><ImponibileImporto>${imponibile.toFixed(2)}</ImponibileImporto><Imposta>${(imponibile * 0.22).toFixed(2)}</Imposta></DatiRiepilogo></DatiBeniServizi><DatiPagamento><DettaglioPagamento><DataScadenzaPagamento>${scad}</DataScadenzaPagamento><ImportoPagamento>${(imponibile * 1.22).toFixed(2)}</ImportoPagamento></DettaglioPagamento></DatiPagamento></FatturaElettronicaBody></p:FatturaElettronica>`
+    const cartellaFatture = path.join(out, 'Fatture esportate'); fs.rmSync(cartellaFatture, { recursive: true, force: true }); fs.mkdirSync(cartellaFatture, { recursive: true })
+    fs.writeFileSync(path.join(cartellaFatture, 'IT01234567890_0A12.xml'), xml('A/412', giorno(-18), 'Telefonia Business S.p.A.', '01234567890', 59, giorno(-3)))
+    fs.writeFileSync(path.join(cartellaFatture, 'IT02987650364_0B07.xml'), xml('87/2026', giorno(-7), 'Officina Ferrari Furgoni', '02987650364', 340, giorno(23)))
+    await budget.leggiFatture(await budget.fileFatture(cartellaFatture), ['03456780366'])
+    db.setSettings({ cartella_fatture: cartellaFatture })
+    const tel = budget.leggi().fatture.find((f) => f.numero === 'A/412'); if (tel) budget.esegui('fattura', { id: tel.id, regolata_il: giorno(-3), categoria: 'Utenze' })
+    // 1.0.4: priorità diverse, così nelle immagini si vedono la freccia rossa, il trattino giallo e la freccia verde
+    db.list('pratiche').forEach((x, i) => db.save('pratiche', { id: x.id, priorita: [2, 1, 0, 1, 2, 0][i % 6] }))
     await js('location.reload()'); await sleep(1800); await pomeriggio()
 
     // ---- Panoramica, lavoro, agenda, ricerca, backup
@@ -142,6 +160,19 @@ function attach({ getWindow, db }) {
     await foto('funzione-scadenzario')
     await clickText('.tabs button', 'Incassi'); await sleep(900)
     await foto('funzione-fatture')
+
+    // ---- Budget: panoramica con la previsione di cassa e fatture lette dal servizio di fatturazione
+    await clickText('.nav-item', 'Budget'); await sleep(1200)
+    await js(`document.querySelectorAll('.previsione-grafico .zona')[2]?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))`); await sleep(400)
+    await foto('funzione-budget')
+    await clickText('.budget-sezione .tabs button', 'Fatture del servizio'); await sleep(900)
+    await foto('funzione-budget-fatture')
+    // solo per controllo (IMMAGINI_BUDGET_TUTTE=1): le altre schede del Budget, nella cartella di uscita e non nel sito
+    if (process.env.IMMAGINI_BUDGET_TUTTE) for (const scheda of ['Conti', 'Spese e budget', 'Tasse', 'Commercialista']) {
+      await clickText('.budget-sezione .tabs button', scheda); await sleep(900)
+      wc.invalidate(); await js('Promise.race([new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(true)))), new Promise((r) => setTimeout(() => r(true), 300))])'); await wc.capturePage(); await sleep(300)
+      fs.writeFileSync(path.join(out, `controllo-budget-${scheda.split(' ')[0].toLowerCase()}.png`), (await wc.capturePage()).toPNG())
+    }
 
     // ---- Documenti: modelli, editor, creazione, Word
     await clickText('.nav-item', 'Documenti'); await sleep(900)
@@ -186,6 +217,8 @@ function attach({ getWindow, db }) {
     // ---- Comprimi PDF
     const { PDFDocument, StandardFonts } = require('pdf-lib'), { createCanvas } = require('@napi-rs/canvas')
     const scansioni = []
+    // i file dei giri precedenti farebbero nascere «(compresso 2).pdf» nelle immagini
+    for (const f of fs.readdirSync(out)) if (/\((?:compresso|modificato)(?: \d+)?\)\.pdf$/.test(f)) fs.rmSync(path.join(out, f), { force: true })
     for (const [nome, pagine] of [['Scansione contratto firmato.pdf', 4], ['Foto del cantiere.pdf', 6]]) {
       const pdf = await PDFDocument.create(), font = await pdf.embedFont(StandardFonts.Helvetica)
       for (let k = 0; k < pagine; k++) {
@@ -196,10 +229,38 @@ function attach({ getWindow, db }) {
       const f = path.join(out, nome); fs.writeFileSync(f, await pdf.save()); scansioni.push(f)
     }
     process.env.MNGMNT_TEST_PDF_COMPRIMI = scansioni.join('|')
-    await clickText('.nav-item', 'Comprimi PDF'); await sleep(500)
-    await clickText('.comprimi-zona button', 'Scegli i PDF'); await sleep(800)
-    await clickText('.comprimi .btn-primary', 'Comprimi'); await sleep(9000)
+    // Editor PDF (1.0.4): gli strumenti restano tutti montati, si clicca solo ciò che è visibile
+    const clicVisibile = (sel, testo) => js(`(() => { const b = [...document.querySelectorAll(${JSON.stringify(sel)})].find(e => e.offsetParent !== null && e.textContent.trim().includes(${JSON.stringify(testo)})); if (!b) return false; b.click(); return true })()`)
+    await clickText('.nav-item', 'Editor PDF'); await sleep(500)
+    await clickText('.pdf-pagina .tabs button', 'Comprimi'); await sleep(300)
+    await clicVisibile('.pdf-zona button', 'Scegli i PDF'); await sleep(800)
+    await clicVisibile('.pdf-opzioni .btn-primary', 'Comprimi'); await sleep(9000)
     await foto('strumento-comprimi')
+    // Modifica: un atto di tre pagine con una nota scritta, una parte evidenziata e i numeri di pagina
+    const atto = await PDFDocument.create(), fa = await atto.embedFont(StandardFonts.Helvetica), fb = await atto.embedFont(StandardFonts.HelveticaBold)
+    const righe = ['Con il presente atto la società Impianti Galli, in persona del titolare,', 'conferma l’esecuzione dei lavori di adeguamento dell’impianto elettrico', 'presso il locale Bar Centrale, secondo il preventivo accettato.', '', 'Lavori eseguiti:', '- sostituzione del quadro generale e dei quadri di zona;', '- nuove linee per la cucina e per la sala;', '- impianto di illuminazione di emergenza;', '- verifica dell’impianto di terra e collaudo finale.', '', 'Il collaudo ha dato esito positivo. Si allega la dichiarazione di conformità.']
+    for (let k = 1; k <= 3; k++) { const pg = atto.addPage([595, 842]); pg.drawText(k === 1 ? 'DICHIARAZIONE DI FINE LAVORI' : `Allegato ${k - 1}`, { x: 60, y: 770, size: 16, font: fb }); righe.forEach((r, i) => pg.drawText(r, { x: 60, y: 730 - i * 18, size: 11, font: fa })) }
+    const fileAtto = path.join(out, 'Dichiarazione fine lavori.pdf'); fs.writeFileSync(fileAtto, await atto.save())
+    process.env.MNGMNT_TEST_PDF_COMPRIMI = fileAtto
+    await clickText('.pdf-pagina .tabs button', 'Modifica'); await sleep(300)
+    await clicVisibile('.pdf-zona button', 'Scegli il PDF'); await sleep(2500)
+    const sulFoglio = async (u0, v0, u1 = u0, v1 = v0) => {
+      const r = await js(`(() => { const f = document.querySelector('.pdf-foglio').getBoundingClientRect(); return { x: f.left, y: f.top, w: f.width, h: f.height } })()`)
+      const P = (u, v) => ({ x: Math.round(r.x + r.w * u), y: Math.round(r.y + r.h * v) })
+      wc.sendInputEvent({ type: 'mouseDown', ...P(u0, v0), button: 'left', clickCount: 1 })
+      for (let i = 1; i <= 6; i++) { wc.sendInputEvent({ type: 'mouseMove', ...P(u0 + (u1 - u0) * i / 6, v0 + (v1 - v0) * i / 6), button: 'left' }); await sleep(30) }
+      wc.sendInputEvent({ type: 'mouseUp', ...P(u1, v1), button: 'left', clickCount: 1 }); await sleep(400)
+    }
+    await js(`document.querySelector('.pdf-attrezzo[aria-label^="Evidenzia"]').click()`); await sleep(200)
+    await sulFoglio(0.095, 0.205, 0.63, 0.228)
+    await js(`document.querySelector('.pdf-attrezzo[aria-label^="Testo"]').click()`); await sleep(200)
+    await sulFoglio(0.1, 0.62)
+    await setVal('.pdf-testo-campo', 'Copia conforme all’originale – Modena'); await sleep(300)
+    await js(`document.querySelector('.pdf-numeri input[type=checkbox]').click()`); await sleep(300)
+    await js(`document.querySelector('.pdf-foglio').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }))`); await sleep(900)
+    // le miniature si disegnano a richiesta: si aspetta che ci siano tutte
+    for (let i = 0; i < 40 && (await js(`document.querySelectorAll('.pdf-miniature img').length`)) < 3; i++) await sleep(250)
+    await foto('strumento-pdf')
   }
 
   // ---------------------------------------------------------------- studio legale: Studio Legale Ferri (prima immagine del sito e README)
@@ -234,6 +295,8 @@ function attach({ getWindow, db }) {
       const voci = [{ tipo: 'compenso', descrizione: 'Compenso per l’attività svolta', quantita: 1, importo: imp }]
       db.saveParcella({ anno, tipo: 'parcella', stato: st, data: giorno(-25), pratica_id: pr.id, cliente_id: cl.id, voci, ...importi(voci, true), ...(st === 'pagata' && { data_pagamento: giorno(-5) }) })
     }
+    // 1.0.4: priorità diverse, così nelle immagini si vedono la freccia rossa, il trattino giallo e la freccia verde
+    db.list('pratiche').forEach((x, i) => db.save('pratiche', { id: x.id, priorita: [2, 1, 0, 1, 2, 0][i % 6] }))
     await js('location.reload()'); await sleep(1800); await pomeriggio()
     await foto('panoramica-chiaro', 1700, 1075)
     await foto('readme-panoramica-chiaro', 1816, 1184)

@@ -41,6 +41,7 @@ function record(table, obj) {
     if (['minuti', 'tariffa_oraria', 'importo', 'quantita', 'valore', 'sg_perc', 'cpa_perc', 'iva_perc', 'rit_perc', 'bollo', 'compensi', 'spese_generali', 'cpa', 'imponibile', 'iva', 'spese_esenti', 'ritenuta', 'totale', 'netto', 'incassato', 'dimensione', 'promemoria_min'].includes(key)) {
       if (!Number.isFinite(Number(value)) || Number(value) < 0) throw new Error(`Il campo ${key} deve essere un numero non negativo`)
     }
+    if (key === 'priorita' && ![0, 1, 2].includes(Number(value))) throw new Error('Priorità non valida')
     if (key === 'persone') { // altre persone della pratica: elenco di { id, ruolo }
       let l; try { l = JSON.parse(value) } catch { throw new Error('Formato non valido: persone') }
       if (!Array.isArray(l) || l.length > 200 || l.some((x) => !x || typeof x !== 'object' || !Number.isSafeInteger(x.id) || x.id <= 0 || !['cliente', 'controparte', 'fornitore', 'collaboratore', 'altro'].includes(x.ruolo))) throw new Error('Formato non valido: persone')

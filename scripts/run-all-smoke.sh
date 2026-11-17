@@ -10,11 +10,14 @@
 cd "$(dirname "$0")/.."
 OUT="${1:-/tmp/mngmnt-smoke-all}"
 FALLITI=0; INSTABILI=""
-SCENARI="${SCENARI:-smoke-hooks smoke-ditta smoke-novita smoke-tiles smoke-collegamenti smoke-digitazione smoke-giudiziale smoke-documenti smoke-miglioramenti smoke-qualita smoke-release smoke-hig smoke-proforma smoke-backup-accessibility smoke-modello-layout smoke-security smoke-aggiornamenti smoke-profilo-ditta smoke-orologio smoke-gestione smoke-strumenti smoke-102 smoke-103}"
+SCENARI="${SCENARI:-smoke-hooks smoke-ditta smoke-novita smoke-tiles smoke-collegamenti smoke-digitazione smoke-giudiziale smoke-documenti smoke-miglioramenti smoke-qualita smoke-release smoke-hig smoke-proforma smoke-backup-accessibility smoke-modello-layout smoke-security smoke-aggiornamenti smoke-profilo-ditta smoke-orologio smoke-gestione smoke-strumenti smoke-102 smoke-103 smoke-104}"
 CORE=$(getconf _NPROCESSORS_ONLN 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 CARICO=$(uptime 2>/dev/null | sed 's/.*load averages\{0,1\}: *//' | awk '{gsub(",","."); print $1}')
 awk -v c="$CARICO" -v n="$CORE" 'BEGIN { if (c > n * 0.75) printf "ATTENZIONE: computer carico (carico %.1f su %d core): chiudi altre app per risultati più affidabili\n", c, n }'
 mkdir -p "$OUT"
+# macOS: con lo schermo spento il sistema sospende i fotogrammi delle finestre e le attese legate al disegno non finiscono
+# (un giro completo dura più dello spegnimento automatico dello schermo): lo schermo resta acceso finché il giro è in corso
+command -v caffeinate >/dev/null 2>&1 && { caffeinate -d -w $$ & }
 npx vite build >/dev/null 2>&1 || { echo "Compilazione dell'interfaccia non riuscita"; exit 1; }
 
 esegui() { # $1 scenario  $2 log  -> 0 se superato

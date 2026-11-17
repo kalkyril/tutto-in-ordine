@@ -46,7 +46,7 @@ function attach({ getWindow, db }) {
       await js(`document.querySelector('.tile-azioni button[aria-label^="Elimina Fornitore"]').click()`); await sleep(700)
       check('eliminazione dal riquadro (subito, con «Annulla»)', db.list('link').length === 1 && /Collegamento eliminato/.test(await js('document.body.innerText')))
       // sito collegato a una pratica: scheda della pratica
-      const p = db.save('pratiche', { numero: '2026/001', titolo: 'Rossi c. Bianchi', stato: 'In corso', priorita: 'media', colore: '#3b82f6' })
+      const p = db.save('pratiche', { numero: '2026/001', titolo: 'Rossi c. Bianchi', stato: 'In corso', priorita: 1, colore: '#3b82f6' })
       await js('location.reload()'); await sleep(1500)
       await clickText('.nav-item', 'Pratiche'); await sleep(500); await js(`document.querySelector('.pcard h2').click()`); await sleep(500)
       await clickText('.tabs button', 'Collegamenti'); await sleep(400)

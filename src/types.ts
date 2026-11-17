@@ -22,6 +22,8 @@ export interface Pratica {
   budget_ore?: number | null; budget_importo?: number | null; consegna?: string | null
   /** 1.0.3: altre persone (JSON di PersonaPratica[]) e ruolo ricoperto nella pratica da chi usa TIO («Difensore», «CTU», «Direttore dei lavori»…) */
   persone?: string | null; ruolo?: string | null
+  /** 1.0.4: priorità (0 bassa, 1 media, 2 alta) */
+  priorita?: number
 }
 export type TipoScadenza = 'scadenza' | 'udienza' | 'appuntamento' | 'altro'
 export interface Scadenza {
@@ -32,7 +34,7 @@ export interface Todo {
   id: number; pratica_id: number | null; titolo: string; note?: string; scadenza?: string | null
   priorita: number; promemoria_min: number | null; completata: number; completata_il?: string | null; ordine: number
 }
-export interface Cronologia { id: number; pratica_id: number; tabella: string; rec_id: number | null; azione: 'creato' | 'completato' | 'riaperto' | 'eliminato' | 'stato'; testo: string; created_at: string }
+export interface Cronologia { id: number; pratica_id: number; tabella: string; rec_id: number | null; azione: 'creato' | 'completato' | 'riaperto' | 'eliminato' | 'stato' | 'modificato'; testo: string; created_at: string }
 export interface Nota { id: number; pratica_id: number; testo: string; created_at: string; updated_at: string }
 export interface Documento { id: number; pratica_id: number; nome: string; file: string; dimensione: number; categoria?: string; ora_id?: number | null; percorso?: string | null; impronta?: string | null; rel?: string | null; percorso_cliens?: string | null; origine?: 'cliens' | 'locale' | 'condivisa' | null; created_at: string }
 export interface Link { id: number; pratica_id: number | null; titolo: string; url: string; categoria?: string; descrizione?: string; colore?: string; ordine: number }
@@ -52,7 +54,7 @@ export interface Parcella {
   /** nota di credito: id della fattura stornata */
   storno_di?: number | null
 }
-/** Calendario esterno collegato in sola lettura (Cliens Più, Google Calendar, Outlook…). */
+/** Calendario esterno collegato in sola lettura (provider calendario: gestionale o calendario online). */
 export interface Calendario {
   id: number; nome: string; url: string; colore: string; attivo: number; intervallo_min: number; promemoria: string
   ultimo_sync?: string | null; ultimo_tentativo?: string | null; ultimo_esito?: 'ok' | 'errore' | null; ultimo_errore?: string | null; n_eventi: number; crea_pratiche?: number
@@ -114,6 +116,8 @@ export interface ModelloDocumento extends ModelloPdf {
   firma?: string | null; firmaAltezza?: number; firmaAllineamento?: Allineamento
   /** 1.0.2: campi inventati dall'utente per questo modello (es. «n.giorni», «compenso»), da compilare alla creazione */
   campiPersonali?: string[]
+  /** 1.0.4: intestazione solo sulla prima pagina (se manca: in cima a ogni pagina) */
+  intestazioneSoloPrima?: boolean
 }
 export interface MarginiPagina { sopra: number; sotto: number; lati: number }
 export type Allineamento = 'sinistra' | 'centro' | 'destra' | 'giustificato'

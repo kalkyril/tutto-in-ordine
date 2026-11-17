@@ -1,12 +1,12 @@
-// Avanzamento delle operazioni lunghe del processo principale (sincronizzazioni, cartelle intere, Cliens):
+// Avanzamento delle operazioni lunghe del processo principale (sincronizzazioni, cartelle intere, PDF):
 // la finestra resta utilizzabile e qui si vede a che punto è il lavoro.
 import { useEffect, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 
 interface Info { operazione: string; fase?: string; fatti?: number; totale?: number; pratica?: string; pratiche?: number; totalePratiche?: number; fine?: boolean }
 
-const NOMI: Record<string, string> = { sincronizza: 'Ricerca dei file spostati', cartella: 'Collegamento della cartella', cliens: 'Sincronizzazione con Cliens', comprimi: 'Compressione del PDF' }
-const FASI: Record<string, string> = { cerco: 'file trovati', controllo: 'documenti controllati', confronto: 'file confrontati', collego: 'file collegati', leggo: 'file letti', salvo: 'salvataggio', immagini: 'immagini ricompresse', lettura: 'lettura', flussi: 'compressione del testo', scrittura: 'scrittura' }
+const NOMI: Record<string, string> = { sincronizza: 'Ricerca dei file spostati', cartella: 'Collegamento della cartella', cliens: 'Sincronizzazione delle cartelle', comprimi: 'Compressione del PDF', unisci: 'Unione dei PDF', dividi: 'Divisione del PDF', modifica: 'Salvataggio del PDF' }
+const FASI: Record<string, string> = { cerco: 'file trovati', controllo: 'documenti controllati', confronto: 'file confrontati', collego: 'file collegati', leggo: 'file letti', salvo: 'salvataggio', immagini: 'immagini ricompresse', lettura: 'lettura', flussi: 'compressione del testo', scrittura: 'scrittura', pagine: 'pagine lette', unione: 'file uniti', divisione: 'file creati', modifica: 'pagine' }
 
 export function Avanzamento() {
   const [info, setInfo] = useState<Info | null>(null)

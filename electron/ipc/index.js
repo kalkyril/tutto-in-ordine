@@ -33,7 +33,7 @@ function register({ getWindow, notifyChanged, onSettings, runAlertCheck, control
     scelti.add(file); event.returnValue = true
   })
   const ctx = { handle, changed, getWindow, onSettings, runAlertCheck, controllaAggiornamenti, scelti, autorizza }
-  for (const modulo of ['dati', 'documenti', 'calendari', 'importazione', 'sistema', 'esportazione', 'strumenti', 'fatture']) require('./' + modulo)(ctx)
+  for (const modulo of ['dati', 'documenti', 'calendari', 'importazione', 'sistema', 'esportazione', 'strumenti', 'fatture', 'budget']) require('./' + modulo)(ctx)
 }
 
 module.exports = { register }

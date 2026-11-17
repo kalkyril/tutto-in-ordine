@@ -44,7 +44,7 @@ function attach({ getWindow, db }) {
 
       // ---------- barra laterale ----------
       const nav = await js(`[...document.querySelectorAll('.nav-item span')].map(x=>x.textContent)`)
-      check('barra laterale: «Pagamenti» al posto di «Documenti e incassi» e «Da pagare», «Comprimi PDF» tra gli strumenti', nav.includes('Pagamenti') && !nav.includes('Da pagare') && !nav.includes('Documenti e incassi') && nav.includes('Comprimi PDF'), JSON.stringify(nav))
+      check('barra laterale: «Pagamenti» al posto di «Documenti e incassi» e «Da pagare», «Comprimi PDF» tra gli strumenti', nav.includes('Pagamenti') && !nav.includes('Da pagare') && !nav.includes('Documenti e incassi') && nav.includes('Editor PDF'), JSON.stringify(nav))
 
       // ---------- anagrafica ----------
       await clickText('.nav-item', 'Anagrafica'); await sleep(400)
@@ -129,7 +129,8 @@ function attach({ getWindow, db }) {
       check('intestazione: dimensione «Grandissima» e sottolineato', await js(`[...document.querySelectorAll('.riga-ed select option')].some(o=>o.textContent==='Grandissima') && !!document.querySelector('.riga-ed button[title="Sottolineato"]')`))
 
       // ---------- Comprimi PDF ----------
-      await clickText('.nav-item', 'Comprimi PDF'); await sleep(600)
+      await clickText('.nav-item', 'Editor PDF'); await sleep(600)
+      await clickText('.tabs button', 'Comprimi'); await sleep(300)
       check('Comprimi PDF: tre livelli e scelta dei file', /Minima/.test(await text()) && /Media/.test(await text()) && /Massima/.test(await text()) && /Scegli i PDF/.test(await text()))
       await shot('102-8-comprimi')
       await axe('Comprimi PDF')

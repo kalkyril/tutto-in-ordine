@@ -16,7 +16,7 @@ const ANTEPRIMA_MAX = 150_000
 // famiglie di colori della legenda: persone, organizzazioni, codici, recapiti, luoghi, tempi e importi
 const FAMIGLIA: Record<Tag, string> = {
   FULLNAME: 'persona', AGE: 'persona', ORG: 'org', CF: 'codice', PIVA: 'codice', IBAN: 'codice', CREDITCARDNUMBER: 'codice', ID_DOC: 'codice', DOCID: 'codice', TARGA: 'codice', CATASTO: 'codice',
-  EMAIL: 'recapito', TELEPHONENUM: 'recapito', URL: 'recapito', IPADDR: 'recapito', STREET: 'luogo', ZIPCODE: 'luogo', CITY: 'luogo', PROVINCE: 'luogo', DATE: 'tempo', TIME: 'tempo', AMOUNT: 'tempo',
+  EMAIL: 'recapito', TELEPHONENUM: 'recapito', URL: 'recapito', IPADDR: 'recapito', STREET: 'luogo', ZIPCODE: 'luogo', CITY: 'luogo', PROVINCE: 'luogo', DATE: 'tempo', TIME: 'tempo', AMOUNT: 'tempo', GENDER: 'persona', ACCOUNT: 'codice',
 }
 const FONTE: Record<string, string> = { regex: 'forma e codice di controllo', contesto: 'formula ricorrente', archivio: 'archivio di TIO', nomi: 'nome proprio', manuale: 'aggiunto da te', propagazione: 'stessa persona o società' }
 
@@ -50,7 +50,7 @@ export default function Anonimizza() {
   return (
     <div className="page anonimizza">
       <PageHeader title="Anonimizza"
-        subtitle={<>Anonimizza {settings.profilo === 'ditta' ? 'contratti, lettere' : 'atti, lettere'} e documenti prima di condividerli o di usarli con un’intelligenza artificiale. Tutto avviene su questo computer.</>}
+        subtitle="Togli i dati personali prima di condividere un documento o di usarlo con un’IA. Tutto resta su questo computer."
         actions={<Segmented value={vista} onChange={setVista} options={[{ id: 'anonimizza', label: <><FileText size={15} aria-hidden /> Un documento</> }, { id: 'pratica', label: <><FolderLock size={15} aria-hidden /> Una pratica</> }, { id: 'ripristina', label: <><RotateCcw size={15} aria-hidden /> Ripristina</> }]} />} />
       {vista === 'pratica' && <AnonimizzaPratica praticaIniziale={route.tab === 'pratica' ? route.id : undefined} />}
       {vista === 'pratica' ? null : vista === 'anonimizza'

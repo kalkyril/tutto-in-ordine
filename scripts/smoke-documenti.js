@@ -28,7 +28,7 @@ function attach({ getWindow, db }) {
       const f1 = scrivi(path.join(dir, 'ScritturaPrivata.pdf'), '%PDF-1.4 ' + 'scrittura privata '.repeat(300))
       const f2 = scrivi(path.join(dir, 'Verbale.docx'), 'verbale '.repeat(500))
       const f3 = scrivi(path.join(dir, 'Prove', 'Foto.jpg'), 'foto '.repeat(400))
-      const p = db.save('pratiche', { numero: '2026/001', titolo: 'Rossi c. Bianchi', stato: 'In corso', priorita: 'media', colore: '#3b82f6' })
+      const p = db.save('pratiche', { numero: '2026/001', titolo: 'Rossi c. Bianchi', stato: 'In corso', priorita: 1, colore: '#3b82f6' })
       await js('location.reload()'); await sleep(1500)
       await clickText('.nav-item', 'Pratiche'); await sleep(500); await js(`document.querySelector('.pcard h2').click()`); await sleep(600)
       await clickText('.tabs button', 'Documenti'); await sleep(500)
@@ -111,7 +111,7 @@ function attach({ getWindow, db }) {
       await rilascia('.page[data-zona-file]', [extra], ['drop']); await sleep(900)
       check('rilasciato su qualsiasi scheda della pratica (qui «Compiti»): collegato, senza copie, avviso a schermo', db.list('documenti', { pratica_id: p.id }).some((d) => d.percorso === extra) && interni().length === 0 && /1 file collegato alla pratica/.test(await text()) && !(await js('!!document.querySelector(".drop-overlay")')))
 
-      const p2 = db.save('pratiche', { numero: '2026/002', titolo: 'Verdi c. Neri', stato: 'In corso', priorita: 'media', colore: '#22c55e' })
+      const p2 = db.save('pratiche', { numero: '2026/002', titolo: 'Verdi c. Neri', stato: 'In corso', priorita: 1, colore: '#22c55e' })
       await js('location.reload()'); await sleep(1500)
       await clickText('.nav-item', 'Pratiche'); await sleep(600)
       const extra2 = scrivi(path.join(utente, 'Da archiviare', 'Memoria.docx'), 'memoria '.repeat(300))
@@ -134,10 +134,11 @@ function attach({ getWindow, db }) {
       await rilascia('.page[data-zona-file]', [cart]); await sleep(1200)
       check('cartella trascinata: collegati tutti i suoi file (3) e impostata come cartella della pratica', db.list('documenti', { pratica_id: p2.id }).filter((d) => d.percorso.startsWith(cart + path.sep)).length === 3 && db.get('pratiche', p2.id).cartella === cart)
       // dentro una finestra di dialogo non si apre nessuna zona di rilascio
-      await clickText('button', 'Sincronizza'); await sleep(700)
+      // (con una cartella collegata «Sincronizza» lavora senza finestra: qui serve una finestra qualsiasi)
+      await js(`[...document.querySelectorAll('.card-head button')].find(b=>/Nuovo documento|Da modello/.test(b.textContent))?.click()`); await sleep(700)
       await rilascia('.modal', [extra], ['dragenter', 'dragover']); await sleep(200)
-      check('con una finestra aperta il trascinamento sopra di essa non apre la zona di rilascio', !(await js('!!document.querySelector(".drop-overlay")')))
-      await clickText('.modal button', 'Chiudi'); await sleep(400)
+      check('con una finestra aperta il trascinamento sopra di essa non apre la zona di rilascio', !!(await js('!!document.querySelector(".modal")')) && !(await js('!!document.querySelector(".drop-overlay")')))
+      await clickText('.modal button', 'Annulla'); await sleep(400)
 
       // ---- impostazioni ----
       await clickText('.nav-item', 'Impostazioni'); await sleep(400); await clickText('.tabs button', 'Documenti'); await sleep(500)

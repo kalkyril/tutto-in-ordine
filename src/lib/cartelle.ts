@@ -1,6 +1,7 @@
 // Sottocartelle dei documenti di una pratica: i file collegati stanno nella cartella della pratica (o in quella di Cliens)
 // e nelle loro sottocartelle; qui si ricava l'albero dai percorsi, per sfogliarlo come nel Finder o in Esplora risorse.
-const norma = (p: string) => p.replace(/\\/g, '/').replace(/\/+$/, '')
+// le lettere accentate possono arrivare composte o scomposte (macOS): si confrontano nella stessa forma
+const norma = (p: string) => p.normalize('NFC').replace(/\\/g, '/').replace(/\/+$/, '')
 
 /** Cartella del file rispetto alla prima radice che lo contiene («Atti/Notifiche»); '' se sta nella radice o fuori da tutte. */
 export function sottocartella(percorso: string | null | undefined, radici: (string | null | undefined)[]): string {
@@ -16,9 +17,18 @@ export function sottocartella(percorso: string | null | undefined, radici: (stri
   return ''
 }
 
+/** Come `sottocartella`, ma distingue: '' se il file sta nella radice, null se sta fuori da tutte le radici. */
+export function posizioneNelleRadici(percorso: string | null | undefined, radici: (string | null | undefined)[]): string | null {
+  if (!percorso) return null
+  const dir = norma(percorso).replace(/\/[^/]*$/, '').toLowerCase()
+  if (!radici.some((r) => r && (dir === norma(r).toLowerCase() || dir.startsWith(norma(r).toLowerCase() + '/')))) return null
+  return sottocartella(percorso, radici)
+}
+
 export interface Sottocartella { nome: string; percorso: string; file: number }
 /** Cosa c'è nella cartella `corrente` ('' = radice): le sottocartelle dirette (con quanti file contengono in tutto) e i file. `vuote`: tutte le cartelle sul disco. */
 export function contenutoCartella<T>(voci: { voce: T; cartella: string }[], corrente: string, vuote: string[] = []): { cartelle: Sottocartella[]; file: T[] } {
+  corrente = corrente.normalize('NFC'); vuote = vuote.map((c) => c.normalize('NFC'))
   const qui = corrente.toLowerCase(), sotto = new Map<string, Sottocartella>(), file: T[] = []
   for (const { voce, cartella } of voci) {
     const c = cartella.toLowerCase()
@@ -36,4 +46,12 @@ export function contenutoCartella<T>(voci: { voce: T; cartella: string }[], corr
     if (nome && !sotto.has(k)) sotto.set(k, { nome, percorso: corrente ? `${corrente}/${nome}` : nome, file: 0 })
   }
   return { cartelle: [...sotto.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'it', { numeric: true })), file }
+}
+
+/** Quanti file ci sono sul disco dentro `cartella` e nelle sue sottocartelle (`perCartella`: file diretti di ogni cartella, '' = radice). */
+export function fileSulDisco(perCartella: Record<string, number>, cartella: string): number {
+  const qui = cartella.normalize('NFC').toLowerCase()
+  let n = 0
+  for (const [c, quanti] of Object.entries(perCartella)) { const k = c.normalize('NFC').toLowerCase(); if (k === qui || k.startsWith(qui + '/')) n += quanti }
+  return n
 }

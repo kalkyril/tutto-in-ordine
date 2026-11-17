@@ -4,7 +4,7 @@ import { api } from '../api'
 import { useData } from '../store'
 import { useNav } from '../nav'
 import { conflittiPer, type Conflitto } from '../lib/conflitti'
-import { Btn, ColorPicker, Field, FormGrid, Input, Modal, Segmented, Select, Textarea, useAction, useFieldId } from './ui'
+import { Btn, ColorPicker, Field, FormGrid, Input, Modal, Priorita, Segmented, Select, Textarea, useAction, useFieldId } from './ui'
 import { PROMEMORIA_OPZIONI, nuovo as nuovoNome, tipiScadenza } from '../lib/defaults'
 import { todayStr } from '../lib/dates'
 import { normalizeUrl, parseNumber } from '../lib/format'
@@ -250,6 +250,7 @@ export function PraticaForm({ item, onClose, onSaved }: { item?: Partial<Pratica
               <Input list={datalistRuoli} value={f.ruolo || ''} onChange={(e) => set('ruolo', e.target.value)} maxLength={60} />
               <datalist id={datalistRuoli}>{RUOLI_PROFESSIONISTA[forense ? 'avvocato' : 'ditta'].map((r) => <option key={r} value={r} />)}</datalist>
             </Field>
+            <Field label="Priorità"><Segmented value={String(f.priorita ?? 1)} onChange={(v) => set('priorita', Number(v))} options={[{ id: '0', label: <><Priorita valore={0} /> Bassa</> }, { id: '1', label: <><Priorita valore={1} /> Media</> }, { id: '2', label: <><Priorita valore={2} /> Alta</> }]} /></Field>
             <Field label="Valore (€)"><Input inputMode="decimal" value={f.valore ?? ''} onChange={(e) => set('valore', e.target.value as any)} placeholder="0,00" /></Field>
             <Field label={L.autorita}><Input value={f.autorita || ''} onChange={(e) => set('autorita', e.target.value)} placeholder={forense ? 'Es. Tribunale di Milano' : ''} /></Field>
             {forense

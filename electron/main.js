@@ -330,6 +330,7 @@ function buildMenu() {
       voce('Pagamenti', 'vai-pagamenti', 'CmdOrCtrl+6'),
       voce(`Pagamenti › ${avvocato ? L.parcelle || 'Parcelle' : 'Incassi'}`, 'vai-parcelle'),
       voce('Pagamenti › Da pagare', 'vai-dapagare'),
+      voce('Budget', 'vai-budget'),
       voce('Collegamenti', 'vai-collegamenti', 'CmdOrCtrl+7'),
       { type: 'separator' },
       voce('Documenti', 'vai-documenti', 'CmdOrCtrl+8'),
@@ -439,6 +440,7 @@ app.whenReady().then(() => {
   let sincronizzando = false
   const tick = () => {
     try { if (db.getDb() && require('./gestione').generaRicorrenze()) notifyChanged(['todos', 'gestione']) } catch (e) { console.error('Attività ricorrenti:', e.message) }
+    try { if (db.getDb() && require('./gestione').estendiUsciteRicorrenti()) notifyChanged(['gestione']) } catch (e) { console.error('Uscite ricorrenti:', e.message) }
     require('./registro').segnaAttivita('controlli periodici (calendari, avvisi, indice documenti, backup automatico, aggiornamenti)')
     if (!sincronizzando) { // calendari collegati (sola lettura): aggiornamento secondo l'intervallo scelto per ciascuno
       sincronizzando = true

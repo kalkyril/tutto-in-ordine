@@ -70,23 +70,22 @@ app.whenReady().then(async () => {
         await evaluate(`document.querySelector('[data-pubblico] button[data-profilo="${profile}"]').click()`)
         check('profilo ' + profile + ' a ' + width + 'px', await evaluate(`[...document.querySelectorAll('.profilo-voce[data-profilo]:not([hidden])')].every(e=>e.dataset.profilo==='${profile}')`))
       }
-      await evaluate("document.querySelector('.domande-elenco summary').click();document.querySelector('[data-confronto]').dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}))")
-      check('FAQ e confronto da tastiera a ' + width + 'px', await evaluate("document.querySelector('.domande-elenco details').open&&document.querySelector('[data-confronto]').getAttribute('aria-valuenow')==='100'"))
+      await evaluate("document.querySelector('.domande-elenco summary').click();document.querySelector('[data-vista=pratiche]').click();document.querySelector('.demo-pratica').click();document.querySelector('.demo-priorita button').click();document.querySelector('.demo-compito input').click();document.querySelector('[data-confronto]').dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}))")
+      check('FAQ, confronto da tastiera e demo (pratica aperta, priorità cambiata, compito spuntato) a ' + width + 'px', await evaluate("document.querySelector('.domande-elenco details').open&&document.querySelector('.demo-priorita button').getAttribute('aria-pressed')==='true'&&document.querySelector('.demo-compito').classList.contains('fatto')&&document.querySelector('[data-confronto]').getAttribute('aria-valuenow')==='100'"))
       if (width === 390 || width === 1440) await axe('accessibilità a ' + width + 'px, movimento ridotto')
     }
-    // Campionamento di tutti gli stati della scena, con movimento normale.
+    // La sezione dei dati nei due aspetti, chiaro e scuro, con movimento normale.
     await current.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] })
     await new Promise(resolve => { current.webContents.once('did-finish-load', resolve); current.reload() })
-    // Include anche l'ultima scheda della hero: ha un ritardo d'ingresso più lungo delle altre.
-    await evaluate("Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{})))")
     let minContrast = Infinity
-    for (let i = 0; i <= 20; i++) {
-      const value = await evaluate(`(()=>{const s=document.querySelector('[data-tramonto]');scrollTo({top:s.offsetTop+(s.offsetHeight-innerHeight)*${i / 20},behavior:'instant'});dispatchEvent(new Event('scroll'));const el=s.querySelector('.tramonto-fermo'),p=s.querySelector('.tramonto-testa p');const rgb=v=>v.match(/[\\d.]+/g).slice(0,3).map(Number);const lum=a=>a.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((n,v,k)=>n+v*[.2126,.7152,.0722][k],0);const a=lum(rgb(getComputedStyle(el).backgroundColor)),b=lum(rgb(getComputedStyle(p).color));return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)})()`)
+    for (const tema of ['chiaro', 'scuro']) {
+      await evaluate(`document.querySelector('[data-tema-scegli=${tema}]').click();document.querySelector('[data-tramonto]').scrollIntoView({behavior:'instant'})`)
+      await sleep(900)
+      const value = await evaluate("(()=>{const s=document.querySelector('[data-tramonto]'),el=s.querySelector('.tramonto-fermo'),p=s.querySelector('.tramonto-testa p');const rgb=v=>v.match(/[\\d.]+/g).slice(0,3).map(Number);const lum=a=>a.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((n,v,k)=>n+v*[.2126,.7152,.0722][k],0);const a=lum(rgb(getComputedStyle(el).backgroundColor)),b=lum(rgb(getComputedStyle(p).color));return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)})()")
       minContrast = Math.min(minContrast, value)
-      // Le comparse delle sezioni attraversate devono concludersi prima dell'audit dell'intera pagina.
-      if ([0, 10, 20].includes(i)) { await sleep(1600); await axe('accessibilità scena tema al ' + i * 5 + '%') }
+      await axe('accessibilità con la schermata in ' + tema)
     }
-    check('contrasto sufficiente in tutti i 21 stati della scena', minContrast >= 4.5, minContrast)
+    check('contrasto sufficiente nella sezione dei dati, chiara e scura', minContrast >= 4.5, minContrast)
     for (const mode of ['beta', 'rate-limit', 'hostile', 'unsafe-url', 'hang']) {
       await page(mode)
       const state = await evaluate("({links:[...document.querySelectorAll('[data-scarica-file]')].map(a=>a.href),project:[...document.querySelectorAll('[data-github]')].map(a=>a.href),label:document.querySelector('[data-elenco-file]').textContent,markup:!!document.querySelector('[data-elenco-file] svg,[data-elenco-file] img')})")

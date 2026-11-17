@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Columns2, Copy, Download, Eye, FilePlus2, FileUp, PenLine, Plus, Trash2, Wand2 } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Columns2, Copy, Download, Eye, File as FileIcon, FilePlus2, FileText, FileUp, PenLine, Plus, Trash2, Wand2 } from 'lucide-react'
 import { api, type InfoWord } from '../api'
 import { useData } from '../store'
-import { Btn, Field, Input, Modal, PageHeader, Segmented, Select, Tabs, useAction, useFeedback } from '../components/ui'
+import { Btn, Empty, Field, Input, Modal, PageHeader, Segmented, Select, Tabs, useAction, useFeedback } from '../components/ui'
 import { CreaDocumentoModal } from '../components/CreaDocumento'
 import { AnteprimaNota, ImmagineBlocco, RigheEditor } from '../components/ModelloPdfEditor'
 import { GestioneFont, OpzioniFont } from '../components/SceltaFont'
 import { modelloEffettivo } from '../lib/modello'
-import { CAMPI_SPECIALI, MARGINI_PREDEFINITI, NOMI_POSIZIONE_LD, campiDisponibili, duplicaModello, documentoHtml, modelliPredefiniti, modelloPersonalizzato, nuovoModello, predefinitiMancanti, rigaVuota, tipiDocumento, valoriCampi } from '../lib/documento'
+import { CAMPI_SPECIALI, MARGINI_PREDEFINITI, NOMI_POSIZIONE_LD, campiDisponibili, duplicaModello, documentoHtml, modelliPredefiniti, modelloPersonalizzato, nuovoModello, rigaVuota, tipiDocumento, valoriCampi } from '../lib/documento'
 import { EditorTesto } from '../components/EditorTesto'
 import { AnteprimaGrande } from '../components/AnteprimaGrande'
 import type { Allineamento, ModelloDocumento, PosizioneLuogoData, Settings } from '../types'
@@ -24,7 +24,8 @@ export default function Documenti() {
   const [scelto, setScelto] = useState<string | null>(() => (settings.modelli_documento ?? modelli)[0]?.id ?? null)
   useEffect(() => { if (settings.modelli_documento === undefined) api.setSettings({ modelli_documento: modelli }).catch(() => {}) }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [stato, setStato] = useState<'salvato' | 'in-salvataggio' | ''>('')
-  const [nuovo, setNuovo] = useState(false)
+  // finestra «Nuovo modello»: `base` è il modello da cui partire quando si arriva da «Duplica»
+  const [nuovo, setNuovo] = useState<null | { base?: string }>(null)
   const [crea, setCrea] = useState<ModelloDocumento | null>(null)
   const schedaIniziale = useRef<Record<string, Scheda>>({})
   const timer = useRef<number | undefined>(undefined)
@@ -39,7 +40,7 @@ export default function Documenti() {
   useEffect(() => () => { window.clearTimeout(timer.current); if (daSalvare.current) api.setSettings({ modelli_documento: daSalvare.current }).catch(() => {}) }, [])
   const m = modelli.find((x) => x.id === scelto) || null
   const aggiorna = (patch: Partial<ModelloDocumento>) => m && salva(modelli.map((x) => (x.id === m.id ? { ...x, ...patch, aggiornato: new Date().toISOString() } : x)))
-  const aggiungi = (x: ModelloDocumento) => { salva([...modelli, x], true); setScelto(x.id); setNuovo(false) }
+  const aggiungi = (x: ModelloDocumento) => { salva([...modelli, x], true); setScelto(x.id); setNuovo(null) }
   const elimina = async () => {
     if (!m || !await confirm({ title: `Eliminare il modello «${m.nome}»?`, text: 'I documenti già creati restano dove li hai salvati.', ok: 'Elimina', danger: true })) return
     if (m.word) await run(() => api.eliminaModelloWord(m.id))
@@ -51,76 +52,86 @@ export default function Documenti() {
     aggiungi({ ...nuovoModello(settings, 'Documento libero', info.nome), id: info.id, tipo: 'Modello Word', word: true, campiWord: info.campi, corpo: '', predefinito: false })
     toast(info.campi.length ? `Modello importato: ${info.campi.length} campi trovati` : 'Modello importato: aggiungi i campi tra doppie graffe nel file Word')
   }
-  const duplicaWord = async () => {
-    if (!m) return
-    const nuovo = 'word-' + crypto.randomUUID()
-    if (await run(() => api.duplicaModelloWord(m.id, nuovo))) aggiungi({ ...structuredClone(m), id: nuovo, nome: `${m.nome} (copia)`, predefinito: false, aggiornato: new Date().toISOString() })
+  // nuovo modello: da una pagina bianca, da un testo pronto o da un modello che c'è già. Il nome lo sceglie chi lo crea:
+  // dell'origine non resta traccia (niente «(copia)», niente tipo accanto al nome)
+  const creaModello = async (nome: string, origine: Origine, conIntestazione: boolean) => {
+    if (origine.da === 'bianca') { const x = modelloPersonalizzato(settings, nome, conIntestazione); schedaIniziale.current[x.id] = 'impaginazione'; aggiungi(x); return }
+    if (origine.da === 'testo') { aggiungi(nuovoModello(settings, origine.tipo, nome)); return }
+    const base = modelli.find((x) => x.id === origine.id); if (!base) return
+    if (base.word) {
+      const id = 'word-' + crypto.randomUUID()
+      if (await run(() => api.duplicaModelloWord(base.id, id))) aggiungi({ ...structuredClone(base), id, nome, predefinito: false, aggiornato: new Date().toISOString() })
+    } else aggiungi({ ...duplicaModello(base), nome })
   }
-  const daZero = (nome: string, conIntestazione: boolean) => { const x = modelloPersonalizzato(settings, nome, conIntestazione); schedaIniziale.current[x.id] = 'impaginazione'; aggiungi(x) }
-  const mancanti = predefinitiMancanti(settings, modelli)
-  // i modelli pronti e quelli creati dall'utente, ciascuno in ordine alfabetico
-  const gruppi = useMemo(() => {
-    const ordina = (l: ModelloDocumento[]) => [...l].sort((a, b) => a.nome.localeCompare(b.nome, 'it'))
-    return ([['Modelli predefiniti', ordina(modelli.filter((x) => x.predefinito))], ['I miei modelli', ordina(modelli.filter((x) => !x.predefinito))]] as const).filter(([, l]) => l.length)
-  }, [modelli])
+  // un elenco solo, in ordine alfabetico
+  const elenco = useMemo(() => [...modelli].sort((a, b) => a.nome.localeCompare(b.nome, 'it', { sensitivity: 'base', numeric: true })), [modelli])
+  const scelta = <Field label="Modello">
+    <Select value={scelto ?? ''} onChange={(e) => setScelto(e.target.value)} aria-label="Modello da modificare">
+      {!m && <option value="">Scegli un modello…</option>}
+      {elenco.map((x) => <option key={x.id} value={x.id}>{x.nome}</option>)}
+    </Select>
+  </Field>
 
   return (
     <div className="page documenti-pagina">
-      <PageHeader title="Documenti" subtitle="Modelli per lettere, preventivi e qualsiasi altro documento, con la tua intestazione e il tuo piè di pagina. Crea il file in Word, PDF e altri formati, già compilato con i dati dell’archivio."
-        actions={<>{stato && <span className="muted small" role="status">{stato === 'salvato' ? 'Modifiche salvate' : 'Salvataggio…'}</span>}{mancanti.length > 0 && <Btn variant="ghost" onClick={() => { salva([...modelli, ...mancanti], true); setScelto(mancanti[0].id); toast(mancanti.length === 1 ? 'Aggiunto un modello predefinito' : `Aggiunti ${mancanti.length} modelli predefiniti`) }} title="Rimette i modelli pronti che hai eliminato">Aggiungi i predefiniti</Btn>}<Btn variant="ghost" onClick={importaWord} title="Usa come modello un tuo documento Word, per esempio la carta intestata dello studio"><FileUp size={15} /> Importa da Word…</Btn><Btn variant="primary" onClick={() => setNuovo(true)}><Plus size={15} /> Nuovo modello</Btn></>} />
+      <PageHeader title="Documenti" subtitle="Modelli con la tua intestazione, compilati con i dati dell’archivio e salvati in Word, PDF e altri formati."
+        actions={stato ? <span className="muted small" role="status">{stato === 'salvato' ? 'Modifiche salvate' : 'Salvataggio…'}</span> : undefined} />
+      <div className="documenti-azioni">
+        <Btn variant="ghost" onClick={importaWord} title="Usa come modello un tuo documento Word, per esempio la carta intestata dello studio"><FileUp size={15} /> Importa da Word…</Btn>
+        <Btn variant="primary" onClick={() => setNuovo({})}><Plus size={15} /> Nuovo modello</Btn>
+      </div>
       {!modelli.length
-        ? <ScegliTipo settings={settings} onScegli={(t) => aggiungi(nuovoModello(settings, t))} intro onDaZero={daZero} />
+        ? <Empty icon={<FileText size={30} />} title="Nessun modello" text="Crea il primo: da una pagina bianca o da un testo pronto da adattare." action={<Btn variant="primary" onClick={() => setNuovo({})}><Plus size={15} /> Nuovo modello</Btn>} />
         : <div className="documenti-lavoro">
-          <div className="documenti-scelta">
-            <Field label="Modello predefinito" hint={`${modelli.length} ${modelli.length === 1 ? 'modello' : 'modelli'}: scegli quello da modificare o da usare`}>
-              <Select value={scelto ?? ''} onChange={(e) => setScelto(e.target.value)} aria-label="Modello da modificare">
-                {!m && <option value="">Scegli un modello…</option>}
-                {gruppi.map(([g, lista]) => <optgroup key={g} label={g}>{lista.map((x) => <option key={x.id} value={x.id}>{x.nome}{x.nome.trim().toLowerCase() !== x.tipo.toLowerCase() ? ` · ${x.tipo}` : ''}</option>)}</optgroup>)}
-              </Select>
-            </Field>
-          </div>
           {m ? m.word
-            ? <EditorWord key={m.id} m={m} settings={settings} onChange={aggiorna} onCrea={() => setCrea(m)} onDuplica={duplicaWord} onElimina={elimina} />
-            : <Editor key={m.id} m={m} settings={settings} schedaIniziale={schedaIniziale.current[m.id]} onChange={aggiorna} onCrea={() => setCrea(m)} onDuplica={() => aggiungi(duplicaModello(m))} onElimina={elimina} /> : <p className="muted">Scegli un modello dal menu.</p>}
+            ? <EditorWord key={m.id} m={m} settings={settings} scelta={scelta} onChange={aggiorna} onCrea={() => setCrea(m)} onDuplica={() => setNuovo({ base: m.id })} onElimina={elimina} />
+            : <Editor key={m.id} m={m} settings={settings} scelta={scelta} schedaIniziale={schedaIniziale.current[m.id]} onChange={aggiorna} onCrea={() => setCrea(m)} onDuplica={() => setNuovo({ base: m.id })} onElimina={elimina} />
+            : <div className="documenti-testa"><div className="documenti-scelta">{scelta}</div></div>}
         </div>}
-      {nuovo && <Modal title="Nuovo modello" subtitle="Crea un modello tutto tuo partendo da zero, oppure parti da un testo pronto con l’intestazione e il piè di pagina dei tuoi documenti di vendita" width={760} onClose={() => setNuovo(false)} protectChanges={false}>
-        <ModelloDaZero onCrea={daZero} />
-        <ScegliTipo settings={settings} onScegli={(t) => aggiungi(nuovoModello(settings, t))} />
-      </Modal>}
+      {nuovo && <NuovoModelloModal settings={settings} modelli={elenco} base={nuovo.base} onCrea={creaModello} onClose={() => setNuovo(null)} />}
       {crea && <CreaDocumentoModal m={crea} onClose={() => setCrea(null)} />}
     </div>
   )
 }
 
-/** Modello personalizzato: un nome, una pagina bianca e l'impaginazione da decidere (margini, testo, intestazione e piè di pagina). */
-function ModelloDaZero({ onCrea }: { onCrea: (nome: string, conIntestazione: boolean) => void }) {
-  const [nome, setNome] = useState('')
-  const [conIntestazione, setConIntestazione] = useState(false)
-  const crea = () => nome.trim() && onCrea(nome.trim(), conIntestazione)
-  return <section className="documenti-da-zero">
-    <h3>Modello personalizzato</h3>
-    <p className="muted small">Una pagina bianca con il nome che scegli: decidi tu margini, dimensione del testo, intestazione in cima alla pagina e piè di pagina.</p>
-    <div className="row wrap documenti-da-zero-riga">
-      <Field label="Nome del modello"><Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Es. Delega al collega" autoFocus onKeyDown={(e) => { if (e.key === 'Enter') crea() }} /></Field>
-      <Btn variant="primary" disabled={!nome.trim()} onClick={crea}><Plus size={15} /> Crea modello</Btn>
-    </div>
-    <label className="check"><input type="checkbox" checked={conIntestazione} onChange={(e) => setConIntestazione(e.target.checked)} /> Parti con intestazione, piè di pagina e font dei documenti di vendita</label>
-    <p className="nav-section documenti-oppure">Oppure parti da un testo pronto</p>
-  </section>
-}
+type Origine = { da: 'bianca' } | { da: 'testo'; tipo: string } | { da: 'modello'; id: string }
+const chiaveOrigine = (o: Origine) => (o.da === 'bianca' ? 'bianca' : o.da === 'testo' ? `t:${o.tipo}` : `m:${o.id}`)
 
-function ScegliTipo({ settings, onScegli, intro, onDaZero }: { settings: Settings; onScegli: (tipo: string) => void; intro?: boolean; onDaZero?: (nome: string, conIntestazione: boolean) => void }) {
-  return <section className={intro ? 'card documenti-intro' : ''}>
-    {intro && <><h2>Crea il primo modello</h2>{onDaZero && <ModelloDaZero onCrea={onDaZero} />}<p className="muted">Scegli il tipo di documento: troverai un testo di partenza da adattare, l’intestazione e il piè di pagina dei tuoi documenti di vendita e i campi che TIO compila da solo.</p></>}
-    <div className="documenti-tipi">
-      {tipiPer(settings).map((t) => <button key={t.tipo} type="button" className="documenti-tipo" onClick={() => onScegli(t.tipo)}><FilePlus2 size={20} aria-hidden /><b>{t.tipo}</b><span className="muted small">{t.descrizione}</span></button>)}
+/** Nuovo modello: un nome e un punto di partenza (pagina bianca, testo pronto o un modello che c'è già). */
+function NuovoModelloModal({ settings, modelli, base, onCrea, onClose }: { settings: Settings; modelli: ModelloDocumento[]; base?: string; onCrea: (nome: string, origine: Origine, conIntestazione: boolean) => void | Promise<void>; onClose: () => void }) {
+  const [nome, setNome] = useState('')
+  const [origine, setOrigine] = useState<Origine>(base ? { da: 'modello', id: base } : { da: 'bianca' })
+  const [conIntestazione, setConIntestazione] = useState(true)
+  // i testi pronti già presenti fra i modelli (con lo stesso nome) non si ripetono
+  const nomi = new Set(modelli.map((x) => x.nome.trim().toLowerCase()))
+  const voci: { origine: Origine; titolo: string; nota: string; icona: 'bianca' | 'testo' | 'modello' }[] = [
+    { origine: { da: 'bianca' }, titolo: 'Pagina bianca', nota: 'Parti da zero', icona: 'bianca' },
+    ...[
+      ...modelli.map((x) => ({ origine: { da: 'modello', id: x.id } as Origine, titolo: x.nome, nota: 'Tuo modello', icona: 'modello' as const })),
+      ...tipiPer(settings).filter((t) => t.tipo !== 'Documento libero' && !nomi.has(t.tipo.toLowerCase())).map((t) => ({ origine: { da: 'testo', tipo: t.tipo } as Origine, titolo: t.tipo, nota: t.descrizione, icona: 'testo' as const })),
+    ].sort((a, b) => a.titolo.localeCompare(b.titolo, 'it', { sensitivity: 'base', numeric: true })),
+  ]
+  const attiva = chiaveOrigine(origine)
+  const crea = () => { if (nome.trim()) onCrea(nome.trim(), origine, conIntestazione) }
+  return <Modal title="Nuovo modello" width={760} onClose={onClose} protectChanges={false}
+    footer={<><Btn variant="ghost" onClick={onClose}>Annulla</Btn><Btn variant="primary" disabled={!nome.trim()} onClick={crea}><Plus size={15} /> Crea modello</Btn></>}>
+    <div className="nuovo-modello">
+      <Field label="Nome del modello"><Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Es. Lettera al cliente" autoFocus onKeyDown={(e) => { if (e.key === 'Enter') crea() }} /></Field>
+      <div>
+        <p className="field-label" id="nuovo-modello-origine">Parti da</p>
+        <div className="documenti-tipi" role="radiogroup" aria-labelledby="nuovo-modello-origine">
+          {voci.map((v) => { const k = chiaveOrigine(v.origine); return <button key={k} type="button" role="radio" aria-checked={attiva === k} data-origine={v.icona} className={`documenti-tipo${attiva === k ? ' on' : ''}`} onClick={() => setOrigine(v.origine)}>
+            {v.icona === 'bianca' ? <FileIcon size={20} aria-hidden /> : v.icona === 'modello' ? <Copy size={20} aria-hidden /> : <FilePlus2 size={20} aria-hidden />}<b>{v.titolo}</b><span className="muted small">{v.nota}</span></button> })}
+        </div>
+      </div>
+      {origine.da === 'bianca' && <label className="check"><input type="checkbox" checked={conIntestazione} onChange={(e) => setConIntestazione(e.target.checked)} /> Con intestazione, piè di pagina e font dei documenti di vendita</label>}
     </div>
-  </section>
+  </Modal>
 }
 
 type Scheda = 'contenuto' | 'intestazione' | 'piede' | 'impaginazione'
 
-function Editor({ m, settings, schedaIniziale, onChange, onCrea, onDuplica, onElimina }: { m: ModelloDocumento; settings: Settings; schedaIniziale?: Scheda; onChange: (p: Partial<ModelloDocumento>) => void; onCrea: () => void; onDuplica: () => void; onElimina: () => void }) {
+function Editor({ m, settings, scelta, schedaIniziale, onChange, onCrea, onDuplica, onElimina }: { m: ModelloDocumento; settings: Settings; scelta: ReactNode; schedaIniziale?: Scheda; onChange: (p: Partial<ModelloDocumento>) => void; onCrea: () => void; onDuplica: () => void; onElimina: () => void }) {
   const [scheda, setScheda] = useState<Scheda>(schedaIniziale || 'contenuto')
   const [grande, setGrande] = useState(false)
   const opzioniFont = <OpzioniFont m={m} />
@@ -134,7 +145,7 @@ function Editor({ m, settings, schedaIniziale, onChange, onCrea, onDuplica, onEl
   return (
     <div className="documenti-editor">
       <div className="documenti-form">
-        <TestaModello m={m} settings={settings} onChange={onChange} onCrea={onCrea} onDuplica={onDuplica} onElimina={onElimina} onAnteprima={() => { setHtml(documentoHtml(m, { valori })); setGrande(true) }} />
+        <TestaModello m={m} settings={settings} scelta={scelta} onChange={onChange} onCrea={onCrea} onDuplica={onDuplica} onElimina={onElimina} onAnteprima={() => { setHtml(documentoHtml(m, { valori })); setGrande(true) }} />
         <Tabs value={scheda} onChange={setScheda} tabs={[{ id: 'contenuto', label: 'Contenuto' }, { id: 'intestazione', label: 'Intestazione' }, { id: 'piede', label: 'Piè di pagina' }, { id: 'impaginazione', label: 'Impaginazione' }]} />
         {scheda === 'contenuto' && <>
           <EditorTesto valore={m.corpo} campi={campiDisponibili(settings)} allineamento={m.allineamento || 'sinistra'} colonne={m.colonne === 2 ? 2 : 1} onChange={(corpo) => onChange({ corpo })}
@@ -142,7 +153,8 @@ function Editor({ m, settings, schedaIniziale, onChange, onCrea, onDuplica, onEl
           {m.firma && !/\{\{\s*firma\s*\}\}/.test(m.corpo) && <p className="muted small">Hai caricato la foto della firma: scrivi {'{{firma}}'} nel testo dove deve comparire (menu «Inserisci campo» › Speciali › Firma).</p>}
         </>}
         {scheda === 'intestazione' && <section className="modello-blocco">
-          <header><div><h3>Intestazione</h3><p className="muted small">Si ripete in cima a ogni pagina. Puoi usare i campi, per esempio {'{{studio.nome}}'}.</p></div></header>
+          <header><div><h3>Intestazione</h3><p className="muted small">Puoi usare i campi, per esempio {'{{studio.nome}}'}.</p></div>
+            <Segmented value={m.intestazioneSoloPrima ? 'prima' : 'tutte'} onChange={(v: 'tutte' | 'prima') => onChange({ intestazioneSoloPrima: v === 'prima' })} options={[{ id: 'tutte', label: 'In ogni pagina' }, { id: 'prima', label: 'Solo nella prima' }]} /></header>
           <ImmagineBlocco titolo="Intestazione" src={m.logo} altezza={m.logoAltezza} allineamento={m.logoAllineamento} max={140} onChange={(logo, logoAltezza, logoAllineamento) => onChange({ logo, logoAltezza, logoAllineamento })} />
           <RigheEditor righe={m.intestazione} titolo="Intestazione" opzioniFont={opzioniFont} nuova={() => rigaVuota()} onChange={(intestazione) => onChange({ intestazione })} />
           <Btn size="sm" variant="ghost" className="btn-a-capo" onClick={daParcelle} title="Copia in questo modello intestazione, piè di pagina, immagini e font del modello dei documenti di vendita (Impostazioni › Modello PDF)">Usa intestazione, piè di pagina e font dei documenti di vendita</Btn>
@@ -203,17 +215,20 @@ function Editor({ m, settings, schedaIniziale, onChange, onCrea, onDuplica, onEl
   )
 }
 
-type AzioniModello = { m: ModelloDocumento; settings: Settings; onChange: (p: Partial<ModelloDocumento>) => void; onCrea: () => void; onDuplica: () => void; onElimina: () => void; onAnteprima?: () => void }
-/** Nome (modificabile a piacere), tipo e azioni del modello: uguali per i modelli di TIO e per quelli Word. */
-function TestaModello({ m, settings, onChange, onCrea, onDuplica, onElimina, onAnteprima }: AzioniModello) {
+type AzioniModello = { m: ModelloDocumento; settings: Settings; scelta: ReactNode; onChange: (p: Partial<ModelloDocumento>) => void; onCrea: () => void; onDuplica: () => void; onElimina: () => void; onAnteprima?: () => void }
+/** Scelta del modello, nome (modificabile a piacere) e azioni: uguali per i modelli di TIO e per quelli Word. */
+function TestaModello({ m, scelta, onChange, onCrea, onDuplica, onElimina, onAnteprima }: AzioniModello) {
   return <div className="documenti-testa">
-    <Field label="Nome del modello"><Input className="documenti-titolo" value={m.nome} onChange={(e) => onChange({ nome: e.target.value })} placeholder="Es. Lettera al cliente" /></Field>
-    <Field label="Tipo"><Select value={m.tipo} onChange={(e) => onChange({ tipo: e.target.value })}>{[...new Set([...tipiPer(settings).map((t) => t.tipo), m.tipo])].map((t) => <option key={t}>{t}</option>)}</Select></Field>
-    <span className="grow" />
-    <Btn size="sm" variant="ghost" onClick={onDuplica} title="Duplica il modello"><Copy size={14} /> Duplica</Btn>
-    <Btn size="sm" variant="ghost" onClick={onElimina} title="Elimina il modello" aria-label="Elimina il modello"><Trash2 size={14} /></Btn>
-    {onAnteprima && <Btn onClick={onAnteprima} title="Anteprima grande del documento, pagina per pagina, con lo zoom"><Eye size={15} /> Anteprima</Btn>}
-    <Btn variant="primary" onClick={onCrea}><Wand2 size={15} /> Crea documento…</Btn>
+    <div className="documenti-scelta">
+      {scelta}
+      <Field label="Nome del modello"><Input className="documenti-titolo" value={m.nome} onChange={(e) => onChange({ nome: e.target.value })} placeholder="Es. Lettera al cliente" /></Field>
+      <button type="button" className="icon-btn" onClick={onDuplica} title="Nuovo modello a partire da questo" aria-label="Nuovo modello a partire da questo"><Copy size={16} /></button>
+      <button type="button" className="icon-btn" onClick={onElimina} title="Elimina il modello" aria-label="Elimina il modello"><Trash2 size={16} /></button>
+    </div>
+    <div className="documenti-comandi">
+      {onAnteprima && <Btn onClick={onAnteprima} title="Anteprima grande del documento, pagina per pagina, con lo zoom"><Eye size={15} /> Anteprima</Btn>}
+      <Btn variant="primary" onClick={onCrea}><Wand2 size={15} /> Crea documento…</Btn>
+    </div>
   </div>
 }
 

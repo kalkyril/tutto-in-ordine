@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ReactNode, type ButtonHTMLAttributes } from 'react'
-import { Check, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Check, Minus, X } from 'lucide-react'
 import { PALETTE } from '../lib/defaults'
 import { textOn } from '../lib/colors'
 import { useData } from '../store'
@@ -128,6 +128,14 @@ export function ColorPicker({ value, onChange }: { value: string; onChange: (c: 
 /* ---------- Varie ---------- */
 export function ColorDot({ color, size = 10 }: { color?: string; size?: number }) {
   return <span className="dot" style={{ background: color || '#94a3b8', width: size, height: size }} />
+}
+
+/** Priorità della pratica: freccia in su rossa (alta), trattino giallo (media), freccia in giù verde (bassa). */
+export const PRIORITA_PRATICA = ['Bassa', 'Media', 'Alta'] as const
+export function Priorita({ valore, size = 14 }: { valore?: number | null; size?: number }) {
+  const v = valore === 0 || valore === 2 ? valore : 1
+  const Icona = v === 2 ? ArrowUp : v === 0 ? ArrowDown : Minus
+  return <span className={`prio prio-${v}`} role="img" aria-label={`Priorità ${PRIORITA_PRATICA[v].toLowerCase()}`} title={`Priorità ${PRIORITA_PRATICA[v].toLowerCase()}`}><Icona size={size} strokeWidth={2.75} aria-hidden /></span>
 }
 
 export function Pill({ children, color, title }: { children: ReactNode; color?: string; title?: string }) {

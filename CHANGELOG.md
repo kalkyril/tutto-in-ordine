@@ -2,6 +2,60 @@
 
 Novità di ogni versione di TIO, dalla più recente. Come installare e usare TIO è spiegato nel [README](README.md).
 
+## Versione 1.0.4 — Priorità, Budget, Editor PDF, sottocartelle sistemate, sito nuovo
+
+Si installa sopra la 1.0.3: l'archivio non cambia formato (schema 6).
+
+- **Priorità delle pratiche:** ogni pratica ha una priorità, con un simbolo accanto al titolo: freccia in su rossa (alta), trattino giallo (media), freccia in giù verde (bassa). Si sceglie in Modifica, si vede in schede, elenco, vista per stato, Panoramica e scheda della pratica; «Ordina › Priorità» mette prima le alte. Le pratiche esistenti partono da «media».
+- **Documenti della pratica, sottocartelle:**
+  - corretto: nella cartella collegata comparivano le sottocartelle ma non i file accanto a loro, e sottocartelle piene risultavano «Vuota». Le cartelle si leggevano dal disco, i file solo se già collegati. Ora, aprendo la scheda o tornando sulla finestra, i file delle cartelle collegate entrano in elenco da soli, sottocartelle comprese; ogni sottocartella dice quanti file contiene davvero;
+  - un file spostato in un'altra sottocartella resta lo stesso documento (prima diventava «non trovato» più un doppione);
+  - un solo pulsante **Sincronizza** (collega i file nuovi e ritrova quelli spostati) al posto di «Sincronizza» e «Sincronizza cartelle»;
+  - un file a cui togli il collegamento non torna da solo: lo ricollega «Sincronizza»;
+  - nomi con lettere accentate confrontati nella stessa forma (macOS).
+  - file in ordine alfabetico; dentro la cartella della pratica non ripetono più il percorso, che resta per i file collegati da altre cartelle; con «Tutti i file insieme» ogni file dice in quale sottocartella si trova.
+- **Documenti (modelli):** elenco unico in ordine alfabetico, senza «Modelli predefiniti» e «I miei modelli» e senza il tipo accanto al nome; tolto il menu «Tipo». **Nuovo modello** chiede il nome e da cosa partire: pagina bianca, un testo pronto o un modello che c'è già, senza «(copia)» nel nome. «Duplica» apre la stessa finestra.
+- **Nuovo documento dalla pratica** (prima «Da modello…»): destinatario e **Altra persona** (delegato, collega, collaboratore, fornitore…) si scelgono tra le persone della pratica, con il loro ruolo, o da tutta la rubrica, anche creandone una nuova; nome, titolo, codice fiscale, indirizzo e recapiti si compilano da soli. La **Delega** e la **Delega di udienza** usano i nuovi campi; i campi liberi dei modelli precedenti («nome del delegato», «nome del collega») si compilano lo stesso. Per tutti i profili.
+- **Uscite ricorrenti** in Pagamenti › Da pagare: «Si ripete» ogni mese, ogni 3 mesi o ogni anno; la voce successiva compare 30 giorni prima della scadenza, i mesi seguenti sono già nello scadenzario come «previste»; una voce eliminata non torna, «No, una volta sola» ferma la serie.
+- **Budget**, nuova sezione della barra laterale (sotto Pagamenti), per tutti i profili:
+  - **Panoramica**: saldo dei conti, entrate e uscite dei prossimi 30 giorni, tasse da mettere da parte, «Disponibile davvero»; avvisi (saldo sotto zero, incassi scaduti, budget superati, soglia del forfettario); saldo previsto per dodici mesi, atteso e «se gli incassi tardano», con i numeri del mese al passaggio del mouse;
+  - **Conti**: conto corrente, carta e contanti con il saldo reale; movimenti scritti a mano e giroconti; incassi e pagamenti finiscono sul conto scelto o su quello predefinito;
+  - **Spese e budget**: obiettivo di incasso, soglia del forfettario (85.000 € e 100.000 €), budget annuo per categoria con avviso all'80% e oltre il 100%;
+  - **Tasse**: quanto mettere da parte, con la percentuale del commercialista o con una stima per regime (forfettario: coefficiente, contributi, imposta sostitutiva; ordinario: costi, IRPEF media, ritenute subite, IVA), meno quanto già pagato; date di saldo e acconti;
+  - **Fatture del servizio**: TIO legge in sola lettura le fatture elettroniche (XML, .p7m, ZIP) esportate dal servizio di fatturazione in una cartella, senza collegarsi al servizio né modificarlo; si segnano in TIO incasso o pagamento, conto e categoria; le fatture già in TIO non si contano due volte. Entrano anche nello scadenzario di Pagamenti;
+  - **Commercialista**: per l'anno o un trimestre, una cartella con Riepilogo.pdf, i file CSV per Excel (documenti emessi, incassi, uscite, fatture ricevute, conti, prima nota) e le contabili dei pagamenti.
+  - **Indicatori**: giorni medi per incassare e quota pagata entro la scadenza, incassato rispetto allo stesso periodo dell'anno prima, media mensile, crediti scaduti, peso dei clienti, margine di clienti e lavori (fatturato meno costi diretti);
+  - La scheda «Budget» di Pagamenti è passata nella nuova sezione.
+- **Budget del lavoro con avvisi:** ore e costi (più il valore delle ore) confrontati con ore previste e importo concordato, con barre e avvisi all'80% e oltre il 100%; consegna vicina o passata. Gli avvisi compaiono nella scheda del lavoro, nella Panoramica (icona accanto al lavoro) e nella Panoramica del Budget.
+- **Pagamento a rate:** nell'editor di un documento emesso, «Dividi in rate…» crea il piano di pagamento (quante rate, ogni quanto, dalla prima data). Gli incassi si registrano come sempre e coprono le rate in ordine; scadenzario, previsione di cassa e solleciti usano le rate. Le versioni precedenti ignorano il piano e tornano a una sola scadenza.
+- **Piè di pagina:** «Pagina N di M» sta sulla stessa riga dell'ultima riga del piè di pagina, a destra, in PDF, Word, OpenDocument e RTF; si vede anche nell'anteprima.
+- **Intestazione:** in ogni pagina oppure **solo nella prima** (PDF, Word e RTF; in OpenDocument resta su ogni pagina).
+- **Editor dei testi:** conteggio di parole e caratteri sotto il foglio.
+- **Editor PDF** al posto di «Comprimi PDF», a tutta larghezza, con quattro schede:
+  - **Comprimi**: come prima, più le immagini ripetute tenute una volta sola;
+  - **Unisci**: più PDF in un file, nell'ordine dell'elenco;
+  - **Dividi**: per intervalli, ogni N pagine o una pagina per file;
+  - **Modifica**: pagine da riordinare, ruotare, duplicare, eliminare e inserire (bianche o da un altro PDF); testo, riquadri per coprire o evidenziare, immagini (firma, timbro), numeri di pagina; Annulla e Ripeti;
+  - limite di dimensione portato da 300 MB a 2 GB; i PDF protetti o che non si riescono a leggere in altro modo vengono ricostruiti come immagini delle pagine (con la password, se c'è).
+- **Anonimizza, dati che prima sfuggivano:**
+  - date con l'anno a due cifre («12.06.85»), con il mese abbreviato («12 giu 1985»), in formato ISO, senza anno («il 5 marzo») e anno di nascita («nato nel 1985»);
+  - telefoni con barra, trattini o a gruppi («02/12345678», «333-12 34 567», «0039 …») e numeri verdi;
+  - persone indicate con le iniziali («il minore L.B.», «sig.ra G. Verdi»), «Cognome, Nome», cognomi con apostrofo o particella («D'Angelo», «Lo Presti»), «nato/a a»;
+  - corretto: nei testi con l'apostrofo tipografico un titolo con la maiuscola («Sig.ra Anna», «SIG. ROSSI») non veniva riconosciuto;
+  - importi senza decimali o con la valuta dopo («12.500 euro», «500€»), in lire, o senza valuta dopo «importo di», «somma di»…;
+  - codice fiscale numerico e partita IVA dichiarati dalla sigla anche con un refuso; conto corrente, ABI, CAB, BIC;
+  - targhe di vecchio tipo e di moto, numero di telaio, tessera sanitaria; numeri di polizza, sinistro, contratto, REA, matricola, codice SDI;
+  - email con «[at]», profili social («@nome»), coordinate geografiche, CAP da solo, «prov. di …», luogo di un immobile;
+  - società con la sigla minuscola («s.n.c.»), banche, condomini, ospedali, scuole, esercizi;
+  - due categorie nuove, come in Rizzo-PII e oltre: **Sesso** e **Nomi utente e password** (si nasconde il valore, l'etichetta resta).
+  Sul campione annotato: richiamo dal 98,9% al 100%, precisione 100%.
+- **Nomi di programmi tolti dall'interfaccia:** «Provider calendario», «Provider documenti» e «provider gestionale» al posto dei nomi di servizi specifici, anche in guida, README e informativa.
+- **Corretto:** la lettura delle cartelle collegate per contare i file delle sottocartelle avveniva tutta d'un fiato nel processo principale, a ogni ritorno sulla finestra: con una cartella in rete o molto grande l'app poteva fermarsi per qualche secondo. Ora è asincrona, a pause e con un tempo massimo.
+- **Corretto:** aprendo una pratica con una cartella collegata la pagina poteva restare vuota: la sincronizzazione delle cartelle scriveva in cronologia una voce senza icona (difetto presente dalla 1.0.1, reso frequente dalla sincronizzazione automatica).
+- **Crea documento:** i formati sono una fila di pulsanti con solo nome ed estensione («Word (.docx)», «Markdown (.md)»…), senza le spiegazioni sotto ciascuno.
+- **Testi più brevi:** sottotitoli di Pagamenti, Da pagare, Incassi e Anonimizza ridotti a una frase; l'avvertenza sull'invio allo SdI resta nella finestra della fattura elettronica.
+- **Sito:** riscritto e accorciato, pensato prima per il telefono, con una **demo** da provare nella pagina e il confronto da trascinare tra tante finestre aperte e solo TIO; chiaro e scuro si scelgono con due pulsanti (tolta la scena di sole e luna); i tre passi d'installazione restano con le finestre illustrate; la barra in alto torna la pillola di vetro sospesa, più trasparente mentre si scorre. Immagini di sito e guida rifatte con l'Editor PDF e le priorità.
+
 ## Versione 1.0.3 — Panoramica dell'anno, più persone nella pratica, sottocartelle
 
 Piccole correzioni e aggiunte raccolte usando TIO su più computer. Si installa sopra la 1.0.2: l'archivio non cambia formato.

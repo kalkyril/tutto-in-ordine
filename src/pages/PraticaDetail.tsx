@@ -6,7 +6,7 @@ import { useNav } from '../nav'
 import { useZonaFile } from '../lib/trascina'
 import { useEditors } from '../components/editors'
 import { CalcoloTerminiModal } from '../components/CalcoloTermini'
-import { Btn, ColorDot, ColorPicker, Empty, Modal, Pill, Tabs, useAction, useFeedback } from '../components/ui'
+import { Btn, ColorDot, ColorPicker, Empty, Modal, Pill, Priorita, PRIORITA_PRATICA, Tabs, useAction, useFeedback } from '../components/ui'
 import { ScadenzaRow, TodoRow } from '../components/items'
 import { EconomiaTab } from '../components/pratica/EconomiaTab'
 import { TodoTab } from '../components/pratica/TodoTab'
@@ -84,6 +84,7 @@ export default function PraticaDetail({ id, tab: initialTab, focus }: { id: numb
             <h1>{p.titolo}</h1>
             <div className="row wrap" style={{ marginTop: 6 }}>
               <Pill color={statoObj?.colore}>{p.stato}</Pill>
+              <span className="muted small prio-etichetta"><Priorita valore={p.priorita} /> Priorità {PRIORITA_PRATICA[p.priorita === 0 || p.priorita === 2 ? p.priorita : 1].toLowerCase()}</span>
               {gruppi.map((g) => <span key={g.ruolo} className="muted small">{etichettaGruppo(g.ruolo, g.persone.length)}: <b>{g.persone.map((x) => x.contatto.denominazione).join(', ')}</b></span>)}
               {p.ruolo && <span className="muted small">Il tuo ruolo: <b>{p.ruolo}</b></span>}
             </div>

@@ -10,13 +10,13 @@ function attach({ getWindow, db }) {
   const js = code => wc.executeJavaScript(code, true)
   const check = (label, value) => { results.push({ label, ok: !!value }); console.log((value ? 'PASS ' : 'FAIL ') + label) }
   const click = (selector, text) => require('./smoke-ui').clickTextReady(js, selector, text)
-  const pageReady = (name, selector) => js(`new Promise((resolve,reject)=>{const started=Date.now();const poll=()=>{const title=document.querySelector('.content h1');if(document.querySelector(${JSON.stringify(selector)})&&title&&(${JSON.stringify(name)}==='Panoramica'||title.textContent.startsWith(${JSON.stringify(name)})))requestAnimationFrame(()=>requestAnimationFrame(resolve));else if(Date.now()-started>5000)reject(Error('Pagina non caricata: '+${JSON.stringify(name)}));else setTimeout(poll,50)};poll()})`)
+  const pageReady = (name, selector) => js(`new Promise((resolve,reject)=>{const started=Date.now();const poll=()=>{const title=document.querySelector('.content h1');if(document.querySelector(${JSON.stringify(selector)})&&title&&(${JSON.stringify(name)}==='Panoramica'||title.textContent.startsWith(${JSON.stringify(name)})))Promise.race([new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),new Promise(r=>setTimeout(r,300))]).then(resolve);else if(Date.now()-started>5000)reject(Error('Pagina non caricata: '+${JSON.stringify(name)}));else setTimeout(poll,50)};poll()})`)
   const shot = async name => { await sleep(200); fs.writeFileSync(path.join(out, name + '.png'), (await wc.capturePage()).toPNG()) }
   const date = days => { const d = new Date(); d.setDate(d.getDate() + days); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
   const theme = async tema => { db.setSettings({ tema }); wc.send('data-changed',['settings']); await sleep(300) }
   const axe = async name => {
     // la verifica riguarda lo stato a riposo: il puntatore vero del mouse (anche quello di chi usa il computer mentre il test gira) non deve cambiare i colori
-    await js("document.documentElement.style.pointerEvents='none'; new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))")
+    await js("document.documentElement.style.pointerEvents='none'; Promise.race([new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(true)))), new Promise((r) => setTimeout(() => r(true), 300))])")
     const report = await js("axe.run(document,{resultTypes:['violations']}).then(r=>r.violations.map(v=>({id:v.id,impact:v.impact,help:v.help,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))})))")
     await js("document.documentElement.style.pointerEvents=''")
     violations.push({ screen: name, report })
@@ -53,7 +53,7 @@ function attach({ getWindow, db }) {
       check('sidebar nascosta: contenuti disponibili e controllo raggiungibile',await js("!document.querySelector('.sidebar') && !!document.querySelector('.dashboard') && document.querySelector('.sidebar-toggle').getAttribute('aria-expanded')==='false'"))
       await shot('sidebar-nascosta')
       await js("document.querySelector('.sidebar-toggle').click()"); await sleep(200)
-      check('sidebar ripristinata con le voci di navigazione',await js("document.querySelectorAll('.nav-item').length===11 && document.querySelector('.sidebar-toggle').getAttribute('aria-expanded')==='true'"))
+      check('sidebar ripristinata con le voci di navigazione',await js("document.querySelectorAll('.nav-item').length===12 && document.querySelector('.sidebar-toggle').getAttribute('aria-expanded')==='true'"))
       win.setSize(980,640); await sleep(250); await shot('finestra-minima')
       check('finestra 980×640 senza overflow dei contenuti',await js("document.querySelector('.content').scrollWidth<=document.querySelector('.content').clientWidth+1"))
       wc.setZoomFactor(1.25); await sleep(250); await shot('zoom-125')

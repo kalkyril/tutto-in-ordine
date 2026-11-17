@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Lock, AlarmClock, Bell, CalendarDays, CheckCheck, CheckSquare, FolderKanban, Globe, LayoutDashboard, Search, Settings, Trash2, Users, Wallet, FileText, StickyNote, Folder, Users2, PanelLeft, ChevronRight, Download, FilePen, ShieldCheck, FileDown } from 'lucide-react'
+import { Lock, AlarmClock, Bell, CalendarDays, CheckCheck, CheckSquare, FolderKanban, Globe, LayoutDashboard, Search, Settings, Trash2, Users, Wallet, FileText, StickyNote, Folder, Users2, PanelLeft, ChevronRight, Download, FilePen, ShieldCheck, FileDown, PiggyBank } from 'lucide-react'
 import { api } from '../api'
 import { useData } from '../store'
 import { useNav, type Page } from '../nav'
@@ -25,10 +25,11 @@ export function Sidebar() {
     { page: 'todo', label: 'Compiti', icon: CheckSquare, badge: todos.filter((t) => !t.completata).length },
     { page: 'anagrafica', label: 'Anagrafica', icon: Users },
     { page: 'pagamenti', label: 'Pagamenti', icon: Wallet },
+    { page: 'budget', label: 'Budget', icon: PiggyBank },
     { page: 'collegamenti', label: 'Collegamenti', icon: Globe },
     { page: 'documenti', label: 'Documenti', icon: FilePen },
     { page: 'anonimizza', label: 'Anonimizza', icon: ShieldCheck },
-    { page: 'comprimi', label: 'Comprimi PDF', icon: FileDown },
+    { page: 'comprimi', label: 'Editor PDF', icon: FileDown },
   ]
   const active = route.page === 'pratica' ? 'pratiche' : route.page === 'parcelle' || route.page === 'dapagare' ? 'pagamenti' : route.page
   return (
@@ -59,7 +60,7 @@ export function Sidebar() {
 export function Topbar({ onSearch, sidebarVisible, onToggleSidebar }: { onSearch: () => void; sidebarVisible: boolean; onToggleSidebar: () => void }) {
   const { notifiche, settings, praticaById } = useData()
   const { route, go } = useNav()
-  const labels: Record<Page, string> = { dashboard: 'Panoramica', pratiche: settings.etichette.pratiche, pratica: settings.etichette.pratiche, agenda: 'Agenda', todo: 'Compiti', anagrafica: 'Anagrafica', parcelle: 'Pagamenti', dapagare: 'Pagamenti', pagamenti: 'Pagamenti', comprimi: 'Comprimi PDF', collegamenti: 'Collegamenti', documenti: 'Documenti', anonimizza: 'Anonimizza', impostazioni: 'Impostazioni' }
+  const labels: Record<Page, string> = { dashboard: 'Panoramica', pratiche: settings.etichette.pratiche, pratica: settings.etichette.pratiche, agenda: 'Agenda', todo: 'Compiti', anagrafica: 'Anagrafica', parcelle: 'Pagamenti', dapagare: 'Pagamenti', pagamenti: 'Pagamenti', budget: 'Budget', comprimi: 'Editor PDF', collegamenti: 'Collegamenti', documenti: 'Documenti', anonimizza: 'Anonimizza', impostazioni: 'Impostazioni' }
   const pratica = route.page === 'pratica' && route.id ? praticaById.get(route.id) : null
   const blocco = useBlocco()
   const [open, setOpen] = useState(false)
@@ -106,7 +107,8 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
   const openItem = (n: (typeof notifiche)[number]) => {
     run(() => api.markRead(n.id))
     onClose()
-    if (n.pratica_id) go({ page: 'pratica', id: n.pratica_id, tab: n.rif_tipo === 'todo' ? 'todo' : 'scadenze', focus: n.rif_id || undefined })
+    if (n.rif_tipo === 'rata') go({ page: 'pagamenti', tab: 'incassi' })
+    else if (n.pratica_id) go({ page: 'pratica', id: n.pratica_id, tab: n.rif_tipo === 'todo' ? 'todo' : 'scadenze', focus: n.rif_id || undefined })
     else if (n.rif_tipo === 'todo') go('todo')
     else if (n.rif_tipo === 'scadenza' || n.rif_tipo === 'evento_esterno') go('agenda')
     else if (n.rif_tipo === 'aggiornamento') go({ page: 'impostazioni', tab: 'backup' })

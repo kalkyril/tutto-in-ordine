@@ -1,5 +1,4 @@
-// TIO — pagina di download: il pulsante giusto per il computer di chi visita, la barra PillNav, il confronto,
-// giorno e sera, i passi d'installazione per sistema, piccoli movimenti.
+// TIO — pagina di download: i file giusti per il computer di chi visita, la demo, il confronto, chiaro e scuro, i passi d'installazione.
 // Nessun cookie e nessuna memoria: l'unica richiesta esterna è a GitHub, solo se config.js indica il progetto.
 
 const progettoCandidato = String(window.TIO_PROGETTO || '').trim()
@@ -30,7 +29,7 @@ const paginaRelease = progetto ? `https://github.com/${progetto}/releases` : '#i
 // I riferimenti al progetto sono utilizzabili anche prima che l'API risponda.
 for (const a of tutti('[data-github]')) if (progetto) a.href = `https://github.com/${progetto}/${a.dataset.github}`.replace(/\/$/, '')
 for (const a of tutti('[data-scarica-os], [data-scarica-file]')) a.href = paginaRelease
-for (const nota of tutti('[data-nota-download]')) if (sistema.os === 'telefono') nota.textContent = 'TIO si installa sul computer: scegli il file dal tuo Mac o PC Windows.'
+for (const nota of tutti('[data-nota-download]')) if (sistema.os === 'telefono') nota.textContent = 'TIO si installa sul computer: qui sotto puoi provarla, poi scarica il file dal tuo Mac o PC.'
 
 async function chiediRelease(url, signal) {
   const r = await fetch(url, { signal, headers: { Accept: 'application/vnd.github+json' }, credentials: 'omit', referrerPolicy: 'no-referrer' })
@@ -99,7 +98,7 @@ async function preparaDownload() {
 }
 preparaDownload()
 
-/* ---------- tutto incluso: il palco di chi visita (libero professionista, ditta, studio legale) ---------- */
+/* ---------- per chi: libero professionista, ditta, studio legale ---------- */
 ;(() => {
   const bottoni = tutti('[data-pubblico] button'), schede = tutti('.profilo-voce[data-profilo]')
   bottoni.forEach((b) => b.addEventListener('click', () => {
@@ -117,73 +116,7 @@ preparaDownload()
   scegli(['mac', 'windows'].includes(sistema.os) ? sistema.os : 'mac')
 })()
 
-/* ---------- comparse una volta sola, mai contenuto nascosto se lo script non parte ---------- */
-;(() => {
-  const voci = tutti('[data-reveal]')
-  // fratelli che compaiono insieme: uno dopo l'altro, al massimo sei passi da 80 ms (come Free My TV)
-  for (const el of voci) {
-    const fratelli = [...el.parentElement.children].filter((c) => c.hasAttribute('data-reveal') && !c.hidden)
-    const i = fratelli.indexOf(el)
-    if (i > 0) el.style.setProperty('--d', Math.min(i, 6) * 0.08 + 's')
-  }
-  if (!('IntersectionObserver' in window)) { voci.forEach((el) => el.classList.add('is-in')); return }
-  const io = new IntersectionObserver((e) => { for (const v of e) if (v.isIntersecting) { v.target.classList.add('is-in'); io.unobserve(v.target) } }, { rootMargin: '0px 0px -10% 0px', threshold: 0.08 })
-  voci.forEach((el) => io.observe(el))
-  addEventListener('load', () => setTimeout(() => voci.forEach((el) => { const r = el.getBoundingClientRect(); if (r.top < innerHeight && r.bottom > 0) el.classList.add('is-in') }), 2500))
-})()
-
-/* ---------- giorno e sera: scorrendo la sezione, il fondo va dal rosa carta al bordeaux notte ---------- */
-;(() => {
-  const sezione = document.querySelector('[data-tramonto]')
-  if (!sezione) return
-  const fermo = sezione.querySelector('.tramonto-fermo')
-  const cielo = sezione.querySelector('.cielo'), sole = sezione.querySelector('.sole'), luna = sezione.querySelector('.luna')
-  const finestra = sezione.querySelector('.tramonto-finestra .finestra-app')
-  cielo?.classList.add('in-orbita')
-  // la ruota: un cerchio con il centro sopra la finestra, che passa per il punto di partenza del sole (in alto a sinistra,
-  // fuori dalla finestra) e per il centro della finestra (il punto più basso, dove sole e luna si danno il cambio, nascosti)
-  const orbita = (e) => {
-    if (!cielo || !finestra) return
-    const f = fermo.getBoundingClientRect(), w = finestra.getBoundingClientRect()
-    const bx = w.left + w.width / 2 - f.left, by = w.top + w.height * 0.55 - f.top
-    // sul telefono non c'è spazio ai lati: il sole parte già basso, appoggiato sul bordo della finestra, lontano dal testo
-    const stretto = f.width < 768
-    const sx = stretto ? f.width * 0.14 : Math.max(f.width * 0.08, w.left - f.left - f.width * 0.08)
-    const sy = stretto ? w.top - f.top - sole.offsetWidth * 0.15 : Math.max(f.height * 0.1, w.top - f.top - w.height * 0.2)
-    const dx = bx - sx, cy = (by * by - sy * sy - dx * dx) / (2 * (by - sy)), r = by - cy
-    const a0 = Math.atan2(sx - bx, sy - cy), a = a0 * (1 - 2 * e) // da sinistra (a0 < 0) a destra, passando per il basso
-    const x = bx + r * Math.sin(a), y = cy + r * Math.cos(a)
-    for (const [astro, visibile] of [[sole, a < 0], [luna, a >= 0]]) {
-      const d = astro.offsetWidth / 2
-      astro.style.transform = `translate(${(x - d).toFixed(1)}px, ${(y - d).toFixed(1)}px)${astro === luna ? ' rotate(-18deg)' : ''}`
-      astro.style.opacity = visibile ? '1' : '0'
-    }
-  }
-  // gli stessi colori della pagina: carta e inchiostro di giorno, bordeaux profondo e carta di sera
-  const GIORNO = { fondo: [251, 233, 240], testo: [61, 0, 18], piano: [122, 53, 80] }, SERA = { fondo: [26, 0, 9], testo: [253, 232, 240], piano: [211, 154, 182] }
-  let ultimo = -1
-  const aggiorna = () => {
-    const r = sezione.getBoundingClientRect()
-    const p = Math.max(0, Math.min(1, -r.top / Math.max(1, r.height - innerHeight)))
-    const e = riduciMovimento ? (p < 0.5 ? 0 : 1) : p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2
-    if (Math.abs(e - ultimo) < 0.002) return
-    ultimo = e
-    sezione.style.setProperty('--p', e.toFixed(3))
-    orbita(e)
-    // Le coppie complete cambiano insieme: nessuno stato intermedio perde contrasto.
-    const notte = e >= 0.5, palette = notte ? SERA : GIORNO
-    sezione.style.setProperty('--notte', notte ? '1' : '0')
-    for (const [variabile, colore] of [['fondo', palette.fondo], ['testo', palette.testo], ['piano', palette.piano]]) fermo.style.setProperty(`--cielo-${variabile}`, `rgb(${colore.join(',')})`)
-  }
-  // aggiornato subito a ogni scorrimento: il calcolo è leggero e così non dipende dal fotogramma successivo
-  addEventListener('scroll', aggiorna, { passive: true })
-  addEventListener('resize', () => { ultimo = -1; aggiorna() })
-  // la finestra prende la sua altezza quando arriva l'immagine: la ruota si ricalcola
-  finestra?.querySelector('img')?.addEventListener('load', () => { ultimo = -1; aggiorna() })
-  aggiorna()
-})()
-
-/* ---------- prima e dopo: si trascina, si usano le frecce, e la prima volta che compare fa da solo un giro (come Free My TV) ---------- */
+/* ---------- prima e dopo: si trascina, si usano le frecce, e la prima volta che compare fa da solo un giro ---------- */
 ;(() => {
   const c = document.querySelector('[data-confronto]')
   if (!c) return
@@ -221,144 +154,92 @@ preparaDownload()
   una.observe(c)
 })()
 
-/* ---------- collegamenti interni: il titolo della sezione arriva subito sotto la barra, a qualunque altezza sia la barra.
-   La posizione si misura sulla disposizione (offsetTop), non sul disegno: le comparse spostano i titoli di qualche pixel.
-   Ogni voce del menu porta all'inizio della sua sezione, come Strumenti. ---------- */
+/* ---------- chiaro e scuro: due pulsanti scambiano la schermata e i colori della sezione ---------- */
 ;(() => {
-  const pillola = document.querySelector('.barra-pillola')
-  const alto = (el) => { let y = 0; for (let e = el; e; e = e.offsetParent) y += e.offsetTop; return y }
-  const vai = (hash) => {
-    let meta = null
-    try { meta = document.querySelector(hash) } catch { return false }
-    if (!meta) return false
-    const sotto = (pillola ? pillola.getBoundingClientRect().bottom : 0) + 24
-    const sezione = meta.closest('section') || meta
-    const bersaglio = sezione.querySelector('h2') || sezione
-    // Funzioni e Strumenti (palco fermo) e le sezioni impaginate allo stesso modo (.palco) mettono già il titolo sotto la
-    // barra: si va all'inizio della sezione, così ognuna arriva nello stesso punto
-    const y = sezione.matches('.palco, .funz') ? alto(sezione) : alto(bersaglio) - sotto
-    scrollTo({ top: Math.max(0, y), behavior: riduciMovimento ? 'auto' : 'smooth' })
-    if (meta !== sezione) { meta.classList.remove('evidenzia'); void meta.offsetWidth; meta.classList.add('evidenzia') }
-    return true
-  }
-  document.addEventListener('click', (e) => {
-    const a = e.target.closest('a[href^="#"]')
-    if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-    const hash = a.getAttribute('href')
-    if (hash.length < 2 || hash === '#contenuto') return
-    if (vai(hash)) { e.preventDefault(); if (location.hash !== hash) history.pushState(null, '', hash) }
-  })
-  // avanti e indietro nel browser riportano alla sezione giusta
-  addEventListener('popstate', () => { if (location.hash) vai(location.hash); else scrollTo({ top: 0, behavior: riduciMovimento ? 'auto' : 'smooth' }) })
+  const scena = document.querySelector('.tramonto-fermo'); if (!scena) return
+  const bottoni = tutti('[data-tema-scegli]')
+  const metti = (tema) => { scena.dataset.tema = tema; for (const b of bottoni) b.setAttribute('aria-pressed', String(b.dataset.temaScegli === tema)) }
+  bottoni.forEach((b) => b.addEventListener('click', () => metti(b.dataset.temaScegli)))
+  if (window.matchMedia('(prefers-color-scheme: dark)').matches) metti('scuro')
 })()
 
-/* ---------- la barra prende l'ombra solo quando qualcosa le scorre sotto ---------- */
+/* ---------- demo: una TIO in miniatura. Dati inventati, tenuti in memoria: ricaricando la pagina si riparte ---------- */
 ;(() => {
-  const barra = document.querySelector('[data-barra]')
-  if (!barra) return
+  const radice = document.querySelector('[data-demo]'), vista = document.querySelector('[data-demo-vista]'); if (!radice || !vista) return
+  const PRIORITA = [['bassa', '↓'], ['media', '–'], ['alta', '↑']]
+  const stato = {
+    vista: 'panoramica', aperta: null,
+    pratiche: [
+      { id: 1, numero: '2026/014', titolo: 'Rinaldi c. Edilnova', cliente: 'Giulia Rinaldi', stato: 'In corso', colore: '#c2410c', priorita: 2 },
+      { id: 2, numero: '2026/011', titolo: 'Ristrutturazione uffici Aurora', cliente: 'Condominio Aurora', stato: 'In corso', colore: '#2563eb', priorita: 1 },
+      { id: 3, numero: '2026/009', titolo: 'Successione Bianchi', cliente: 'Marta Bianchi', stato: 'In attesa', colore: '#0f766e', priorita: 0 },
+    ],
+    compiti: [
+      { id: 1, pratica: 1, titolo: 'Depositare la memoria', quando: 'Oggi', fatto: false },
+      { id: 2, pratica: 1, titolo: 'Chiamare il perito', quando: 'Domani', fatto: false },
+      { id: 3, pratica: 2, titolo: 'Inviare il preventivo', quando: 'Oggi', fatto: true },
+      { id: 4, pratica: 3, titolo: 'Richiedere i certificati', quando: 'Venerdì', fatto: false },
+    ],
+    impegni: [['09:30', 'Udienza di prima comparizione', 1], ['12:00', 'Sopralluogo in cantiere', 2], ['16:30', 'Appuntamento con Marta Bianchi', 3]],
+  }
+  let prossimo = 5
+  const el = (tag, attr = {}, ...figli) => {
+    const n = document.createElement(tag)
+    for (const [k, v] of Object.entries(attr)) { if (k === 'class') n.className = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else if (v !== false && v != null) n.setAttribute(k, v === true ? '' : v) }
+    for (const f of figli.flat()) if (f != null && f !== false) n.append(f)
+    return n
+  }
+  const pratica = (id) => stato.pratiche.find((p) => p.id === id)
+  const priorita = (p) => el('span', { class: 'demo-prio demo-prio-' + p.priorita, title: 'Priorità ' + PRIORITA[p.priorita][0], role: 'img', 'aria-label': 'Priorità ' + PRIORITA[p.priorita][0] }, PRIORITA[p.priorita][1])
+  const rigaCompito = (c, conPratica = true) => el('label', { class: 'demo-compito' + (c.fatto ? ' fatto' : '') },
+    el('input', { type: 'checkbox', checked: c.fatto, onchange: (e) => { c.fatto = e.target.checked; disegna() } }),
+    el('span', { class: 'demo-compito-testo' }, el('b', {}, c.titolo), conPratica ? el('small', {}, pratica(c.pratica).titolo) : null),
+    el('span', { class: 'demo-quando' }, c.quando))
+  const aggiungi = (praticaId) => {
+    const campo = el('input', { type: 'text', placeholder: 'Nuovo compito…', 'aria-label': 'Nuovo compito', maxlength: 60 })
+    return el('form', { class: 'demo-nuovo', onsubmit: (e) => { e.preventDefault(); const t = campo.value.trim(); if (!t) return; stato.compiti.push({ id: prossimo++, pratica: praticaId, titolo: t, quando: 'Oggi', fatto: false }); disegna(); vista.querySelector('.demo-nuovo input')?.focus() } }, campo, el('button', { type: 'submit' }, 'Aggiungi'))
+  }
+  const scheda = (p) => el('button', { type: 'button', class: 'demo-pratica', style: `--pc:${p.colore}`, onclick: () => { stato.vista = 'pratiche'; stato.aperta = p.id; disegna() } },
+    el('span', { class: 'demo-pratica-testa' }, priorita(p), el('small', {}, p.numero)), el('b', {}, p.titolo), el('small', {}, p.cliente), el('span', { class: 'demo-stato' }, p.stato))
+  const viste = {
+    panoramica: () => {
+      const aperti = stato.compiti.filter((c) => !c.fatto)
+      return [
+        el('div', { class: 'demo-numeri' }, el('p', {}, el('b', {}, String(stato.impegni.length)), ' impegni oggi'), el('p', {}, el('b', {}, String(aperti.length)), aperti.length === 1 ? ' compito aperto' : ' compiti aperti'), el('p', {}, el('b', {}, '€ 3.660'), ' da incassare')),
+        el('div', { class: 'demo-colonne' },
+          el('section', {}, el('h3', {}, 'Oggi'), stato.impegni.map(([ora, titolo, id]) => el('p', { class: 'demo-impegno' }, el('time', {}, ora), el('span', {}, el('b', {}, titolo), el('small', {}, pratica(id).titolo))))),
+          el('section', {}, el('h3', {}, 'Compiti'), stato.compiti.slice(0, 4).map((c) => rigaCompito(c)))),
+      ]
+    },
+    pratiche: () => {
+      const p = stato.aperta && pratica(stato.aperta)
+      if (!p) return [el('h3', {}, 'Pratiche'), el('div', { class: 'demo-pratiche' }, [...stato.pratiche].sort((a, b) => b.priorita - a.priorita).map(scheda))]
+      const suoi = stato.compiti.filter((c) => c.pratica === p.id)
+      return [
+        el('button', { type: 'button', class: 'demo-indietro', onclick: () => { stato.aperta = null; disegna() } }, '‹ Pratiche'),
+        el('div', { class: 'demo-dettaglio', style: `--pc:${p.colore}` }, el('small', {}, `${p.numero} · ${p.stato}`), el('h3', {}, p.titolo), el('p', {}, 'Cliente: ', el('b', {}, p.cliente))),
+        el('div', { class: 'demo-priorita', role: 'group', 'aria-label': 'Priorità' }, el('span', {}, 'Priorità'), PRIORITA.map(([nome, segno], i) => el('button', { type: 'button', 'aria-pressed': String(p.priorita === i), class: 'demo-prio-' + i, onclick: () => { p.priorita = i; disegna() } }, segno + ' ' + nome[0].toUpperCase() + nome.slice(1)))),
+        el('h3', {}, 'Compiti'), suoi.map((c) => rigaCompito(c, false)), !suoi.length && el('p', { class: 'demo-vuoto' }, 'Nessun compito.'), aggiungi(p.id),
+      ]
+    },
+    compiti: () => { const fatti = stato.compiti.filter((c) => c.fatto).length; return [el('h3', {}, `Compiti · ${fatti} di ${stato.compiti.length} fatti`), stato.compiti.map((c) => rigaCompito(c)), aggiungi(1)] },
+  }
+  const schede = tutti('[data-vista]', radice)
+  function disegna() {
+    for (const b of schede) b.setAttribute('aria-selected', String(b.dataset.vista === stato.vista))
+    vista.replaceChildren(...viste[stato.vista]().flat().filter(Boolean))
+  }
+  schede.forEach((b) => b.addEventListener('click', () => { stato.vista = b.dataset.vista; stato.aperta = null; disegna() }))
+  const tema = document.querySelector('[data-demo-tema]')
+  tema?.addEventListener('click', () => { const scuro = radice.dataset.tema !== 'scuro'; radice.dataset.tema = scuro ? 'scuro' : 'chiaro'; tema.setAttribute('aria-pressed', String(scuro)); tema.textContent = scuro ? 'Tema chiaro' : 'Tema scuro' })
+  disegna()
+})()
+
+/* ---------- la barra in alto diventa più trasparente quando qualcosa le scorre sotto ---------- */
+;(() => {
+  const barra = document.querySelector('[data-barra]'); if (!barra) return
   const segna = () => barra.classList.toggle('scorre', scrollY > 10)
-  addEventListener('scroll', segna, { passive: true })
-  segna()
-})()
-
-/* ---------- Funzioni e Strumenti: il palco resta fermo; quanto si è scorso nella sezione decide immagine e testo ---------- */
-for (const box of document.querySelectorAll('[data-funz-scorri]')) (() => {
-  const sezione = box.closest('section')
-  const voci = tutti('.funz-voce', box), punti = tutti('.funz-punti i', box)
-  const titolo = box.querySelector('[data-funz-titolo]'), testo = box.querySelector('[data-funz-testo]')
-  const tag = box.querySelector('[data-funz-tag]'), elenco = box.querySelector('[data-funz-elenco]') // solo negli Strumenti
-  const grazie = box.querySelector('[data-funz-grazie]') // il ringraziamento a Simone Rizzo, solo sull'ultima slide
-  const palco = matchMedia('(min-width: 64.01em) and (min-height: 37.5em)') // come in stile.css
-  const pillola = document.querySelector('.barra-pillola')
-  let attiva = -1, inAttesa = false
-  const mostra = (k) => {
-    if (k === attiva) return
-    const primaVolta = attiva < 0
-    attiva = k
-    voci.forEach((v, i) => { v.classList.toggle('attiva', i === k); v.classList.toggle('passata', i < k) })
-    punti.forEach((p, i) => p.classList.toggle('on', i === k))
-    titolo.textContent = voci[k].querySelector('.funz-testo h3').textContent
-    testo.textContent = voci[k].querySelector('.funz-testo p').textContent
-    if (tag) tag.textContent = voci[k].querySelector('.funz-tag').textContent
-    if (elenco) elenco.replaceChildren(...[...voci[k].querySelectorAll('.funz-elenco li')].map((li) => li.cloneNode(true)))
-    if (grazie) grazie.hidden = !voci[k].querySelector('.funz-grazie')
-    if (primaVolta) return
-    for (const el of [tag, titolo, testo, elenco]) if (el) { el.classList.remove('cambia'); void el.offsetWidth; el.classList.add('cambia') }
-  }
-  // il titolo sul palco sta dove lo porta il menu: 24 px sotto la barra
-  const misuraBarra = () => { if (pillola) document.documentElement.style.setProperty('--barra-sotto', `${pillola.getBoundingClientRect().bottom}px`) }
-  const fisso = box.querySelector('.funz-fisso')
-  const allinea = () => {
-    const finestra = voci[0].querySelector('.finestra-app')
-    fisso.style.marginTop = palco.matches ? `${Math.max(0, (finestra.offsetHeight - fisso.offsetHeight) / 2)}px` : ''
-  }
-  const aggiorna = () => {
-    inAttesa = false
-    if (!palco.matches) return
-    const r = sezione.getBoundingClientRect()
-    const corsa = Math.max(1, r.height - innerHeight)
-    const avanzamento = Math.min(1, Math.max(0, -r.top / corsa))
-    mostra(Math.min(voci.length - 1, Math.floor(avanzamento * voci.length)))
-  }
-  addEventListener('scroll', () => { if (!inAttesa) { inAttesa = true; requestAnimationFrame(aggiorna) } }, { passive: true })
-  addEventListener('resize', () => { misuraBarra(); allinea(); aggiorna() })
-  palco.addEventListener('change', () => { allinea(); aggiorna() })
-  addEventListener('load', allinea)
-  misuraBarra(); mostra(0); allinea(); aggiorna()
-})()
-
-/* ---------- «Tutto In Ordine» scritto lettera per lettera, una ogni 50 ms: ogni lettera tiene il suo posto, il cursore avanza ---------- */
-;(() => {
-  const nome = document.querySelector('[data-scrivi]')
-  if (!nome || !document.documentElement.classList.contains('scrive')) return
-  const lettere = []
-  const avvolgi = (nodo) => {
-    for (const figlio of [...nodo.childNodes]) {
-      if (figlio.nodeType === 1) { avvolgi(figlio); continue }
-      const frammento = document.createDocumentFragment()
-      for (const ch of figlio.textContent) {
-        const l = document.createElement('span'); l.className = 'lettera'; l.textContent = ch
-        l.setAttribute('aria-hidden', 'true'); frammento.appendChild(l); lettere.push(l)
-      }
-      figlio.replaceWith(frammento)
-    }
-  }
-  avvolgi(nome)
-  const cursore = document.createElement('span'); cursore.className = 'cursore'; cursore.setAttribute('aria-hidden', 'true')
-  nome.prepend(cursore)
-  nome.classList.add('pronta')
-  let i = 0
-  const batti = () => {
-    const l = lettere[i++]
-    l.classList.add('vista'); l.after(cursore)
-    if (i < lettere.length) setTimeout(batti, 50)
-    else setTimeout(() => cursore.classList.add('via'), 1600)
-  }
-  setTimeout(batti, 250)
-})()
-
-/* ---------- primo schermo: i pezzi dell'app scorrono a profondità diverse e seguono di poco il puntatore.
-   Una sola molla in requestAnimationFrame, ferma quando arriva. ---------- */
-;(() => {
-  const eroe = document.querySelector('[data-eroe]')
-  const frammenti = tutti('.frammento').map((f) => ({ el: f, z: Number(f.style.getPropertyValue('--z')) || 0.5 }))
-  if (!eroe || !frammenti.length || riduciMovimento) return
-  const puntatore = matchMedia('(hover: hover) and (pointer: fine)')
-  let mx = 0, my = 0, visibile = true, giro = 0
-  const ora = { mx: 0, my: 0, y: scrollY }
-  const passo = () => {
-    giro = 0
-    const meta = { mx, my, y: scrollY }
-    let ancora = false
-    for (const k in ora) { const d = meta[k] - ora[k]; ora[k] += k === 'y' ? d * 0.18 : d * 0.09; if (Math.abs(d) > (k === 'y' ? 0.3 : 0.004)) ancora = true }
-    for (const f of frammenti) f.el.style.translate = `${(-ora.mx * 46 * f.z).toFixed(1)}px ${(-ora.my * 34 * f.z - ora.y * 0.22 * f.z).toFixed(1)}px`
-    if (ancora && visibile) giro = requestAnimationFrame(passo)
-  }
-  const avvia = () => { if (!giro && visibile) giro = requestAnimationFrame(passo) }
-  addEventListener('pointermove', (e) => { if (!puntatore.matches) return; mx = e.clientX / innerWidth - 0.5; my = e.clientY / innerHeight - 0.5; avvia() }, { passive: true })
-  addEventListener('scroll', avvia, { passive: true })
-  if ('IntersectionObserver' in window) new IntersectionObserver(([v]) => { visibile = v.isIntersecting; avvia() }).observe(eroe)
-  avvia()
+  addEventListener('scroll', segna, { passive: true }); segna()
 })()
 
 window.TIO_PRONTO = true

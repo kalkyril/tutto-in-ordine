@@ -18,7 +18,7 @@ export function PanoramicaEconomica({ praticaId, onApriDocumento }: { praticaId:
   const run = useAction()
   const [nuovaVoce, setNuovaVoce] = useState(false)
   const colori = coloriMovimento(settings)
-  const mov = useMemo(() => movimenti(parcelle.filter((p) => p.pratica_id === praticaId), d.costi.filter((c) => c.pratica_id === praticaId), d.pagamenti, todayStr()), [parcelle, d.costi, d.pagamenti, praticaId])
+  const mov = useMemo(() => movimenti(parcelle.filter((p) => p.pratica_id === praticaId), d.costi.filter((c) => c.pratica_id === praticaId), d.pagamenti, todayStr(), 30, [], d.rate), [parcelle, d.costi, d.pagamenti, d.rate, praticaId])
   const t = ripartizione(mov)
   const fette = spicchi(t)
   const entrate = t.incassate + t.da_incassare, uscite = t.pagate + t.da_pagare

@@ -29,26 +29,57 @@ export function primaNotaCsv(parcelle: Parcella[], anagrafica: Map<number, Anagr
   return '﻿' + [intest.join(';'), ...righe, riga].join('\r\n') + '\r\n'
 }
 
-export interface Sollecito { parcella: Parcella; cliente?: Anagrafica; giorni: number; scadenza: string }
+/** 1.0.4: rata attesa di un documento di vendita (piano di pagamento). */
+export interface RataBase { id: number; parcella_id: number; data: string; importo: number }
+export interface RataAperta { id: number | null; data: string; importo: number; numero: number; di: number }
+/**
+ * Le rate ancora da incassare: l'incassato copre le rate in ordine di data; il residuo del documento che le rate non
+ * coprono (piano più corto del netto) va alla scadenza normale (`id` null). Le rate non superano mai il residuo.
+ */
+export function rateAperte(rate: RataBase[], residuoDoc: number, incassato: number, scadenzaNormale: string): RataAperta[] {
+  const ordinate = [...rate].sort((a, b) => a.data.localeCompare(b.data) || a.id - b.id)
+  let copre = Math.round(incassato * 100), resta = Math.round(residuoDoc * 100)
+  const out: RataAperta[] = []
+  ordinate.forEach((r, i) => {
+    let c = Math.round(r.importo * 100); const preso = Math.min(c, copre); c -= preso; copre -= preso
+    c = Math.min(c, resta); resta -= c
+    if (c > 0) out.push({ id: r.id, data: r.data.slice(0, 10), importo: c / 100, numero: i + 1, di: ordinate.length })
+  })
+  if (resta > 0) out.push({ id: null, data: scadenzaNormale, importo: resta / 100, numero: 0, di: ordinate.length })
+  return out
+}
+export interface Sollecito { parcella: Parcella; cliente?: Anagrafica; giorni: number; scadenza: string
+  /** 1.0.4: con un piano di pagamento, la rata più vecchia ancora aperta e l'importo già scaduto */
+  rata?: string; importo?: number }
 /** Parcelle emesse e non ancora pagate: giorni dalla scadenza (data di emissione + termine di pagamento), dalla più vecchia. */
-export function solleciti(parcelle: Parcella[], anagrafica: Map<number, Anagrafica>, oggi = new Date(), terminiGiorni = 30): Sollecito[] {
+export function solleciti(parcelle: Parcella[], anagrafica: Map<number, Anagrafica>, oggi = new Date(), terminiGiorni = 30, rate: RataBase[] = []): Sollecito[] {
   const o = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate())
+  const ymd = (x: Date) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`
   return parcelle.filter((p) => p.tipo === 'parcella' && p.stato === 'emessa' && residuo(p) > 0).map((p) => {
     const d = parse(p.data, 0) || o
-    const sc = p.scadenza_pagamento ? parse(p.scadenza_pagamento, 0) || d : new Date(d.getFullYear(), d.getMonth(), d.getDate() + terminiGiorni)
-    return { parcella: p, cliente: p.cliente_id ? anagrafica.get(p.cliente_id) : undefined, giorni: Math.round((o.getTime() - sc.getTime()) / 86400000), scadenza: `${sc.getFullYear()}-${String(sc.getMonth() + 1).padStart(2, '0')}-${String(sc.getDate()).padStart(2, '0')}` }
+    let sc = p.scadenza_pagamento ? parse(p.scadenza_pagamento, 0) || d : new Date(d.getFullYear(), d.getMonth(), d.getDate() + terminiGiorni)
+    const base = { parcella: p, cliente: p.cliente_id ? anagrafica.get(p.cliente_id) : undefined }
+    const piano = rate.filter((r) => r.parcella_id === p.id)
+    if (piano.length) {
+      // piano di pagamento: conta la rata aperta più vecchia; l'importo è ciò che è già scaduto (o la prossima rata)
+      const aperte = rateAperte(piano, residuo(p), incassatoNetto(p), ymd(sc)), prima = aperte[0]
+      sc = parse(prima.data, 0) || sc
+      const scadute = aperte.filter((x) => x.data <= ymd(o)).reduce((s, x) => s + x.importo, 0)
+      return { ...base, giorni: Math.round((o.getTime() - sc.getTime()) / 86400000), scadenza: ymd(sc), rata: prima.id ? `rata ${prima.numero} di ${prima.di}` : undefined, importo: Math.round((scadute || prima.importo) * 100) / 100 }
+    }
+    return { ...base, giorni: Math.round((o.getTime() - sc.getTime()) / 86400000), scadenza: ymd(sc) }
   }).sort((a, b) => b.giorni - a.giorni)
 }
 
 /** Testo cortese di sollecito (da rileggere e adattare prima dell'invio). */
 export function testoSollecito(s: Sollecito, st: Settings['studio']): { oggetto: string; corpo: string } {
   const p = s.parcella, nome = s.cliente?.denominazione || ''
-  const importo = `€ ${fmtNum(residuo(p))}`
+  const importo = `€ ${fmtNum(s.importo ?? residuo(p))}`
   const ritardo = s.giorni > 0
   return {
     oggetto: `Promemoria di pagamento — nota n. ${p.numero}`,
     corpo: [`Gentile ${nome || 'cliente'},`, '',
-      `con la presente Le ricordo che la nota n. ${p.numero} del ${dataIt(p.data)}${p.oggetto ? ` (${p.oggetto.replace(/\s+/g, ' ').trim()})` : ''}, dell'importo di ${importo}, ${ritardo ? `risulta ancora da saldare (scadenza ${dataIt(s.scadenza)})` : `scade il ${dataIt(s.scadenza)}`}.`,
+      `con la presente Le ricordo che la nota n. ${p.numero} del ${dataIt(p.data)}${p.oggetto ? ` (${p.oggetto.replace(/\s+/g, ' ').trim()})` : ''}, ${s.rata ? `per la ${s.rata} (${importo})` : `dell'importo di ${importo}`}, ${ritardo ? `risulta ancora da saldare (scadenza ${dataIt(s.scadenza)})` : `scade il ${dataIt(s.scadenza)}`}.`,
       ...(st?.iban ? ['', `Le coordinate per il pagamento sono: ${st.iban}.`] : []),
       '', 'Se ha già provveduto, La prego di ignorare questo messaggio e di inviarmi, se possibile, la contabile.', '', 'Cordiali saluti',
       st?.titolare || st?.nome || ''].join('\n'),
