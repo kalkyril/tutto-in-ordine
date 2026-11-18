@@ -21,7 +21,10 @@ jobs:
       - uses: actions/setup-node@v7
         with: { node-version: 24, cache: npm }
       - run: npm ci
-      - run: npm audit --audit-level=high
+      # come `npm audit --audit-level=high`, ma con eccezioni motivate e con scadenza per avvisi senza correzione
+      # negli strumenti di sviluppo; nell'app installata nessuna eccezione (vedi scripts/controlla-audit.js)
+      - name: Dipendenze senza vulnerabilità alte
+        run: node scripts/controlla-audit.js
       - name: Prove automatiche (calcoli, dati, report, controllo dei tipi)
         run: node scripts/run-tests.js
         shell: bash
