@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TIO — Tutto In Ordine: gestionale gratuito per studi legali, professionisti e ditte</title>
-<meta name="description" content="TIO, Tutto In Ordine: un’app sola per clienti, pratiche e commesse, agenda con avvisi, documenti, fatture, pagamenti ed Editor PDF. Gratis, open source, i dati restano sul tuo computer. Provala nella pagina.">
+<meta name="description" content="TIO, Tutto In Ordine: un’app sola per clienti, pratiche e commesse, agenda con avvisi, documenti, fatture, pagamenti, budget ed Editor PDF. Gratis, open source, i dati restano sul tuo computer. Provala nella pagina.">
 <meta name="theme-color" content="#3d0012">
 <meta property="og:title" content="TIO — Tutto In Ordine">
 <meta property="og:description" content="Un’app sola per tutto il lavoro di studi legali, professionisti e ditte. Gratis, i dati restano sul tuo computer.">
@@ -36,7 +36,7 @@
   <section class="eroe" aria-labelledby="titolo-eroe">
     <h1 id="titolo-eroe"><span class="iniziale">T</span>utto <span class="iniziale">I</span>n <span class="iniziale">O</span>rdine</h1>
     <p class="eroe-frase">Il tuo lavoro, <em>sul tuo computer.</em></p>
-    <p class="eroe-testo">Clienti, pratiche, agenda, documenti, fatture e pagamenti in un’app sola. Per studi legali, liberi professionisti e ditte individuali.</p>
+    <p class="eroe-testo">Clienti, pratiche, agenda, documenti, fatture, pagamenti e budget in un’app sola. Per studi legali, liberi professionisti e ditte individuali.</p>
     <div class="eroe-azioni">
       <a class="pulsante" href="#installare" data-scarica-os="mac" data-scarica-file="macArm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>Mac Apple Silicon</a>
       <a class="pulsante" href="#installare" data-scarica-os="mac" data-scarica-file="macIntel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>Mac Intel</a>
@@ -49,7 +49,7 @@
   <!-- la demo: una TIO in miniatura con dati inventati, che funziona nella pagina e non salva nulla -->
   <section class="demo" id="demo" aria-labelledby="titolo-demo">
     <h2 id="titolo-demo">Provala adesso.</h2>
-    <p class="sezione-sotto">Una TIO in miniatura, con dati di esempio. Spunta un compito, apri una pratica, cambia una priorità.</p>
+    <p class="sezione-sotto">Una TIO in miniatura, con dati di esempio. Spunta un compito, apri una pratica, cambia una priorità, guarda come va la cassa.</p>
     <div class="demo-finestra" data-demo data-tema="chiaro">
       <div class="demo-barra" aria-hidden="true"><s></s><s></s><s></s><b>TIO — demo</b></div>
       <div class="demo-app">
@@ -58,6 +58,7 @@
             <button type="button" role="tab" aria-selected="true" data-vista="panoramica">Panoramica</button>
             <button type="button" role="tab" aria-selected="false" data-vista="pratiche">Pratiche</button>
             <button type="button" role="tab" aria-selected="false" data-vista="compiti">Compiti</button>
+            <button type="button" role="tab" aria-selected="false" data-vista="budget">Budget</button>
           </div>
           <button type="button" class="demo-tema" data-demo-tema aria-pressed="false">Tema scuro</button>
         </div>
@@ -95,27 +96,27 @@
     <div class="funz-righe">
       <article class="funz-riga">
         <div><h3>Apri e sai cosa c’è da fare.</h3><p>Impegni di oggi, compiti, lavori in corso e quanto resta da incassare. Ogni pratica ha colore, stato e priorità: alta, media o bassa a colpo d’occhio.</p></div>
-        <img src="img/funzione-panoramica.webp" width="1600" height="1000" loading="lazy" alt="La Panoramica di TIO con impegni, compiti e lavori in corso">
+        <a class="foto-grande" href="img/funzione-panoramica.webp" aria-label="La Panoramica di TIO con impegni, compiti e lavori in corso: apri l’immagine a grandezza piena"><img src="img/funzione-panoramica.webp" width="1600" height="1000" loading="lazy" alt="La Panoramica di TIO con impegni, compiti e lavori in corso"></a>
       </article>
       <article class="funz-riga">
         <div><h3>Un’agenda che ti avvisa.</h3><p>Scadenze e appuntamenti con uno o più avvisi, anche a finestra chiusa. Gli impegni del tuo provider calendario compaiono accanto ai tuoi, in sola lettura.</p></div>
-        <img src="img/funzione-agenda.webp" width="1600" height="1000" loading="lazy" alt="L’agenda di TIO nella vista mensile">
+        <a class="foto-grande" href="img/funzione-agenda.webp" aria-label="L’agenda di TIO nella vista mensile: apri l’immagine a grandezza piena"><img src="img/funzione-agenda.webp" width="1600" height="1000" loading="lazy" alt="L’agenda di TIO nella vista mensile"></a>
       </article>
       <article class="funz-riga">
         <div><h3>Preventivi, fatture, pagamenti.</h3><p>PDF con la tua intestazione, IVA, bollo e cassa già calcolati, e il file XML FatturaPA per il tuo canale verso lo SdI. Lo scadenzario mostra entrate e uscite mese per mese.</p></div>
-        <img src="img/funzione-fatture.webp" width="1600" height="1000" loading="lazy" alt="Un documento di vendita in TIO">
+        <a class="foto-grande" href="img/funzione-fatture.webp" aria-label="Un documento di vendita in TIO: apri l’immagine a grandezza piena"><img src="img/funzione-fatture.webp" width="1600" height="1000" loading="lazy" alt="Un documento di vendita in TIO"></a>
       </article>
       <article class="funz-riga">
         <div><h3>Sai quanto puoi spendere.</h3><p>Saldo reale dei conti, previsione di cassa a dodici mesi, budget per categoria e per lavoro, rate, indicatori e quanto mettere da parte per le tasse. Legge le fatture del tuo servizio di fatturazione senza toccarlo e prepara il pacchetto per il commercialista.</p></div>
-        <img src="img/funzione-budget.webp" width="1600" height="1012" loading="lazy" alt="Il Budget di TIO con il saldo dei conti, le tasse da mettere da parte e il saldo previsto per dodici mesi">
+        <a class="foto-grande" href="img/funzione-budget.webp" aria-label="Il Budget di TIO con il saldo dei conti, le tasse da mettere da parte e il saldo previsto per dodici mesi: apri l’immagine a grandezza piena"><img src="img/funzione-budget.webp" width="1600" height="1012" loading="lazy" alt="Il Budget di TIO con il saldo dei conti, le tasse da mettere da parte e il saldo previsto per dodici mesi"></a>
       </article>
       <article class="funz-riga">
         <div><h3>Documenti già compilati.</h3><p>Modelli tuoi o pronti, con intestazione e piè di pagina; cliente, indirizzo e oggetto si scrivono da soli. Salvi in Word, PDF e altri formati, nella cartella del lavoro.</p></div>
-        <img src="img/strumento-editor.webp" width="1600" height="1000" loading="lazy" alt="L’editor dei documenti di TIO">
+        <a class="foto-grande" href="img/strumento-editor.webp" aria-label="L’editor dei documenti di TIO: apri l’immagine a grandezza piena"><img src="img/strumento-editor.webp" width="1600" height="1000" loading="lazy" alt="L’editor dei documenti di TIO"></a>
       </article>
       <article class="funz-riga">
         <div><h3>I PDF, senza servizi online.</h3><p>Comprimi gli allegati per la PEC, unisci e dividi, riordina e ruota le pagine, scrivi una nota, evidenzia, firma e numera. Tutto sul tuo computer, anche con i PDF protetti.</p></div>
-        <img src="img/strumento-pdf.webp" width="1600" height="1012" loading="lazy" alt="L’Editor PDF di TIO con le miniature delle pagine e una pagina aperta">
+        <a class="foto-grande" href="img/strumento-pdf.webp" aria-label="L’Editor PDF di TIO con le miniature delle pagine e una pagina aperta: apri l’immagine a grandezza piena"><img src="img/strumento-pdf.webp" width="1600" height="1012" loading="lazy" alt="L’Editor PDF di TIO con le miniature delle pagine e una pagina aperta"></a>
       </article>
     </div>
     <ul class="funz-griglia">
@@ -178,9 +179,9 @@
       <details><summary>È davvero gratis?</summary><p>Sì. Nessun abbonamento, nessuna versione a pagamento, nessuna pubblicità. Il codice è pubblico con licenza MIT.</p></details>
       <details><summary>Mi serve internet?</summary><p>No. Serve solo per scaricare TIO, per leggere un calendario collegato e per il controllo degli aggiornamenti, che puoi spegnere.</p></details>
       <details><summary>Chi vede i miei dati?</summary><p>Solo tu. L’archivio sta sul tuo computer. Puoi bloccare TIO con una password e cifrare i backup; per il disco conviene attivare FileVault sul Mac o BitLocker su Windows.</p></details>
-      <details><summary>Si collega ai programmi che uso già?</summary><p>Sì, senza account in mezzo: il tuo provider calendario tramite link iCal (sola lettura), la cartella in cui il tuo provider documenti scarica i file, Word ed Excel per modelli e importazioni, il tuo programma di posta e il canale della fattura elettronica tramite il file XML.</p></details>
+      <details><summary>Si collega ai programmi che uso già?</summary><p>Sì, senza account in mezzo: il tuo provider calendario tramite link iCal (sola lettura), la cartella in cui il tuo provider documenti scarica i file, Word ed Excel per modelli e importazioni, il tuo programma di posta e il canale della fattura elettronica tramite il file XML. Se fatturi con un altro servizio, TIO ne legge le fatture esportate (XML, .p7m o ZIP) per il budget, senza collegarsi al servizio e senza modificarlo.</p></details>
       <details><summary>Fa anche la fattura elettronica?</summary><p>Prepara il file XML FatturaPA, controllato con lo schema ufficiale. L’invio allo SdI, le ricevute e la conservazione restano al tuo canale o al commercialista.</p></details>
-      <details><summary>Va bene per il regime forfettario?</summary><p>Sì. Imposti l’IVA a zero: TIO aggiunge il bollo da 2 € quando serve. Cassa previdenziale e ritenuta si cambiano nello stesso posto.</p></details>
+      <details><summary>Va bene per il regime forfettario?</summary><p>Sì. Imposti l’IVA a zero: TIO aggiunge il bollo da 2 € quando serve. Cassa previdenziale e ritenuta si cambiano nello stesso posto. Nel Budget vedi quanto manca alla soglia dei ricavi e quanto mettere da parte per imposta sostitutiva e contributi.</p></details>
       <details><summary>Posso portare i dati che ho già?</summary><p>Sì. Clienti, lavori, scadenze e fatture si importano da CSV o Excel, con un’anteprima e senza doppioni.</p></details>
       <details><summary>Posso usarlo sul telefono o su più computer?</summary><p>No. TIO è per una persona su un computer. Puoi esportare l’agenda in un file .ics per il calendario del telefono.</p></details>
       <details><summary>E se il computer si rompe?</summary><p>TIO fa una copia al giorno e tiene le ultime sette, anche su un disco esterno. Su un computer nuovo scegli «Ripristina da backup…».</p></details>

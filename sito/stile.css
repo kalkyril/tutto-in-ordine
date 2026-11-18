@@ -159,6 +159,22 @@ main > section > h2, main > section > .sezione-sotto { text-align: center; }
 .demo-nuovo input { flex: 1; min-width: 0; font: inherit; color: var(--d-testo); background: var(--d-carta); border: 1px solid var(--d-bordo); border-radius: 9px; padding: 0.55rem 0.7rem; }
 .demo-nuovo input::placeholder { color: var(--d-piano); }
 .demo-nuovo button { font: inherit; font-weight: 650; border: 0; border-radius: 9px; padding: 0.55rem 0.9rem; background: var(--d-colore); color: var(--d-carta); cursor: pointer; }
+.demo-disponibile { border-color: var(--d-colore) !important; }
+.demo-budget-testa { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+.demo-budget-testa h3 { margin: 0; }
+.demo-interruttore { font: inherit; font-size: 0.8125rem; font-weight: 650; color: var(--d-testo); background: var(--d-carta); border: 1px solid var(--d-bordo); border-radius: 999px; padding: 0.35rem 0.8rem; min-height: 2.4rem; cursor: pointer; }
+.demo-interruttore[aria-pressed="true"] { border-color: var(--d-colore); box-shadow: inset 0 0 0 1px var(--d-colore); color: var(--d-colore); }
+.demo-mesi { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.4rem; background: var(--d-carta); border: 1px solid var(--d-bordo); border-radius: 11px; padding: 0.8rem 0.6rem 0.6rem; }
+.demo-mese { display: grid; justify-items: center; gap: 0.25rem; text-align: center; min-width: 0; }
+.demo-colonna { display: flex; align-items: flex-end; justify-content: center; width: 100%; height: 6.5rem; }
+.demo-colonna i { display: block; width: min(1.6rem, 70%); height: var(--h); background: var(--d-colore); border-radius: 5px 5px 2px 2px; transition: height 0.35s ease; }
+.demo-mese.sotto .demo-colonna i { background: #dc2626; }
+[data-tema="scuro"] .demo-mese.sotto .demo-colonna i { background: #f87171; }
+.demo-vista .demo-mese small { font-size: 0.6875rem; font-variant-numeric: tabular-nums; line-height: 1.25; }
+.demo-mese.sotto small { color: #b91c1c; font-weight: 650; } [data-tema="scuro"] .demo-mese.sotto small { color: #fca5a5; }
+.demo-mese-nome { font-size: 0.75rem; color: var(--d-piano); }
+.demo-avviso { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 11px; padding: 0.55rem 0.75rem; font-size: 0.875rem; }
+[data-tema="scuro"] .demo-avviso { background: #3a1620; color: #fecaca; border-color: #7f1d1d; }
 .demo-vuoto { color: var(--d-piano); }
 .demo-nota { color: var(--muted); font-size: 0.875rem; text-align: center; margin-top: 1rem; }
 /* sul telefono le sezioni della demo diventano una riga di schede in alto */
@@ -350,3 +366,6 @@ main > section.dati { padding: 0; }
 @media (min-width: 1100px) { .passo-figura > * { zoom: 0.7; } }
 /* la barra è sospesa sopra la pagina: il primo schermo parte sotto di lei (in fondo, così vale a ogni larghezza) */
 main > section.eroe { padding-top: calc(clamp(3.5rem, 11vw, 7.5rem) + 4.5rem); }
+.foto-grande { display: block; border-radius: inherit; cursor: zoom-in; }
+.foto-grande:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+@media (max-width: 400px) { .demo-schede { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; flex-basis: 100%; } .demo-schede button { text-align: center; } .demo-numeri b { font-size: 1rem; } .demo-mesi { gap: 0.2rem; padding-inline: 0.4rem; } .demo-vista .demo-mese small { min-height: 2.5em; } }

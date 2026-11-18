@@ -181,6 +181,8 @@ preparaDownload()
       { id: 4, pratica: 3, titolo: 'Richiedere i certificati', quando: 'Venerdì', fatto: false },
     ],
     impegni: [['09:30', 'Udienza di prima comparizione', 1], ['12:00', 'Sopralluogo in cantiere', 2], ['16:30', 'Appuntamento con Marta Bianchi', 3]],
+    // budget: saldo dei conti oggi, entrate e uscite attese nei prossimi sei mesi (a febbraio le imposte), tasse da mettere da parte
+    budget: { saldo: 5800, tasse: 1200, entrate: [3660, 2400, 5200, 1800, 4100, 3000], uscite: [2950, 3100, 6400, 2900, 3050, 2900], tardano: false },
   }
   let prossimo = 5
   const el = (tag, attr = {}, ...figli) => {
@@ -201,6 +203,13 @@ preparaDownload()
   }
   const scheda = (p) => el('button', { type: 'button', class: 'demo-pratica', style: `--pc:${p.colore}`, onclick: () => { stato.vista = 'pratiche'; stato.aperta = p.id; disegna() } },
     el('span', { class: 'demo-pratica-testa' }, priorita(p), el('small', {}, p.numero)), el('b', {}, p.titolo), el('small', {}, p.cliente), el('span', { class: 'demo-stato' }, p.stato))
+  const euro = (n) => (n < 0 ? '−' : '') + '€\u00a0' + Math.abs(n).toLocaleString('it-IT', { useGrouping: 'always' })
+  const mese = (i, lungo) => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + i); return d.toLocaleDateString('it-IT', { month: lungo ? 'long' : 'short' }) }
+  /** Saldo a fine mese: con «se gli incassi tardano» ogni incasso arriva un mese dopo. */
+  const previsione = () => {
+    const b = stato.budget; let saldo = b.saldo
+    return b.uscite.map((u, i) => { saldo += (b.tardano ? (i ? b.entrate[i - 1] : 0) : b.entrate[i]) - u; return { mese: mese(i), lungo: mese(i, true), saldo } })
+  }
   const viste = {
     panoramica: () => {
       const aperti = stato.compiti.filter((c) => !c.fatto)
@@ -220,6 +229,21 @@ preparaDownload()
         el('div', { class: 'demo-dettaglio', style: `--pc:${p.colore}` }, el('small', {}, `${p.numero} · ${p.stato}`), el('h3', {}, p.titolo), el('p', {}, 'Cliente: ', el('b', {}, p.cliente))),
         el('div', { class: 'demo-priorita', role: 'group', 'aria-label': 'Priorità' }, el('span', {}, 'Priorità'), PRIORITA.map(([nome, segno], i) => el('button', { type: 'button', 'aria-pressed': String(p.priorita === i), class: 'demo-prio-' + i, onclick: () => { p.priorita = i; disegna() } }, segno + ' ' + nome[0].toUpperCase() + nome.slice(1)))),
         el('h3', {}, 'Compiti'), suoi.map((c) => rigaCompito(c, false)), !suoi.length && el('p', { class: 'demo-vuoto' }, 'Nessun compito.'), aggiungi(p.id),
+      ]
+    },
+    budget: () => {
+      const b = stato.budget, mesi = previsione(), max = Math.max(...mesi.map((m) => Math.abs(m.saldo))), rosso = mesi.find((m) => m.saldo < 0)
+      const disponibile = b.saldo - b.tasse - b.uscite[0]
+      return [
+        el('div', { class: 'demo-numeri' }, el('p', {}, el('b', {}, euro(b.saldo)), ' saldo dei conti'), el('p', {}, el('b', {}, euro(b.uscite[0])), ' uscite entro 30 giorni'), el('p', { class: 'demo-disponibile' }, el('b', {}, euro(disponibile)), ' disponibile davvero')),
+        el('div', { class: 'demo-budget-testa' }, el('h3', {}, 'Saldo previsto a fine mese'),
+          el('button', { type: 'button', class: 'demo-interruttore', 'aria-pressed': String(b.tardano), onclick: () => { b.tardano = !b.tardano; disegna() } }, 'Se gli incassi tardano')),
+        el('div', { class: 'demo-mesi', role: 'img', 'aria-label': 'Saldo previsto: ' + mesi.map((m) => `${m.lungo} ${euro(m.saldo)}`).join(', ') },
+          mesi.map((m) => el('div', { class: 'demo-mese' + (m.saldo < 0 ? ' sotto' : '') },
+            el('span', { class: 'demo-colonna' }, el('i', { style: `--h:${Math.max(3, Math.round((Math.abs(m.saldo) / max) * 100))}%` })),
+            el('small', {}, euro(m.saldo).replace('\u00a0', ' ')), el('span', { class: 'demo-mese-nome' }, m.mese)))),
+        rosso ? el('p', { class: 'demo-avviso', role: 'status' }, `Se gli incassi tardano, a fine ${rosso.lungo} il saldo va sotto zero (${euro(rosso.saldo)}).`)
+          : el('p', { class: 'demo-vuoto' }, `Tasse da mettere da parte: ${euro(b.tasse)}, già tolte dal disponibile.`),
       ]
     },
     compiti: () => { const fatti = stato.compiti.filter((c) => c.fatto).length; return [el('h3', {}, `Compiti · ${fatti} di ${stato.compiti.length} fatti`), stato.compiti.map((c) => rigaCompito(c)), aggiungi(1)] },
