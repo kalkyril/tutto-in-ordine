@@ -31,7 +31,7 @@ npm run dist:win     # installer .exe (Windows 64 bit)
 
 **Prima uscita pubblica: 1.0.0 (versione 1.0), per decisione del titolare.** Le numerazioni 1.3/1.4 nello storico sono build interne precedenti al lancio. Il numero 1.0.0 è applicato; la prova manuale su un PC Windows reale è stata rimandata per decisione del titolare e restano le prove automatiche del workflow.
 
-Il workflow `.github/workflows/build.yml` si avvia con un tag che inizia con `v`:
+Ogni push su `main` e ogni pull request avviano le verifiche su Windows e macOS. In GitHub Actions, gli artefatti `registri-windows-latest` e `registri-macos-latest` contengono `suite.log` e i registri dei singoli scenari Electron. Per provare anche gli installer si può avviare il workflow a mano. Per pubblicare una versione si usa un tag che inizia con `v`.
 
 1. Per il primo lancio aggiorna la versione (`npm version 1.0.0 --no-git-tag-version`) e lo [storico](CHANGELOG.md), poi salva in Git.
 2. Soltanto al momento della pubblicazione crea e invia il tag: `git tag v1.0.0 && git push origin v1.0.0`.
@@ -94,6 +94,7 @@ Ogni scenario ha un tempo massimo (`MNGMNT_TEST_MAX_MIN`, predefinito 15 minuti)
 | `smoke-security` | confini di sicurezza dell'interfaccia |
 | `smoke-aggiornamenti` | controllo degli aggiornamenti, acceso per tutti e disattivabile (GitHub simulato) |
 | `smoke-profilo-ditta` | nel profilo ditta Agenda, Panoramica, stampa e scheda della pratica non parlano di udienze |
+| `smoke-103` | ruoli e contatti per pratica, limite di 25, selezione multipla, cliente principale e cronologia, ricerca in rubrica, documenti e accessibilità |
 | `smoke-axe` | rapporto dettagliato di accessibilità (diagnostico, senza riga RISULTATO) |
 
 Gli scenari non usano pause fisse: `scripts/lib/attesa.js` allunga le attese in base al carico e aspetta che la pagina smetta di cambiare. Lo scenario `smoke-ditta` (riordino trascinando) è sensibile al carico del computer.

@@ -59,7 +59,8 @@ export default function PraticaDetail({ id, tab: initialTab, focus }: { id: numb
   const cli = p.cliente_id ? anagraficaById.get(p.cliente_id) : null
   const ctr = p.controparte_id ? anagraficaById.get(p.controparte_id) : null
   // tutte le persone della pratica, raggruppate per ruolo (cliente e controparte principali per primi)
-  const gruppi = (['cliente', 'controparte', 'collaboratore', 'fornitore', 'altro'] as const).map((ruolo) => ({ ruolo, persone: personeDi(p, anagraficaById).filter((x) => x.ruolo === ruolo) })).filter((g) => g.persone.length)
+  const partecipanti = personeDi(p, anagraficaById)
+  const gruppi = (['cliente', 'controparte', 'collaboratore', 'fornitore', 'altro'] as const).map((ruolo) => ({ ruolo, persone: partecipanti.filter((x) => x.ruolo === ruolo) })).filter((g) => g.persone.length)
   const etichettaGruppo = (ruolo: string, n: number) => n > 1 && ruolo === 'cliente' ? L.clienti : n > 1 && ruolo === 'fornitore' ? 'Fornitori' : n > 1 && ruolo === 'collaboratore' ? 'Collaboratori' : n > 1 && ruolo === 'altro' ? 'Altri' : nomeRuolo(ruolo, settings.profilo, L)
   const statoObj = settings.stati_pratica.find((s) => s.nome === p.stato)
   const scadAperte = mine.scad.filter((s) => !s.completata).sort((a, b) => a.data_ora.localeCompare(b.data_ora))
@@ -128,7 +129,7 @@ export default function PraticaDetail({ id, tab: initialTab, focus }: { id: numb
             </dl>
             {p.descrizione && <><h3 className="sub-title">Descrizione</h3><p className="prewrap">{p.descrizione}</p></>}
           </section>
-          <CronologiaCard praticaId={p.id} />
+          <CronologiaCard key={p.id} praticaId={p.id} />
           </div>
           <div className="stack">
             <section className="card">

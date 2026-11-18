@@ -286,3 +286,8 @@ button.conto-scheda:hover { border-color: var(--accent); }
 .rate-genera .btn { width: 100%; justify-content: center; }
 .rate-tabella input { width: 100%; } .rate-tabella td.n input { text-align: right; font-variant-numeric: tabular-nums; }
 .rate-piede { justify-content: space-between; margin-top: 8px; flex-wrap: wrap; gap: 8px; }
+
+.scelta-contatti { margin-top: 12px; max-height: 45vh; overflow-y: auto; }
+.scelta-contatti .check { display: flex; padding: 7px 3px; border-bottom: 1px solid var(--border); white-space: normal; overflow-wrap: anywhere; }
+.scelta-contatti .check input { flex: none; }
+.scelta-contatti .check small { display: block; }

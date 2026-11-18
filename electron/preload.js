@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld('mngmnt', {
   },
   on: (event, cb) => {
     if (!EVENTS.has(event)) throw new Error('Evento non consentito: ' + event)
-    const h = (_e, payload) => cb(payload)
+    const h = (_e, ...args) => cb(...args)
     ipcRenderer.on(event, h)
     return () => ipcRenderer.removeListener(event, h)
   },

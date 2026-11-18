@@ -8,11 +8,13 @@ import { api } from '../api'
 /* ---------- Modale ---------- */
 // pila delle finestre aperte: Esc chiude solo quella in primo piano
 const pilaModali: symbol[] = []
-export function Modal({ title, onClose, children, footer, width = 560, subtitle, instant, protectChanges = true }: {
-  title: string; onClose: () => void; children: ReactNode; footer?: ReactNode; width?: number; subtitle?: string; instant?: boolean; protectChanges?: boolean
+export function Modal({ title, onClose, children, footer, width = 560, subtitle, instant, protectChanges = true, hasChanges = false }: {
+  title: string; onClose: () => void; children: ReactNode; footer?: ReactNode; width?: number; subtitle?: string; instant?: boolean; protectChanges?: boolean; hasChanges?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const dirty = useRef(false)
+  const modificheEsterne = useRef(hasChanges)
+  modificheEsterne.current = hasChanges
   const protezione = useRef(protectChanges); protezione.current = protectChanges // letta al momento: l'effetto della modale non va rifatto se cambia
   const busy = useRef(false)
   const { confirm } = useFeedback()
@@ -20,7 +22,7 @@ export function Modal({ title, onClose, children, footer, width = 560, subtitle,
     if (busy.current) return
     busy.current = true
     try {
-      if (protectChanges && dirty.current && !(await confirm({ title: 'Modifiche non salvate', text: 'Vuoi chiudere e perdere le modifiche inserite?', ok: 'Scarta modifiche', danger: true }))) return
+      if (protectChanges && (dirty.current || modificheEsterne.current) && !(await confirm({ title: 'Modifiche non salvate', text: 'Vuoi chiudere e perdere le modifiche inserite?', ok: 'Scarta modifiche', danger: true }))) return
       onClose()
     } finally { busy.current = false }
   }
@@ -57,14 +59,14 @@ export function Modal({ title, onClose, children, footer, width = 560, subtitle,
     }
     const saved = () => { if (pilaModali[pilaModali.length - 1] === me) dirty.current = false }
     window.addEventListener('mngmnt-saved', saved)
-    const beforeUnload = (event: BeforeUnloadEvent) => { if (protezione.current && dirty.current) { event.preventDefault(); event.returnValue = '' } }
+    const beforeUnload = (event: BeforeUnloadEvent) => { if (protezione.current && (dirty.current || modificheEsterne.current)) { event.preventDefault(); event.returnValue = '' } }
     window.addEventListener('beforeunload', beforeUnload)
     document.addEventListener('keydown', onKey, true)
     return () => { document.removeEventListener('keydown', onKey, true); window.removeEventListener('mngmnt-saved', saved); window.removeEventListener('beforeunload', beforeUnload); hidden.forEach((node) => { node.inert = false }); const i = pilaModali.indexOf(me); if (i >= 0) pilaModali.splice(i, 1); prev?.focus?.() }
   }, [])
   return (
     <div className={`overlay${instant ? ' instant' : ''}`} onMouseDown={(e) => { if (e.target === e.currentTarget) requestClose() }}>
-      <div className="modal" style={{ width }} role="dialog" aria-modal="true" aria-label={title} ref={ref} onInputCapture={() => { dirty.current = true }} onChangeCapture={() => { dirty.current = true }} onClickCapture={(e) => { const button = (e.target as HTMLElement).closest('button'); if (protectChanges && dirty.current && button?.closest('.modal-foot') && /^(chiudi|annulla)$/i.test(button.textContent?.trim() || '')) { e.preventDefault(); e.stopPropagation(); requestClose() } }}>
+      <div className="modal" style={{ width }} role="dialog" aria-modal="true" aria-label={title} ref={ref} onInputCapture={() => { dirty.current = true }} onChangeCapture={() => { dirty.current = true }} onClickCapture={(e) => { const button = (e.target as HTMLElement).closest('button'); if (protectChanges && (dirty.current || modificheEsterne.current) && button?.closest('.modal-foot') && /^(chiudi|annulla)$/i.test(button.textContent?.trim() || '')) { e.preventDefault(); e.stopPropagation(); requestClose() } }}>
         <header className="modal-head">
           <div><h2>{title}</h2>{subtitle && <p className="muted small">{subtitle}</p>}</div>
           <button className="icon-btn" onClick={requestClose} aria-label="Chiudi"><X size={18} /></button>

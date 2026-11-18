@@ -2,10 +2,11 @@ import { usePagination } from '../components/Pagination'
 import { Fragment, useMemo, useState } from 'react'
 import { Building2, Mail, Pencil, Phone, Plus, Search, Trash2, User, Users } from 'lucide-react'
 import { api } from '../api'
+import { useRicercaContatti } from '../lib/useRicercaContatti'
 import { useData } from '../store'
 import { useNav } from '../nav'
 import { useEditors } from '../components/editors'
-import { conflittiPer } from '../lib/conflitti'
+import { indiceConflitti } from '../lib/conflitti'
 import { Btn, ColorDot, Empty, PageHeader, Pill, Segmented, useAction, useFeedback } from '../components/ui'
 import { indirizzoInRiga, leggiIndirizzi, leggiRecapiti, nomeConTitolo, nomeRuolo, ruoliAnagrafica } from '../lib/recapiti'
 import { ruoliIn } from '../lib/persone'
@@ -24,14 +25,15 @@ export default function AnagraficaPage({ id }: { id?: number }) {
   const [sel, setSel] = useState<number | null>(id ?? null)
   const ditta = settings.profilo === 'ditta'
   // per le ditte le vecchie «controparti» (fornitore o altro) compaiono tra i fornitori
-  const delRuolo = (a: { ruolo: string }) => ruolo === 'tutti' || a.ruolo === ruolo || (ditta && ruolo === 'fornitore' && a.ruolo === 'controparte')
-  const rows = useMemo(() => anagrafica.filter((a) => delRuolo(a) &&
-    (!q.trim() || [a.denominazione, a.titolo, a.codice_fiscale, a.partita_iva, a.sdi, a.email, a.telefono, a.recapiti, a.citta, a.indirizzi].join(' ').toLowerCase().includes(q.toLowerCase()))), [anagrafica, q, ruolo]) // eslint-disable-line react-hooks/exhaustive-deps -- delRuolo dipende solo da ruolo e profilo
+  const risultati = useRicercaContatti(anagrafica, q)
+  const rows = useMemo(() => risultati.filter(a => ruolo === 'tutti' || a.ruolo === ruolo ||
+    (ditta && ruolo === 'fornitore' && a.ruolo === 'controparte')), [risultati, ruolo, ditta])
   const nomeR = (r: string) => nomeRuolo(r, settings.profilo, L)
   const { visible, controls } = usePagination(rows, JSON.stringify([q, ruolo]))
-  const cur = anagrafica.find((a) => a.id === sel) || rows[0]
-  const comeCliente = useMemo(() => cur ? pratiche.filter((p) => p.cliente_id && anagraficaById.get(p.cliente_id) && conflittiPer(cur, 'controparte', [p], anagraficaById).length) : [], [cur, pratiche, anagraficaById])
-  const comeControparte = useMemo(() => cur ? pratiche.filter((p) => p.controparte_id && anagraficaById.get(p.controparte_id) && conflittiPer(cur, 'cliente', [p], anagraficaById).length) : [], [cur, pratiche, anagraficaById])
+  const cur = rows.find((a) => a.id === sel) || visible[0]
+  const conflittiPer = useMemo(() => indiceConflitti(ditta ? [] : pratiche, anagraficaById), [ditta, pratiche, anagraficaById])
+  const comeCliente = useMemo(() => conflittiPer(cur, 'controparte').map(c => c.pratica), [cur, conflittiPer])
+  const comeControparte = useMemo(() => conflittiPer(cur, 'cliente').map(c => c.pratica), [cur, conflittiPer])
   // conflitto di interessi: concetto degli studi legali; per una ditta un cliente può essere anche fornitore
   const conflitto = settings.profilo !== 'ditta' && comeCliente.length > 0 && comeControparte.length > 0
   const sue = cur ? pratiche.filter((p) => ruoliIn(p, cur.id).length) : []
@@ -41,7 +43,7 @@ export default function AnagraficaPage({ id }: { id?: number }) {
     <div className="page">
       <PageHeader title="Anagrafica" subtitle={`${anagrafica.length} contatti`} actions={<Btn variant="primary" onClick={() => ed.open({ kind: 'anagrafica', ruolo: ruolo === 'tutti' ? 'cliente' : ruolo, onSaved: (a) => setSel(a.id) })}><Plus size={16} /> Nuovo contatto</Btn>} />
       <div className="toolbar">
-        <div className="search-box"><Search size={15} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca per nome, codice fiscale, email…" aria-label="Cerca" /></div>
+        <div className="search-box"><Search size={15} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca per nome, indirizzo, email, PEC…" aria-label="Cerca" /></div>
         <Segmented<R> value={ruolo} onChange={setRuolo} options={[{ id: 'tutti', label: 'Tutti' }, ...ruoliAnagrafica(settings.profilo, L).map((r) => ({ id: r.id as R, label: r.id === 'cliente' ? L.clienti : r.id === 'fornitore' ? 'Fornitori' : r.id === 'collaboratore' ? 'Collaboratori' : r.id === 'altro' ? 'Altri' : r.label }))]} />
       </div>
       {!anagrafica.length ? (

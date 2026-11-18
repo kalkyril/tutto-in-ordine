@@ -11,7 +11,9 @@ export function useBudgetDati(): DatiBudget & { errore: string } {
   useEffect(() => {
     let attivo = true, ticket = 0
     const carica = async () => { const n = ++ticket; try { const r = await api.budget('leggi'); if (attivo && ticket === n) { setDati(r); setErrore('') } } catch (e: any) { if (attivo && ticket === n) setErrore(String(e?.message || e)) } }
-    carica(); const off = window.mngmnt.on('data-changed', carica)
+    carica(); const off = window.mngmnt.on('data-changed', (tables: string[], ids) => {
+      if (!ids || tables.includes('budget')) carica()
+    })
     return () => { attivo = false; ticket++; off() }
   }, [])
   return { ...dati, errore }

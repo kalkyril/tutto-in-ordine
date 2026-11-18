@@ -5,7 +5,7 @@ const db = require('../db')
 const doctext = require('../doctext')
 const { praticaDir, docPath } = require('./percorsi')
 
-module.exports = function registra({ handle, changed, onSettings, getWindow, autorizza }) {
+module.exports = function registra({ handle, changed, changedRows, onSettings, getWindow, autorizza }) {
   // 1.0.2: contabile del pagamento (PDF o immagine) allegata a una voce da pagare. Il file si copia nella cartella dati
   // (documenti/contabili), così entra nei backup; eliminando la voce o sostituendo la contabile la copia si toglie.
   const path = require('node:path')
@@ -50,10 +50,21 @@ module.exports = function registra({ handle, changed, onSettings, getWindow, aut
     if (azione !== 'leggi') changed('gestione', 'parcelle', 'pratiche', 'todos')
     return r
   })
-  handle('db:list', (t, where, order) => db.list(t, where || {}, order || 'id DESC'))
+  handle('db:list', (t, where, order, limite) => db.list(t, where || {}, order || 'id DESC', limite))
+  handle('db:righe', (t, ids) => {
+    if (!['anagrafica', 'pratiche'].includes(t) || !Array.isArray(ids) || !ids.every(id => Number.isSafeInteger(id) && id > 0)) throw new Error('Selezione di righe non valida')
+    return db.getDb().prepare(`SELECT * FROM ${t} WHERE id IN (SELECT value FROM json_each(?))`).all(JSON.stringify(ids))
+  })
   handle('db:get', (t, id) => db.get(t, id))
   // Dati provenienti da servizi esterni: modificabili solo tramite gli appositi canali (collegamento locale a una pratica).
   const PROTETTE = new Set(['calendari', 'eventi_esterni'])
+  handle('db:salvaContatto', (contatto, modifiche) => {
+    const salvato = db.salvaContatto(contatto, modifiche)
+    const ids = { anagrafica: [salvato.id] }
+    if (modifiche.length) ids.pratiche = [...new Set(modifiche.map(x => Number(x.pratica_id)))]
+    changedRows(ids)
+    return salvato
+  })
   handle('db:save', (t, obj) => {
     if (PROTETTE.has(t)) throw new Error('Questi dati si gestiscono dalle Impostazioni → Integrazioni')
     if (t === 'documenti') {
@@ -63,16 +74,21 @@ module.exports = function registra({ handle, changed, onSettings, getWindow, aut
     if (t === 'parcelle' && (obj?.importazione || (obj?.id && db.get(t, obj.id)?.importazione))) throw new Error('Modifica il documento importato dal suo editor per conservarne la verifica')
     if (t === 'parcelle' && obj?.id && obj.tipo && obj.tipo !== db.get(t, obj.id)?.tipo) throw new Error('Cambia il tipo dall’editor del documento')
     const r = db.save(t, obj)
-    changed(t)
+    if (r && (t === 'pratiche' || t === 'anagrafica')) changedRows({ [t]: [r.id] })
+    else changed(t)
     return r
   })
   handle('db:delete', (t, id) => {
     if (PROTETTE.has(t)) throw new Error('Questi dati si gestiscono dalle Impostazioni → Integrazioni')
     if (t === 'pratiche') return deletePratica(id)
     if (t === 'documenti') return deleteDocumento(id)
+    if (t === 'anagrafica') {
+      const pratiche = db.eliminaContatto(id)
+      changedRows({ anagrafica: [Number(id)], pratiche }, 'parcelle', 'gestione')
+      return true
+    }
     db.remove(t, id)
     changed(t)
-    if (t === 'anagrafica') changed('pratiche', 'parcelle')
     return true
   })
   // Eliminazione con «Annulla»: la riga viene tolta e restituita al chiamante, che per qualche secondo può chiederne il ripristino.
@@ -143,6 +159,11 @@ module.exports = function registra({ handle, changed, onSettings, getWindow, aut
   handle('settings:risorse', (ids) => db.risorse(ids))
 
 
+  handle('pratica:salva', (dati, originale) => {
+    const p = db.salvaPraticaDaModulo(dati, originale)
+    changedRows({ pratiche: [p.id] })
+    return p
+  })
   handle('pratica:nextNumero', () => db.nextPraticaNumero())
   handle('parcella:get', (id) => db.getParcella(id))
   handle('parcella:save', (obj) => {

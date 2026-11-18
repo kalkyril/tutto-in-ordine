@@ -1,11 +1,11 @@
-import type { SearchHit } from './types'
+import type { Anagrafica, Pratica, RuoloPersona, SearchHit } from './types'
 import { comprimi, espandi } from './lib/risorse'
 
 declare global {
   interface Window {
     mngmnt: {
       invoke: (channel: string, ...args: any[]) => Promise<any>
-      on: (event: 'data-changed' | 'navigate' | 'blocca' | 'menu' | 'time-changed' | 'avanzamento', cb: (payload: any) => void) => () => void
+      on: (event: 'data-changed' | 'navigate' | 'blocca' | 'menu' | 'time-changed' | 'avanzamento', cb: (payload: any, ids?: Record<string, number[]>) => void) => () => void
       pathForFile: (f: File) => string
       platform: string
       test?: boolean
@@ -17,7 +17,7 @@ export interface RapportoSync { controllati: number; ok: number; ritrovati: { id
 
 const inv = async (ch: string, ...a: any[]) => {
   const result = await window.mngmnt.invoke(ch, ...a)
-  if (['db:save', 'parcella:save', 'settings:set', 'documenti:rename'].includes(ch)) window.dispatchEvent(new Event('mngmnt-saved'))
+  if (['db:save', 'db:salvaContatto', 'pratica:salva', 'parcella:save', 'settings:set', 'documenti:rename'].includes(ch)) window.dispatchEvent(new Event('mngmnt-saved'))
   return result
 }
 
@@ -34,15 +34,19 @@ export const api = {
   apriContabile: (costoId: number) => inv('app:contabile', 'apri', costoId),
   mostraContabile: (costoId: number) => inv('app:contabile', 'mostra', costoId),
   togliContabile: (costoId: number) => inv('app:contabile', 'togli', costoId),
-  list: <T = any>(t: string, where?: Record<string, any>, order?: string): Promise<T[]> => inv('db:list', t, where, order),
+  list: <T = any>(t: string, where?: Record<string, any>, order?: string, limite?: number): Promise<T[]> => inv('db:list', t, where, order, limite),
+  righe: (t: string, ids: number[]): Promise<(Anagrafica | Pratica)[]> => inv('db:righe', t, ids),
   get: <T = any>(t: string, id: number): Promise<T | null> => inv('db:get', t, id),
   save: <T = any>(t: string, obj: Record<string, any>): Promise<T> => inv('db:save', t, obj),
+  salvaContatto: (contatto: Partial<Anagrafica>, modifiche: { pratica_id: number; ruolo: RuoloPersona; collega: boolean }[]): Promise<Anagrafica> =>
+    inv('db:salvaContatto', contatto, modifiche),
   remove: (t: string, id: number): Promise<boolean> => inv('db:delete', t, id),
   removeUndo: (t: string, id: number): Promise<SnapshotEliminato | null> => inv('db:deleteUndo', t, id),
   undo: (snap: SnapshotEliminato): Promise<unknown> => inv('db:undo', snap),
   search: (q: string): Promise<SearchHit[]> => inv('db:search', q),
   settings: async () => espandi(await inv('settings:get'), (ids) => inv('settings:risorse', ids)),
   setSettings: (o: Record<string, any>) => inv('settings:set', comprimi(o)),
+  salvaPratica: (dati: Partial<Pratica>, originale?: Partial<Pratica>): Promise<Pratica> => inv('pratica:salva', dati, originale),
   nextPraticaNumero: (): Promise<string> => inv('pratica:nextNumero'),
   getParcella: (id: number) => inv('parcella:get', id),
   saveParcella: (o: Record<string, any>) => inv('parcella:save', o),

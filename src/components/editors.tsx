@@ -1,3 +1,4 @@
+import { ArchivioCompleto } from '../store'
 import { useCallback, useState, type ReactNode } from 'react'
 import { AnagraficaForm, LinkForm, PraticaForm, ScadenzaForm, TodoForm } from './forms'
 import type { Anagrafica, Link, Pratica, Scadenza, Todo } from '../types'
@@ -23,5 +24,5 @@ export function useEditors(): { open: (m: M) => void; element: ReactNode } {
       case 'link': element = <LinkForm item={m.item} praticaId={m.praticaId} onClose={close} />; break
     }
   }
-  return { open: setM, element }
+  return { open: setM, element: element && <ArchivioCompleto>{element}</ArchivioCompleto> }
 }

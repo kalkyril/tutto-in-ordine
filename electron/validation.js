@@ -2,6 +2,8 @@
 const fs = require('node:fs')
 const path = require('node:path')
 
+const ruoliPersona = new Set(['cliente', 'controparte', 'fornitore', 'collaboratore', 'altro'])
+
 function id(value) {
   if (!(typeof value === 'number' || (typeof value === 'string' && /^\d+$/.test(value)))) throw new Error('Identificativo non valido')
   const n = Number(value)
@@ -44,7 +46,7 @@ function record(table, obj) {
     if (key === 'priorita' && ![0, 1, 2].includes(Number(value))) throw new Error('Priorità non valida')
     if (key === 'persone') { // altre persone della pratica: elenco di { id, ruolo }
       let l; try { l = JSON.parse(value) } catch { throw new Error('Formato non valido: persone') }
-      if (!Array.isArray(l) || l.length > 200 || l.some((x) => !x || typeof x !== 'object' || !Number.isSafeInteger(x.id) || x.id <= 0 || !['cliente', 'controparte', 'fornitore', 'collaboratore', 'altro'].includes(x.ruolo))) throw new Error('Formato non valido: persone')
+      if (!Array.isArray(l) || l.some((x) => !x || typeof x !== 'object' || !Number.isSafeInteger(x.id) || x.id <= 0 || !ruoliPersona.has(x.ruolo))) throw new Error('Formato non valido: persone')
     }
     if (key === 'indirizzi') { let l; try { l = JSON.parse(value) } catch { l = null } if (!Array.isArray(l) || l.length > 50 || l.some((x) => !x || typeof x !== 'object')) throw new Error('Formato non valido: indirizzi') }
     if (key === 'anno' && (!Number.isInteger(Number(value)) || Number(value) < 1000 || Number(value) > 9999)) throw new Error('Anno non valido')
@@ -55,4 +57,4 @@ function record(table, obj) {
   if (table === 'parcelle' && obj.esito_preventivo && !['da_inviare','inviato','accettato','rifiutato'].includes(obj.esito_preventivo)) throw new Error('Esito del preventivo non valido')
 }
 
-module.exports = { id, inside, date, record }
+module.exports = { id, inside, date, record, ruoliPersona }

@@ -18,7 +18,7 @@ export interface Recapiti { telefoni: Recapito[]; email: Recapito[] }
 export interface Pratica {
   id: number; numero: string; titolo: string; cliente_id: number | null; controparte_id: number | null
   tipo?: string; stato?: string; colore: string; autorita?: string; giudice?: string; rg?: string
-  valore?: number | null; data_apertura?: string; data_chiusura?: string; descrizione?: string; cartella?: string | null; cartella_cliens?: string | null; preferita: number; created_at: string
+  valore?: number | null; data_apertura?: string; data_chiusura?: string | null; descrizione?: string; cartella?: string | null; cartella_cliens?: string | null; preferita: number; created_at: string
   budget_ore?: number | null; budget_importo?: number | null; consegna?: string | null
   /** 1.0.3: altre persone (JSON di PersonaPratica[]) e ruolo ricoperto nella pratica da chi usa TIO («Difensore», «CTU», «Direttore dei lavori»…) */
   persone?: string | null; ruolo?: string | null

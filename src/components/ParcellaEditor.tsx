@@ -8,6 +8,7 @@ import { PraticaSelect } from './forms'
 import { AnteprimaNota, ModelloPdfEditor } from './ModelloPdfEditor'
 import { FatturaElettronicaModal } from './FatturaElettronica'
 import { modelloEffettivo } from '../lib/modello'
+import { leggiPersone } from '../lib/persone'
 import { CompensoForm, type CalcRisultato, type CalcState } from './CompensoCalculator'
 import { calcolaParcella } from '../lib/calc'
 import { decimal, money, parseNumber } from '../lib/format'
@@ -67,6 +68,12 @@ export function ParcellaEditor({ parcella, preset, onClose }: { parcella?: Parce
   const set = (k: string, v: any) => setF((x: any) => ({ ...x, [k]: v }))
   const upd = (i: number, patch: Partial<VoceParcella>) => setVoci((v) => v.map((x, j) => (j === i ? { ...x, ...patch } : x)))
   const cliente = f.cliente_id ? anagraficaById.get(f.cliente_id) : null
+  const praticaDocumento = praticaById.get(f.pratica_id)
+  const clientiSelezionabili = useMemo(() => {
+    const clientiPratica = new Set(leggiPersone(praticaDocumento).filter(p => p.ruolo === 'cliente').map(p => p.id))
+    if (praticaDocumento?.cliente_id) clientiPratica.add(praticaDocumento.cliente_id)
+    return anagrafica.filter(a => a.ruolo !== 'controparte' || clientiPratica.has(a.id) || a.id === f.cliente_id)
+  }, [anagrafica, praticaDocumento, f.cliente_id])
 
   const modoCalcolo = usaCalcolo && !!calcRes
   const vociFinali = modoCalcolo ? [...calcRes!.voci, ...voci] : voci
@@ -186,7 +193,7 @@ export function ParcellaEditor({ parcella, preset, onClose }: { parcella?: Parce
           ? <>{parcella?.stato === 'annullata' ? <option value="emessa">Ripristina (dal registro dei pagamenti)</option> : <option value={parcella?.stato}>{parcella?.stato === 'pagata' ? 'Pagata' : 'Emessa'} (dal registro dei pagamenti)</option>}<option value="annullata">Annullata</option></>
           : <><option value="bozza">Bozza</option><option value="emessa">Emessa</option><option value="pagata">Pagata</option><option value="annullata">Annullata</option>{f.stato === 'stornata' && <option value="stornata">Stornata (nota di credito)</option>}</>}</Select></Field>
         {f.tipo === 'preventivo' && <><Field label="Valido fino al"><Input type="date" value={f.validita || ''} onChange={e=>set('validita',e.target.value||null)} /></Field><Field label="Esito preventivo"><Select value={f.esito_preventivo || 'da_inviare'} onChange={e=>set('esito_preventivo',e.target.value)}><option value="da_inviare">Da inviare</option><option value="inviato">Inviato</option><option value="accettato">Accettato</option><option value="rifiutato">Rifiutato</option></Select></Field></>}
-        <Field label={L.cliente} span={usaCalcolo ? 2 : undefined}><Select value={f.cliente_id ?? ''} onChange={(e) => set('cliente_id', e.target.value ? Number(e.target.value) : null)}><option value="">—</option>{anagrafica.filter((a) => a.ruolo !== 'controparte').map((a) => <option key={a.id} value={a.id}>{a.denominazione}</option>)}</Select></Field>
+        <Field label={L.cliente} span={usaCalcolo ? 2 : undefined}><Select value={f.cliente_id ?? ''} onChange={(e) => set('cliente_id', e.target.value ? Number(e.target.value) : null)}><option value="">—</option>{clientiSelezionabili.map((a) => <option key={a.id} value={a.id}>{a.denominazione}</option>)}</Select></Field>
         <Field label={L.pratica} span={usaCalcolo ? 2 : undefined}><PraticaSelect value={f.pratica_id} onChange={(v) => { set('pratica_id', v); const p = v ? praticaById.get(v) : null; if (p?.cliente_id && !f.cliente_id) set('cliente_id', p.cliente_id) }} /></Field>
         {f.stato === 'pagata' && <Field label="Data pagamento"><Input type="date" value={f.data_pagamento || todayStr()} onChange={(e) => set('data_pagamento', e.target.value)} /></Field>}
         {f.tipo === 'parcella' && <><Field label="Scadenza pagamento"><Input type="date" value={f.scadenza_pagamento || ''} onChange={(e) => set('scadenza_pagamento', e.target.value || null)} /></Field><Field label={usaCalcolo ? 'Incassato (€)' : 'Incassi / acconti ricevuti (€)'} hint={usaCalcolo ? undefined : 'Importo cumulativo già ricevuto, da zero al netto del documento'}><Input inputMode="decimal" title="Importo cumulativo già ricevuto, da zero al netto del documento" value={f.stato === 'pagata' ? tot.netto : f.incassato || 0} disabled={f.stato === 'pagata' || !!f.incassi_dettagliati} onChange={(e) => set('incassato', parseNumber(e.target.value))} /></Field></>}

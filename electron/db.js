@@ -6,6 +6,7 @@ const crypto = require('node:crypto')
 const path = require('node:path')
 
 const validation = require('./validation')
+const { variazioniAttori } = require('./attori')
 const SCHEMA_VERSION = 6
 
 const SCHEMA = `
@@ -391,13 +392,14 @@ function norm(v) {
   return v
 }
 
-function list(t, where = {}, orderBy = 'id DESC') {
+function list(t, where = {}, orderBy = 'id DESC', limite) {
   assertTable(t)
   const cols = columns(t)
   const keys = Object.keys(where).filter((k) => cols.includes(k))
+  if (limite !== undefined && (!Number.isSafeInteger(limite) || limite < 1)) throw new Error('Limite di lettura non valido')
   const sql = `SELECT * FROM ${t}` +
     (keys.length ? ' WHERE ' + keys.map((k) => (where[k] === null ? `${k} IS NULL` : `${k} = ?`)).join(' AND ') : '') +
-    ` ORDER BY ${safeOrder(orderBy, cols)}`
+    ` ORDER BY ${safeOrder(orderBy, cols)}` + (limite === undefined ? '' : ` LIMIT ${limite}`)
   return db.prepare(sql).all(...keys.filter((k) => where[k] !== null).map((k) => norm(where[k])))
 }
 
@@ -428,6 +430,8 @@ function save(t, obj) {
     if (old?.incassi_dettagliati && obj.netto !== undefined && Number(obj.netto) < old.incassato-0.005) throw new Error('Il netto non può essere inferiore ai pagamenti registrati')
   }
   const prima = obj.id && (CRONO[t] || t === 'pratiche') ? get(t, obj.id) : null
+  const aggiornaAttori = t === 'pratiche' && ['cliente_id', 'controparte_id', 'persone'].some(k => k in obj)
+  const cambi = aggiornaAttori ? variazioniAttori(prima, { ...prima, ...obj }) : []
   let r = salva(t, obj)
   if (t === 'parcelle' && r?.incassi_dettagliati) { aggiornaIncassi(r.id); r = get(t, r.id) } // il netto può essere cambiato: stato e data di pagamento seguono
   if (t === 'documenti' && obj.id && ['percorso','file','impronta','dimensione'].some((key) => key in obj)) db.prepare('DELETE FROM documenti_testo WHERE documento_id=?').run(obj.id)
@@ -435,8 +439,103 @@ function save(t, obj) {
   else if (t === 'pratiche' && r) {
     if (!prima) scriviCronologia(r.id, t, r.id, 'creato', 'Pratica aperta')
     else if (prima.stato !== r.stato) scriviCronologia(r.id, t, r.id, 'stato', `Stato: ${prima.stato || '—'} → ${r.stato || '—'}`)
+    if (cambi.length && cronologiaAttiva) {
+      const nomi = new Map(db.prepare('SELECT id, denominazione FROM anagrafica WHERE id IN (SELECT value FROM json_each(?))')
+        .all(JSON.stringify(cambi.map(x => x.id))).map(x => [x.id, x.denominazione]))
+      const voci = cambi.map(x => {
+        const nome = nomi.get(x.id) || `Contatto ${x.id}`
+        if (!x.da) return `Collegato ${nome} (${x.a})`
+        if (!x.a) return `Scollegato ${nome} (${x.da})`
+        return `${nome} (${x.da} → ${x.a})`
+      })
+      scriviCronologia(r.id, 'pratiche', r.id, 'modificato', voci.join(' · '))
+    }
   }
   return r
+}
+
+/** Applica solo i collegamenti modificati nel modulo ai dati attuali della pratica. */
+function salvaContatto(contatto, modifiche) {
+  if (!Array.isArray(modifiche)) throw new Error('Collegamenti alle pratiche non validi')
+  const perPratica = new Map()
+  for (const modifica of modifiche) {
+    const id = validation.id(modifica?.pratica_id)
+    if (!validation.ruoliPersona.has(modifica.ruolo) || typeof modifica.collega !== 'boolean') throw new Error('Collegamento alla pratica non valido')
+    if (!perPratica.has(id)) perPratica.set(id, new Map())
+    perPratica.get(id).set(modifica.ruolo, modifica.collega)
+  }
+  return transaction(() => {
+    const a = save('anagrafica', contatto)
+    if (!a) throw new Error('Il contatto non è più presente in anagrafica')
+    for (const [id, variazioni] of perPratica) {
+      const p = get('pratiche', id)
+      if (!p) throw new Error('Una delle pratiche scelte non è più presente in archivio')
+      validation.record('pratiche', { persone: p.persone })
+      let altre = JSON.parse(p.persone || '[]')
+      const principali = { cliente: p.cliente_id, controparte: p.controparte_id }
+      for (const [ruolo, collega] of variazioni) {
+        if (!collega) {
+          if (principali[ruolo] === a.id) principali[ruolo] = null
+          altre = altre.filter(x => x.id !== a.id || x.ruolo !== ruolo)
+        } else if (principali[ruolo] !== a.id && !altre.some(x => x.id === a.id && x.ruolo === ruolo)) {
+          if (ruolo in principali && !principali[ruolo]) principali[ruolo] = a.id
+          else altre.push({ id: a.id, ruolo })
+        }
+      }
+      save('pratiche', { id, cliente_id: principali.cliente, controparte_id: principali.controparte, persone: altre.length ? JSON.stringify(altre) : null })
+    }
+    return a
+  })
+}
+
+// Due editor possono aggiungere o togliere partecipanti diversi alla stessa pratica.
+function unisciPersone(originali, proposte, attuali) {
+  const leggi = persone => {
+    validation.record('pratiche', { persone })
+    return JSON.parse(persone || '[]')
+  }
+  const chiave = x => `${x.id}-${x.ruolo}`
+  const prima = new Set(leggi(originali).map(chiave))
+  const richieste = leggi(proposte)
+  const dopo = new Set(richieste.map(chiave))
+  const unite = new Map()
+  for (const x of leggi(attuali)) {
+    const k = chiave(x)
+    if (!prima.has(k) || dopo.has(k)) unite.set(k, x)
+  }
+  for (const x of richieste) {
+    const k = chiave(x)
+    if (!prima.has(k)) unite.set(k, x)
+  }
+  return unite.size ? JSON.stringify([...unite.values()]) : null
+}
+
+/** Il modulo può restare aperto mentre cambia la pratica, ad esempio creando un contatto al suo interno. */
+function salvaPraticaDaModulo(dati, originale) {
+  return transaction(() => {
+    const patch = { ...dati }
+    if (dati.id) {
+      const attuale = get('pratiche', dati.id)
+      if (!attuale || originale?.id !== dati.id) throw new Error('La pratica non è più disponibile. Riapri la scheda.')
+      for (const k of Object.keys(patch)) {
+        if (k === 'id') continue
+        if (patch[k] === originale[k]) delete patch[k]
+        else if (attuale[k] !== originale[k] && attuale[k] !== patch[k]) {
+          if (k === 'persone') {
+            patch.persone = unisciPersone(originale.persone, patch.persone, attuale.persone)
+            continue
+          }
+          throw new Error('La pratica è cambiata durante la modifica. Riaprila per verificare i dati aggiornati.')
+        }
+      }
+    } else if (!patch.numero) patch.numero = nextPraticaNumero()
+    if (patch.persone) {
+      validation.record('pratiche', { persone: patch.persone })
+      const manca = db.prepare("SELECT 1 FROM json_each(?) AS p LEFT JOIN anagrafica a ON a.id = json_extract(p.value, '$.id') WHERE a.id IS NULL LIMIT 1").get(patch.persone)
+      if (manca) throw new Error('Un contatto selezionato non è più in rubrica. Verifica le persone della pratica.')
+    }
+    return save('pratiche', patch)
+  })
 }
 
 function salva(t, obj) {
@@ -464,12 +563,33 @@ function remove(t, id) {
   id = validation.id(id)
   if (CRONO[t]) { const r = get(t, id); if (r) scriviCronologia(r.pratica_id, t, id, 'eliminato', descrivi(t, r)) }
   // il contatto eliminato esce anche dalle «altre persone» delle pratiche (cliente e controparte li azzera la chiave esterna)
-  if (t === 'anagrafica') for (const p of db.prepare("SELECT id, persone FROM pratiche WHERE persone IS NOT NULL AND persone <> ''").all()) {
-    let l; try { l = JSON.parse(p.persone) } catch { continue }
-    if (Array.isArray(l) && l.some((x) => Number(x?.id) === id)) { const resto = l.filter((x) => Number(x?.id) !== id); db.prepare('UPDATE pratiche SET persone = ? WHERE id = ?').run(resto.length ? JSON.stringify(resto) : null, p.id) }
-  }
+  if (t === 'anagrafica') { eliminaContatto(id); return true }
   db.prepare(`DELETE FROM ${t} WHERE id = ?`).run(id)
   return true
+}
+
+function eliminaContatto(id) {
+  id = validation.id(id)
+  return transaction(() => {
+    const pratiche = db.prepare(`SELECT id, cliente_id, controparte_id, persone FROM pratiche
+      WHERE cliente_id = ? OR controparte_id = ? OR EXISTS (
+        SELECT 1 FROM json_each(CASE WHEN json_valid(persone) THEN persone ELSE '[]' END) x
+        WHERE x.type = 'object' AND json_extract(x.value, '$.id') = ?)`).all(id, id, id)
+    for (const p of pratiche) {
+      const patch = { id: p.id }
+      if (p.cliente_id === id) patch.cliente_id = null
+      if (p.controparte_id === id) patch.controparte_id = null
+      let altre
+      try { altre = JSON.parse(p.persone || '[]') } catch { altre = [] }
+      if (Array.isArray(altre) && altre.some(x => x?.id === id)) {
+        const resto = altre.filter(x => x?.id !== id)
+        patch.persone = resto.length ? JSON.stringify(resto) : null
+      }
+      save('pratiche', patch)
+    }
+    db.prepare('DELETE FROM anagrafica WHERE id = ?').run(id)
+    return pratiche.map(p => p.id)
+  })
 }
 
 // ---- cronologia della pratica: chi/cosa/quando, scritta qui così vale per qualsiasi punto dell'app che salva dati ----
@@ -509,21 +629,22 @@ function localNow() {
 let profondita = 0
 /** Transazione annidabile: la più esterna usa BEGIN/COMMIT, quelle interne i savepoint (rollback parziale in caso di errore). */
 function transaction(fn) {
+  const esterna = profondita === 0
   const sp = `sp_${profondita}`
-  db.exec(profondita === 0 ? 'BEGIN' : `SAVEPOINT ${sp}`)
+  db.exec(esterna ? 'BEGIN' : `SAVEPOINT ${sp}`)
   profondita++
   try {
     const r = fn()
-    profondita--
-    db.exec(profondita === 0 ? 'COMMIT' : `RELEASE ${sp}`)
+    db.exec(esterna ? 'COMMIT' : `RELEASE ${sp}`)
     return r
   } catch (e) {
-    profondita--
     try {
-      if (profondita === 0) db.exec('ROLLBACK')
+      if (esterna) db.exec('ROLLBACK')
       else { db.exec(`ROLLBACK TO ${sp}`); db.exec(`RELEASE ${sp}`) }
     } catch { /* nessuna transazione attiva */ }
     throw e
+  } finally {
+    profondita--
   }
 }
 
@@ -749,7 +870,7 @@ function openForBackup(dir) {
 
 module.exports = { openForBackup,
   getRecoveryResult: () => recoveryResult,
-  open, close, isolaArchivioDanneggiato, verificaIntegrita, getDb, getDataDir, list, get, save, remove, transaction, localNow,
+  open, close, isolaArchivioDanneggiato, verificaIntegrita, getDb, getDataDir, list, get, save, salvaContatto, eliminaContatto, salvaPraticaDaModulo, remove, transaction, localNow,
   getSettings, setSettings, risorse, espandiRisorse, manutenzione, nextPraticaNumero, nextParcellaNumero,
   getParcella, saveParcella, reorderTodos, searchAll, TABLES, ripristina, senzaCronologia, scriviCronologia,
 }

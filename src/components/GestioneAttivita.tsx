@@ -24,7 +24,9 @@ export function useGestione() {
   useEffect(() => {
     let attivo=true, ticket=0
     const load=async()=>{const n=++ticket;try {const r=await api.gestione('leggi');if(attivo&&ticket===n){setDati(r);setErrore('')}} catch(e:any){if(attivo&&ticket===n)setErrore(e.message)}}
-    load();const off=window.mngmnt.on('data-changed',load)
+    load();const off=window.mngmnt.on('data-changed', (tables: string[], ids) => {
+      if (!ids || tables.some(t => t !== 'cronologia' && !ids[t])) load()
+    })
     return()=>{attivo=false;ticket++;off()}
   },[])
   return { ...dati, errore }

@@ -2,6 +2,17 @@
 // (altri clienti, controparti, fornitori, collaboratori), e il ruolo ricoperto da chi usa TIO.
 import type { Anagrafica, PersonaPratica, Pratica, RuoloPersona } from '../types'
 
+import limiti from '../../electron/data/limiti.json'
+
+export const MAX_ATTORI = limiti.attoriPerPratica
+export function idAttori(p: Partial<Pratica> | undefined, altre = leggiPersone(p) as { id: number | null }[]): Set<number> {
+  return new Set([p?.cliente_id, p?.controparte_id, ...altre.map(x => x.id)].filter((id): id is number => !!id))
+}
+
+export function superaLimite(prima: Set<number>, dopo: Set<number>) {
+  return dopo.size > MAX_ATTORI && [...dopo].some(id => !prima.has(id))
+}
+
 const RUOLI: RuoloPersona[] = ['cliente', 'controparte', 'fornitore', 'collaboratore', 'altro']
 /** Ruoli proposti per chi usa TIO: il campo è libero, si può scrivere anche altro. */
 export const RUOLI_PROFESSIONISTA = {
@@ -22,9 +33,12 @@ export const scriviPersone = (l: PersonaPratica[]): string | null => { const pul
 /** Tutte le persone della pratica con il loro ruolo: prima cliente e controparte principali, poi le altre. */
 export function personeDi(p: Pratica, anagrafica: Map<number, Anagrafica>): { contatto: Anagrafica; ruolo: RuoloPersona; principale: boolean }[] {
   const out: { contatto: Anagrafica; ruolo: RuoloPersona; principale: boolean }[] = []
-  const metti = (id: number | null | undefined, ruolo: RuoloPersona, principale: boolean) => { const contatto = id ? anagrafica.get(id) : undefined; if (contatto && !out.some((x) => x.contatto.id === contatto.id && x.ruolo === ruolo)) out.push({ contatto, ruolo, principale }) }
+  const metti = (id: number | null | undefined, ruolo: RuoloPersona, principale: boolean) => { const contatto = id ? anagrafica.get(id) : undefined; if (contatto) out.push({ contatto, ruolo, principale }) }
   metti(p.cliente_id, 'cliente', true); metti(p.controparte_id, 'controparte', true)
-  for (const x of leggiPersone(p)) metti(x.id, x.ruolo, false)
+  for (const x of leggiPersone(p)) {
+    if (x.ruolo === 'cliente' && x.id === p.cliente_id || x.ruolo === 'controparte' && x.id === p.controparte_id) continue
+    metti(x.id, x.ruolo, false)
+  }
   return out
 }
 /** Ruoli che il contatto ha nella pratica (vuoto se non c'entra). */

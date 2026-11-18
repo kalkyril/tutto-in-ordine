@@ -26,7 +26,10 @@ jobs:
       - name: Dipendenze senza vulnerabilità alte
         run: node scripts/controlla-audit.js
       - name: Prove automatiche (calcoli, dati, report, controllo dei tipi)
-        run: node scripts/run-tests.js
+        run: |
+          mkdir -p "$RUNNER_TEMP/smoke"
+          set -o pipefail
+          node scripts/run-tests.js 2>&1 | tee "$RUNNER_TEMP/smoke/suite.log"
         shell: bash
       - name: Prove nell'app vera
         run: sh scripts/run-all-smoke.sh "$RUNNER_TEMP/smoke"

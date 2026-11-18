@@ -15,6 +15,12 @@ function attach({ getWindow, db }) {
   const results = []
   const check = (name, cond, extra = '') => { results.push({ name, ok: !!cond }); console.log(`${cond ? 'PASS' : 'FAIL'} ${name} ${extra}`) }
   const js = (code) => wc.executeJavaScript(code, true)
+  const premi = async (keyCode, modifiers = []) => {
+    wc.sendInputEvent({ type: 'keyDown', keyCode, modifiers })
+    wc.sendInputEvent({ type: 'keyUp', keyCode, modifiers })
+    await sleep(80)
+  }
+  const etichettaFocus = () => js("document.activeElement.labels?.[0]?.textContent || ''")
   const text = () => js('document.body.innerText')
   const shot = async (n) => { await sleep(350); for (let i = 0; i < 3; i++) { try { fs.writeFileSync(path.join(out, n + '.png'), (await wc.capturePage()).toPNG()); return } catch { await sleep(500) } } } // la cattura può non riuscire senza scheda grafica (es. Linux senza schermo): non è un errore dell'app
   const clickText = (sel, text) => require('./smoke-ui').clickTextReady(js, sel, text)
@@ -39,6 +45,11 @@ function attach({ getWindow, db }) {
       await clickText('.nav-item', 'Anagrafica'); await sleep(400)
       await clickText('button', 'Nuovo contatto'); await sleep(300)
       check('anagrafica: salvataggio disabilitato senza nome', await js(`document.querySelector('.modal .btn-primary').disabled`))
+      await js("document.querySelector('.modal input[required]').focus()")
+      await premi('Down')
+      check('nuovo contatto: freccia giù dal nome al codice fiscale', await etichettaFocus() === 'Codice fiscale')
+      await premi('Up')
+      check('nuovo contatto: freccia su torna al nome', (await etichettaFocus()).includes('Nome e cognome'))
       await setVal('.modal input[required]', 'Bianchi SRL'); await sleep(100)
       await clickText('.modal .btn-primary', 'Salva'); await sleep(700)
       const cli = db.list('anagrafica').find((a) => a.denominazione === 'Bianchi SRL')
@@ -50,6 +61,15 @@ function attach({ getWindow, db }) {
       t = await text()
       check('ditta: modulo pratica con campi generici (Ente / Ufficio, Referente) e senza "Autorità giudiziaria"', t.includes('Ente / Ufficio') && t.includes('Referente') && !t.includes('Autorità giudiziaria'))
       await setVal('.modal input[required]', 'Impianto fotovoltaico Via Roma'); await setSelect('Cliente', cli.id); await sleep(150)
+      await js("const titolo = document.querySelector('.modal input[required]'); titolo.focus(); titolo.setSelectionRange(4, 4)")
+      await premi('Right')
+      check('nuova commessa: la freccia destra sposta il cursore nel titolo', await js("document.activeElement.selectionStart === 5 && document.activeElement.required"))
+      await premi('Down')
+      check('nuova commessa: dal titolo al numero', await etichettaFocus() === 'Numero')
+      await premi('Down')
+      check('nuova commessa: dal numero allo stato', await etichettaFocus() === 'Stato')
+      await premi('Down', ['alt'])
+      check('nuova commessa: Alt e freccia escono dalla lista di stato', await etichettaFocus() === 'Cliente')
       await clickText('.modal .btn-primary', 'Salva'); await sleep(900)
       const pr = db.list('pratiche').find((p) => p.titolo === 'Impianto fotovoltaico Via Roma')
       check('pratica: creata con cliente collegato e numero progressivo', pr && pr.cliente_id === cli.id && /^\d{4}\/001$/.test(pr.numero), pr ? pr.numero : '')
@@ -137,7 +157,7 @@ function attach({ getWindow, db }) {
 
       const bad2 = results.filter((r) => !r.ok)
       console.log(`\nRISULTATO: ${results.length - bad2.length}/${results.length} controlli superati`)
-    } catch (e) { console.log('ERRORE', e) } finally { setTimeout(() => process.exit(0), 300) }
+    } catch (e) { console.log('ERRORE', e); results.push({ ok: false }) } finally { setTimeout(() => process.exit(results.every(r => r.ok) ? 0 : 1), 300) }
   })
   wc.on('console-message', (e) => { if (e.level === 'warning' || e.level === 'error') console.log('[renderer]', e.message) }) // API di Electron con l'oggetto evento (gli argomenti separati sono deprecati)
 }

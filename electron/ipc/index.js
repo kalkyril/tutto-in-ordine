@@ -24,6 +24,11 @@ function register({ getWindow, notifyChanged, onSettings, runAlertCheck, control
   // qualsiasi modifica ai dati di una pratica può aggiungere righe alla sua cronologia: la schermata si aggiorna da sola
   const CON_CRONOLOGIA = new Set(['pratiche', 'scadenze', 'todos', 'note', 'documenti', 'ore', 'spese', 'parcelle'])
   const changed = (...tables) => notifyChanged(tables.some((t) => CON_CRONOLOGIA.has(t)) && !tables.includes('cronologia') ? [...tables, 'cronologia'] : tables)
+  const changedRows = (ids, ...complete) => {
+    const tables = [...Object.keys(ids), ...complete]
+    if (tables.some(t => CON_CRONOLOGIA.has(t))) tables.push('cronologia')
+    notifyChanged(tables, ids)
+  }
   // il renderer può chiedere di leggere solo percorsi scelti dall'utente con la finestra di sistema
   const scelti = new Set()
   const autorizza = (p) => { if (!scelti.has(p)) throw new Error('Seleziona di nuovo il file o la cartella'); return p }
@@ -32,7 +37,7 @@ function register({ getWindow, notifyChanged, onSettings, runAlertCheck, control
     if (typeof file !== 'string' || !require('node:path').isAbsolute(file) || !require('node:fs').existsSync(file)) { event.returnValue = false; return }
     scelti.add(file); event.returnValue = true
   })
-  const ctx = { handle, changed, getWindow, onSettings, runAlertCheck, controllaAggiornamenti, scelti, autorizza }
+  const ctx = { handle, changed, changedRows, getWindow, onSettings, runAlertCheck, controllaAggiornamenti, scelti, autorizza }
   for (const modulo of ['dati', 'documenti', 'calendari', 'importazione', 'sistema', 'esportazione', 'strumenti', 'fatture', 'budget']) require('./' + modulo)(ctx)
 }
 

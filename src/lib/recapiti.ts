@@ -17,7 +17,7 @@ const pulisci = (l: unknown): Recapito[] => (Array.isArray(l) ? l : [])
 export function leggiRecapiti(a: Partial<Anagrafica> | null | undefined): Recapiti {
   let r: Partial<Recapiti> = {}
   try { r = a?.recapiti ? JSON.parse(a.recapiti) : {} } catch { r = {} }
-  const telefoni = pulisci(r.telefoni), email = pulisci(r.email)
+  const telefoni = pulisci(r?.telefoni), email = pulisci(r?.email)
   // il campo principale modificato altrove (importazione, versione precedente) vince sulla prima voce salvata
   if (a?.telefono && telefoni[0]?.valore !== a.telefono) telefoni.unshift({ etichetta: telefoni.length ? 'Telefono' : 'Cellulare', valore: a.telefono })
   if (a?.email && email[0]?.valore !== a.email) email.unshift({ etichetta: email.length ? 'Email' : 'Personale', valore: a.email })
@@ -44,6 +44,18 @@ export function leggiIndirizzi(a: Partial<Anagrafica> | null | undefined): Indir
 export const scriviIndirizzi = (l: Indirizzo[]): string | null => { const puliti = leggiIndirizzi({ indirizzi: JSON.stringify(l) }); return puliti.length ? JSON.stringify(puliti) : null }
 /** «Via Roma 3, 41012 Carpi (MO)» */
 export const indirizzoInRiga = (x: { indirizzo?: string | null; cap?: string | null; citta?: string | null; provincia?: string | null }) => [x.indirizzo, [x.cap, x.citta, x.provincia && `(${x.provincia})`].filter(Boolean).join(' ')].filter(Boolean).join(', ')
+
+export const normalizzaRicerca = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim()
+
+export function testoRicercaContatto(a: Anagrafica): string {
+  const { telefoni, email } = leggiRecapiti(a)
+  return normalizzaRicerca([
+    a.denominazione, a.titolo, a.codice_fiscale, a.partita_iva, a.sdi, a.pec, a.note,
+    a.indirizzo, a.cap, a.citta, a.provincia,
+    ...leggiIndirizzi(a).flatMap(x => [x.etichetta, x.indirizzo, x.cap, x.citta, x.provincia]),
+    ...[...telefoni, ...email].flatMap(x => [x.etichetta, x.valore]),
+  ].filter(Boolean).join(' '))
+}
 
 /** Nome con il titolo davanti («Ing. Mario Rossi»), solo per le persone fisiche. */
 export const nomeConTitolo = (a: Partial<Anagrafica> | null | undefined) => a ? [a.tipo !== 'azienda' ? a.titolo?.trim() : '', a.denominazione].filter(Boolean).join(' ') : ''

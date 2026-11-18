@@ -25,7 +25,8 @@ const audit = (...arg) => {
   try { testo = execSync(['npm audit --json', ...arg].join(' '), { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }) } catch (e) { testo = e.stdout }
   const r = JSON.parse(testo || '{}')
   if (r.error) throw new Error(`npm audit non riuscito: ${r.error.summary || JSON.stringify(r.error)}`)
-  return r.vulnerabilities || {}
+  if (!r.metadata || !r.vulnerabilities || typeof r.vulnerabilities !== 'object') throw new Error('npm audit non ha restituito un rapporto completo')
+  return r.vulnerabilities
 }
 const gravi = (v) => Object.values(v).filter((x) => x.severity === 'high' || x.severity === 'critical')
 // gli avvisi da cui dipende davvero una voce: npm elenca come «via» o un avviso o il nome di un altro pacchetto vulnerabile
@@ -41,8 +42,9 @@ let errori = 0
 const errore = (t) => { errori++; console.log('ERRORE ' + t) }
 
 // 1. app installata
-const app = gravi(audit('--omit=dev'))
-for (const v of app) errore(`dipendenza dell'app installata: ${v.name} (${v.severity}) ${avvisiDi(v.name, audit('--omit=dev')).map((a) => a.id).join(', ')}`)
+const produzione = audit('--omit=dev')
+const app = gravi(produzione)
+for (const v of app) errore(`dipendenza dell'app installata: ${v.name} (${v.severity}) ${avvisiDi(v.name, produzione).map((a) => a.id).join(', ')}`)
 if (!app.length) console.log('OK   dipendenze dell’app installata: nessuna vulnerabilità alta o critica')
 
 // 2. strumenti di sviluppo

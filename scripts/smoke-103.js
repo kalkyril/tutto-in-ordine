@@ -37,8 +37,8 @@ function attach({ getWindow, db }) {
       await sleep(900)
       db.setSettings({ onboarding_fatto: true, tema: process.env.SMOKE_TEMA === 'scuro' ? 'scuro' : 'chiaro', studio: { nome: 'Studio Legale Verdi', cap_citta: '41121 Modena', titolare: 'Avv. Anna Verdi' } })
       const oggi = new Date(), anno = oggi.getFullYear(), ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-      const cli = db.save('anagrafica', { denominazione: 'Mario Rossi', ruolo: 'cliente', tipo: 'persona', indirizzo: 'Via Roma 3', cap: '41012', citta: 'Carpi', provincia: 'MO' })
-      const cli2 = db.save('anagrafica', { denominazione: 'Lucia Rossi', ruolo: 'cliente', tipo: 'persona' })
+      const cli = db.save('anagrafica', { denominazione: 'Mario Rossi', pec: 'rossi@pec.test', ruolo: 'cliente', tipo: 'persona', indirizzo: 'Via Roma 3', cap: '41012', citta: 'Carpi', provincia: 'MO' })
+      const cli2 = db.save('anagrafica', { denominazione: 'Lucia Rossi', ruolo: 'controparte', tipo: 'persona' })
       const ctr = db.save('anagrafica', { denominazione: 'Alfa Costruzioni S.r.l.', ruolo: 'controparte', tipo: 'azienda' })
       const coll = db.save('anagrafica', { denominazione: 'Paolo Neri', titolo: 'Avv.', ruolo: 'altro', tipo: 'persona' })
       const pr = db.save('pratiche', { numero: `${anno}/001`, titolo: 'Rossi c. Alfa Costruzioni', cliente_id: cli.id, controparte_id: ctr.id, stato: 'In corso', colore: '#3b82f6', tipo: 'Civile', ruolo: 'Difensore', persone: JSON.stringify([{ id: cli2.id, ruolo: 'cliente' }, { id: coll.id, ruolo: 'collaboratore' }]) })
@@ -59,7 +59,26 @@ function attach({ getWindow, db }) {
       for (const f of ['procura.txt', 'Atti/citazione.txt', 'Atti/Notifiche/relata.txt', 'Atti/Notifiche/pec.txt', 'Corrispondenza/lettera.txt']) { fs.mkdirSync(path.dirname(path.join(cartella, f)), { recursive: true }); fs.writeFileSync(path.join(cartella, f), 'Documento di prova ' + f) }
       await require('../electron/docfile').collegaCartella(pr.id, cartella)
       fs.mkdirSync(path.join(cartella, 'Perizie')); fs.mkdirSync(path.join(cartella, 'Atti', 'Bozze')); fs.mkdirSync(path.join(cartella, '.nascosta')) // cartelle senza file: le prime due si vedono, vuote
-      await js('location.reload()'); await sleep(1500)
+      const archivio = db.getDb()
+      const primoId = archivio.prepare('SELECT max(id) AS id FROM anagrafica').get().id
+      archivio.exec("WITH RECURSIVE n(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM n WHERE i<20000) INSERT INTO anagrafica(denominazione) SELECT 'Contatto collaudo ' || i FROM n")
+      const letture = new Set(), list = db.list
+      db.list = (...args) => { letture.add(args[0]); return list(...args) }
+      const primaInterazione = new Promise((resolve, reject) => wc.once('dom-ready', () =>
+        js(`new Promise(resolve => {
+          function misura() {
+            if (document.querySelector('.dashboard button:not(:disabled)')) resolve(performance.now())
+            else requestAnimationFrame(misura)
+          }
+          requestAnimationFrame(misura)
+        })`).then(resolve, reject)))
+      await js('location.reload()')
+      const ms = await primaInterazione
+      const processo = require('electron').app.getAppMetrics().find(p => p.pid === wc.getOSProcessId())
+      console.log('Panoramica con 20.000 contatti: ' + Math.round(ms) + ' ms dalla navigazione; memoria residente renderer ' + Math.round(processo.memory.workingSetSize / 1024) + ' MiB')
+      check('avvio con 20.000 contatti: Panoramica pronta senza leggere rubrica, documenti, note e collegamenti', await js("!!document.querySelector('.dashboard')") && letture.has('pratiche') && ['anagrafica', 'documenti', 'note', 'link'].every(t => !letture.has(t)))
+      archivio.prepare('DELETE FROM anagrafica WHERE id > ?').run(primoId)
+      db.list = list
 
       // ---------- agenda: calendario del mese ----------
       await clickText('.nav-item', 'Agenda'); await sleep(500)
@@ -92,6 +111,14 @@ function attach({ getWindow, db }) {
       await js(`[...document.querySelectorAll('.pcard, tr')].find(x=>x.textContent.includes('Rossi c. Alfa')).click()`); await sleep(700)
       let t = await text()
       check('pratica: due clienti, controparte, collaboratore e ruolo in testa e nei dettagli', /Clienti: Mario Rossi, Lucia Rossi/.test(t) && /Collaboratore: Paolo Neri/.test(t) && /Il tuo ruolo: Difensore/.test(t) && /Avv\. Paolo Neri/.test(t), t.slice(0, 600))
+      for (let i = 0; i < 15; i++) db.scriviCronologia(pr.id, 'pratiche', pr.id, 'modificato', 'Cambio di prova ' + i)
+      wc.send('data-changed', ['cronologia'])
+      await clickText('.card button', 'Mostra tutte')
+      await sleep(300)
+      check('cronologia estesa: visibile anche la voce più vecchia', await js("document.querySelector('.crono').textContent.includes('Pratica aperta')"))
+      await clickText('.card button', 'Mostra meno')
+      await sleep(300)
+      check('cronologia compatta: otto voci', await js("document.querySelectorAll('.crono li').length === 8"))
       await shot('103-3-pratica')
       await clickText('.detail-main .btn', 'Modifica'); await sleep(500)
       check('modifica pratica: altre persone con ruolo e «Il tuo ruolo»', await js(`document.querySelectorAll('.modal .persona-riga').length === 2`) && await js(`!!${campo('Il tuo ruolo')} && ${campo('Il tuo ruolo')}.value === 'Difensore'`))
@@ -140,13 +167,71 @@ function attach({ getWindow, db }) {
       t = await text()
       check('scheda del contatto: due indirizzi e due pratiche collegate', /Corso Canalgrande 12, 41121 Modena \(MO\)/.test(t) && /Via Roma 3/.test(t) && /Recupero crediti Beta/.test(t) && /collegate \(2\)/.test(t), t.slice(0, 700))
       await shot('103-8-anagrafica')
+      await clickText('.contact', 'Paolo Neri')
+      for (const query of [' Via Roma 3 ', 'ROSSI@PEC.TEST', '41121 Modena']) {
+        await setVal('.search-box input', query); await sleep(100)
+        check(`ricerca «${query}»: elenco e dettaglio mostrano Mario Rossi`, await js("document.querySelectorAll('.contact').length === 1 && document.querySelector('.detail-pane h2')?.textContent === 'Mario Rossi'"))
+      }
+      await setVal('.search-box input', 'inesistente-999'); await sleep(100)
+      check('ricerca vuota: nessun contatto modificabile', await js("!document.querySelector('.detail-pane')"))
       // eliminando un contatto sparisce dalle altre persone delle pratiche
       db.remove('anagrafica', coll.id)
       check('contatto eliminato: tolto dalle altre persone della pratica', db.get('pratiche', pr.id).persone === JSON.stringify([{ id: cli2.id, ruolo: 'cliente' }]), db.get('pratiche', pr.id).persone)
 
+      // Selezione multipla nell'editor: la ricerca cambia, la selezione resta in bozza.
+      await clickText('.nav-item', 'Pratiche')
+      await clickText('.pcard', 'Rossi c. Alfa')
+      await clickText('.detail-main .btn', 'Modifica')
+      const selettore = '[role="dialog"][aria-label="Seleziona contatti"]'
+      const apriSelezione = () => clickText('.modal button', 'Seleziona contatti')
+      await apriSelezione()
+      await setVal(selettore + ' input[type=search]', 'rossi@pec.test')
+      check('selezione multipla: cliente principale già collegato', await js(`document.querySelector('${selettore} input[type=checkbox]')?.disabled === true`))
+      await setVal(selettore + ' select', 'fornitore')
+      await clickText(selettore + ' label.check', 'Mario Rossi')
+      await setVal(selettore + ' input[type=search]', 'Alfa')
+      await clickText(selettore + ' label.check', 'Alfa Costruzioni')
+      await axe('Selezione contatti')
+      await clickText(selettore + ' button', 'Aggiungi (2)')
+      check('aggiunta multipla: due ruoli in bozza prima del salvataggio', await js("document.querySelectorAll('.persona-riga select[aria-label^=Ruolo] option[value=fornitore]:checked').length === 2") && !db.get('pratiche', pr.id).persone.includes('fornitore'))
+      await apriSelezione()
+      await setVal(selettore + ' select', 'fornitore')
+      check('selezione ripetuta: entrambi i fornitori figurano già collegati', await js(`document.querySelectorAll('${selettore} input:disabled:checked').length === 2`))
+      await clickText(selettore + ' button', 'Annulla')
+      await clickText('.modal-foot button', 'Salva'); await sleep(500)
+      const fornitori = JSON.parse(db.get('pratiche', pr.id).persone).filter(x => x.ruolo === 'fornitore').map(x => x.id)
+      check('salvataggio multiplo: i due fornitori e i ruoli principali sono conservati', fornitori.length === 2 && fornitori.includes(cli.id) && fornitori.includes(ctr.id) && db.get('pratiche', pr.id).cliente_id === cli.id && db.get('pratiche', pr.id).controparte_id === ctr.id)
+
+      await clickText('.detail-main .btn', 'Modifica')
+      await clickText('.persona-riga button', 'Imposta come principale')
+      await clickText('.modal-foot button', 'Salva'); await sleep(500)
+      const promossa = db.get('pratiche', pr.id)
+      check('promozione: Lucia è cliente principale e Mario resta collegato come cliente', promossa.cliente_id === cli2.id && JSON.parse(promossa.persone).some(x => x.id === cli.id && x.ruolo === 'cliente'))
+      check('cronologia della promozione visibile nella pratica', await js("document.querySelector('.crono')?.textContent.includes('Lucia Rossi (cliente → cliente principale)')"))
+      await clickText('.tabs button', 'Parcelle')
+      await clickText('.card-head button', 'Nuova parcella')
+      const intestatario = await js(`${campo('Cliente')}?.value`)
+      check('nuova parcella intestata alla cliente promossa anche con ruolo anagrafico di controparte', Number(intestatario) === cli2.id)
+      check('le parcelle precedenti conservano il loro intestatario', db.list('parcelle', { pratica_id: pr.id }).every(x => x.cliente_id === cli.id))
+      await clickText('.modal-foot button', 'Chiudi')
+
+      // Una pratica piena e un contatto esterno: al limite si può ancora scegliere un altro ruolo per chi è presente.
+      const limite = Array.from({ length: 26 }, (_, i) => db.save('anagrafica', { denominazione: 'Attore limite ' + String(i).padStart(2, '0') }))
+      db.save('pratiche', { titolo: 'Pratica al limite', cliente_id: limite[0].id, stato: 'In corso', persone: JSON.stringify(limite.slice(1, 25).map(a => ({ id: a.id, ruolo: 'cliente' }))) })
+      wc.send('data-changed', ['anagrafica', 'pratiche'])
+      await clickText('.nav-item', 'Pratiche')
+      await clickText('.pcard', 'Pratica al limite')
+      await clickText('.detail-main .btn', 'Modifica')
+      await apriSelezione()
+      await setVal(selettore + ' select', 'fornitore')
+      await setVal(selettore + ' input[type=search]', 'Attore limite 25')
+      check('a 25 attori il contatto esterno è disabilitato', await js(`document.querySelector('${selettore} input[type=checkbox]')?.disabled === true`))
+      await setVal(selettore + ' input[type=search]', 'Attore limite 01')
+      check('a 25 attori resta consentito un altro ruolo per un contatto già presente', await js(`document.querySelector('${selettore} input[type=checkbox]')?.disabled === false`))
+
       const bad = results.filter((x) => !x.ok)
       console.log(`\nRISULTATO: ${results.length - bad.length}/${results.length} controlli superati`)
-    } catch (e) { console.log('ERRORE', e, e && e.stack) } finally { setTimeout(() => process.exit(0), 300) }
+    } catch (e) { console.log('ERRORE', e, e && e.stack); results.push({ ok: false }) } finally { setTimeout(() => process.exit(results.every(r => r.ok) ? 0 : 1), 300) }
   })
   wc.on('console-message', (e) => { if (e.level === 'warning' || e.level === 'error') console.log('[renderer]', e.message) })
 }

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { useData } from './store'
+import { ArchivioCompleto, useData } from './store'
 import { useNav } from './nav'
 import { Sidebar, SearchPalette, Topbar } from './components/Shell'
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -139,7 +139,7 @@ export default function App() {
       {sidebarVisible && <Sidebar />}
       <div className="main">
         <Topbar onSearch={() => setSearch(true)} sidebarVisible={sidebarVisible} onToggleSidebar={toggleSidebar} />
-        <main className="content" id="content">{error && <div className="doc-avviso" role="alert"><span>{error}</span><button className="btn btn-primary" onClick={reload}>Riprova</button></div>}{!ready && loading && <p role="status">Caricamento dell’archivio…</p>}{ready ? <ErrorBoundary key={`${route.page}:${route.id ?? ''}`}><Suspense fallback={<p role="status">Caricamento…</p>}>{page}</Suspense></ErrorBoundary> : null}</main>
+        <main className="content" id="content">{error && <div className="doc-avviso" role="alert"><span>{error}</span><button className="btn btn-primary" onClick={reload}>Riprova</button></div>}{!ready && loading && <p role="status">Caricamento dell’archivio…</p>}{ready ? <ErrorBoundary key={`${route.page}:${route.id ?? ''}`}><Suspense fallback={<p role="status">Caricamento…</p>}>{route.page === 'dashboard' ? page : <ArchivioCompleto>{page}</ArchivioCompleto>}</Suspense></ErrorBoundary> : null}</main>
       </div>
       {sopraApp && <div className="drop-overlay" aria-hidden="true"><div><b>Rilascia per collegare i file a una pratica</b><span>Poi scegli la pratica</span></div></div>}
       {daCollegare && <CollegaFileModal percorsi={daCollegare} onClose={() => setDaCollegare(null)} />}

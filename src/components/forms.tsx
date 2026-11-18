@@ -3,14 +3,16 @@ import { AlertTriangle, Plus, Trash2 } from 'lucide-react'
 import { api } from '../api'
 import { useData } from '../store'
 import { useNav } from '../nav'
-import { conflittiPer, type Conflitto } from '../lib/conflitti'
+import { indiceConflitti, type Conflitto } from '../lib/conflitti'
 import { Btn, ColorPicker, Field, FormGrid, Input, Modal, Priorita, Segmented, Select, Textarea, useAction, useFieldId } from './ui'
 import { PROMEMORIA_OPZIONI, nuovo as nuovoNome, tipiScadenza } from '../lib/defaults'
+import { SelezioneContatti } from './SelezioneContatti'
+import { aiutoFrecce, navigaConFrecce } from '../lib/frecceModulo'
 import { todayStr } from '../lib/dates'
 import { normalizeUrl, parseNumber } from '../lib/format'
 import type { Anagrafica, Indirizzo, Link, PersonaPratica, Pratica, Recapiti, Recapito, RuoloPersona, Scadenza, Todo } from '../types'
 import { ETICHETTE_EMAIL, ETICHETTE_INDIRIZZO, ETICHETTE_TELEFONO, TITOLI_PERSONA, leggiIndirizzi, leggiRecapiti, nomeRuolo, ruoliAnagrafica, scriviIndirizzi, scriviRecapiti } from '../lib/recapiti'
-import { RUOLI_PROFESSIONISTA, leggiPersone, ruoliIn, scriviPersone } from '../lib/persone'
+import { MAX_ATTORI, RUOLI_PROFESSIONISTA, idAttori, superaLimite, leggiPersone, ruoliIn, scriviPersone } from '../lib/persone'
 
 /* ---------- Select pratica ---------- */
 export function PraticaSelect({ value, onChange, allowNone = true, noneLabel = '— Nessuna pratica —', id, ariaLabel }: { value: number | null | undefined; onChange: (v: number | null) => void; allowNone?: boolean; noneLabel?: string; id?: string; ariaLabel?: string }) {
@@ -46,43 +48,37 @@ export function AnagraficaForm({ item, ruolo, onClose, onSaved }: { item?: Parti
   // finché non si sceglie il tipo a mano, una ragione sociale («… S.r.l.», «Studio …», «… Soc. Coop.») lo imposta su Società / Ente
   const tipoScelto = useRef(!!item?.tipo)
   const setNome = (v: string) => setF((x) => ({ ...x, denominazione: v, ...(!tipoScelto.current && { tipo: FORMA_SOCIETARIA.test(v) ? 'azienda' : 'persona' }) }))
+  const inSalvataggio = useRef(false)
   const save = async () => {
-    if (!f.denominazione?.trim()) return
-    const r = await run(async () => {
-      const a = await api.save<Anagrafica>('anagrafica', { ...f, ...scriviRecapiti(rec), indirizzi: scriviIndirizzi(indirizzi), denominazione: f.denominazione!.trim(), titolo: f.tipo === 'azienda' ? null : f.titolo?.trim() || null, sdi: f.sdi?.trim().toUpperCase() || null })
-      // collegamenti alle pratiche: solo quelle cambiate. Il primo cliente (o la prima controparte) di una pratica diventa quello principale.
+    if (!f.denominazione?.trim() || inSalvataggio.current) return
+    inSalvataggio.current = true
+    try {
       const chiave = (x: { pratica_id: number; ruolo: string }) => `${x.pratica_id}-${x.ruolo}`
       const prima = new Set(collegateIniziali.map(chiave)), dopo = new Set(collegate.map(chiave))
-      for (const p of pratiche) {
-        const tolti = collegateIniziali.filter((x) => x.pratica_id === p.id && !dopo.has(chiave(x))), messi = collegate.filter((x) => x.pratica_id === p.id && !prima.has(chiave(x)))
-        if (!tolti.length && !messi.length) continue
-        const nuova: Partial<Pratica> = { id: p.id, cliente_id: p.cliente_id, controparte_id: p.controparte_id }
-        let altre: PersonaPratica[] = leggiPersone(p)
-        for (const x of tolti) {
-          if (x.ruolo === 'cliente' && nuova.cliente_id === a.id) nuova.cliente_id = null
-          else if (x.ruolo === 'controparte' && nuova.controparte_id === a.id) nuova.controparte_id = null
-          else altre = altre.filter((y) => !(y.id === a.id && y.ruolo === x.ruolo))
-        }
-        for (const x of messi) {
-          if (x.ruolo === 'cliente' && !nuova.cliente_id) nuova.cliente_id = a.id
-          else if (x.ruolo === 'controparte' && !nuova.controparte_id) nuova.controparte_id = a.id
-          else altre.push({ id: a.id, ruolo: x.ruolo })
-        }
-        await api.save('pratiche', { ...nuova, persone: scriviPersone(altre) })
-      }
-      return a
-    }, 'Salvato')
-    if (r) { onSaved?.(r); onClose() }
+      const modifiche = [
+        ...collegateIniziali.filter(x => !dopo.has(chiave(x))).map(x => ({ ...x, collega: false })),
+        ...collegate.filter(x => !prima.has(chiave(x))).map(x => ({ ...x, collega: true })),
+      ]
+      const contatto = { ...f, ...scriviRecapiti(rec), indirizzi: scriviIndirizzi(indirizzi), denominazione: f.denominazione.trim(),
+        titolo: f.tipo === 'azienda' ? null : f.titolo?.trim() || null, sdi: f.sdi?.trim().toUpperCase() || null }
+      const r = await run(() => api.salvaContatto(contatto, modifiche), 'Salvato')
+      if (r) { onSaved?.(r); onClose() }
+    } finally {
+      inSalvataggio.current = false
+    }
   }
-  const datalistTitoli = useId(), datalistIndirizzi = useId()
+  const datalistTitoli = useId(), datalistIndirizzi = useId(), provinciaId = useId()
   const praticaDi = (id: number) => pratiche.find((p) => p.id === id)
+  const destinataria = daCollegare ? praticaDi(daCollegare) : undefined
+  const attoriDestinataria = idAttori(destinataria)
+  const piena = attoriDestinataria.size >= MAX_ATTORI && !(item?.id && attoriDestinataria.has(item.id))
   // ruolo proposto nella pratica: quello che il contatto ha in rubrica
-  const collega = () => { if (!daCollegare) return; const ruolo = (f.ruolo || 'cliente') as RuoloPersona; setCollegate((l) => (l.some((x) => x.pratica_id === daCollegare && x.ruolo === ruolo) ? l : [...l, { pratica_id: daCollegare, ruolo }])); setDaCollegare(null) }
+  const collega = () => { if (!daCollegare || piena) return; const ruolo = (f.ruolo || 'cliente') as RuoloPersona; setCollegate((l) => (l.some((x) => x.pratica_id === daCollegare && x.ruolo === ruolo) ? l : [...l, { pratica_id: daCollegare, ruolo }])); setDaCollegare(null) }
   const updInd = (i: number, patch: Partial<Indirizzo>) => setIndirizzi((l) => l.map((x, j) => (j === i ? { ...x, ...patch } : x)))
   return (
-    <Modal title={f.id ? 'Modifica anagrafica' : 'Nuova anagrafica'} onClose={onClose} width={680}
+    <Modal title={f.id ? 'Modifica anagrafica' : 'Nuova anagrafica'} onClose={onClose} width={680} hasChanges={collegate !== collegateIniziali} subtitle={aiutoFrecce}
       footer={<><Btn variant="ghost" onClick={onClose}>Annulla</Btn><Btn variant="primary" onClick={save} disabled={!f.denominazione?.trim()}>Salva</Btn></>}>
-      <form onSubmit={(e) => { e.preventDefault(); save() }}>
+      <form onKeyDown={navigaConFrecce} onSubmit={(e) => { e.preventDefault(); save() }}>
         <FormGrid>
           <Field label="Ruolo"><Segmented value={f.ruolo as string} onChange={(v) => set('ruolo', v)} options={ruoli.map((r) => ({ id: r.id, label: r.label }))} /></Field>
           <Field label="Tipo"><Segmented value={f.tipo as string} onChange={(v) => { tipoScelto.current = true; set('tipo', v) }} options={[{ id: 'persona', label: 'Persona fisica' }, { id: 'azienda', label: 'Società / Ente' }]} /></Field>
@@ -99,7 +95,7 @@ export function AnagraficaForm({ item, ruolo, onClose, onSaved }: { item?: Parti
           <ElencoRecapiti titolo="Email" tipo="email" etichette={ETICHETTE_EMAIL} righe={rec.email} onChange={(email) => setRec((r) => ({ ...r, email }))} />
           <Field label="Indirizzo" span={2}><Input value={f.indirizzo || ''} onChange={(e) => set('indirizzo', e.target.value)} /></Field>
           <Field label="CAP"><Input value={f.cap || ''} onChange={(e) => set('cap', e.target.value)} maxLength={5} /></Field>
-          <Field label="Città / Provincia"><div className="row"><Input value={f.citta || ''} onChange={(e) => set('citta', e.target.value)} /><Input style={{ width: 70 }} maxLength={2} placeholder="PR" value={f.provincia || ''} onChange={(e) => set('provincia', e.target.value.toUpperCase())} /></div></Field>
+          <Field label="Città / Provincia"><div className="row"><Input value={f.citta || ''} onChange={(e) => set('citta', e.target.value)} /><Input id={provinciaId} aria-label="Provincia" style={{ width: 70 }} maxLength={2} placeholder="PR" value={f.provincia || ''} onChange={(e) => set('provincia', e.target.value.toUpperCase())} /></div></Field>
           <fieldset className="recapiti" style={{ gridColumn: '1 / -1' }}>
             <legend>Altri indirizzi</legend>
             {indirizzi.map((x, i) => <div key={i} className="indirizzo-riga">
@@ -122,8 +118,9 @@ export function AnagraficaForm({ item, ruolo, onClose, onSaved }: { item?: Parti
             </ul>}
             <div className="recapito-riga collegate-riga">
               <div style={{ flex: 1, minWidth: 0 }}><PraticaSelect value={daCollegare} onChange={setDaCollegare} noneLabel={`Scegli ${L.pratica.toLowerCase()}…`} ariaLabel={`${L.pratica} da collegare`} /></div>
-              <Btn type="button" size="sm" onClick={collega} disabled={!daCollegare}><Plus size={14} /> Collega</Btn>
+              <Btn type="button" size="sm" onClick={collega} disabled={!daCollegare || piena}><Plus size={14} /> Collega</Btn>
             </div>
+            {piena && <span className="hint" role="status">Questa {L.pratica.toLowerCase()} ha già raggiunto il limite di {MAX_ATTORI} contatti.</span>}
             <span className="hint">Il contatto entra nella {L.pratica.toLowerCase()} con il ruolo scelto qui sopra ({nomeRuolo(String(f.ruolo), settings.profilo, L)}).</span>
           </fieldset>
           <Field label="Note" span={2}><Textarea value={f.note || ''} onChange={(e) => set('note', e.target.value)} /></Field>
@@ -169,6 +166,20 @@ function AvvisoConflitto({ conflitti }: { conflitti: Conflitto[] }) {
   )
 }
 
+/** Le righe già compilate caricano la rubrica completa solo durante la scelta. */
+function PersonaSelect({ id, indice, onChange }: { id: number | null; indice: number; onChange: (id: number | null) => void }) {
+  const { anagrafica, anagraficaById } = useData()
+  const [aperto, setAperto] = useState(false)
+  const selezionata = id ? anagraficaById.get(id) : undefined
+  const opzioni = aperto || !id ? anagrafica : selezionata ? [selezionata] : []
+  return <Select value={id ?? ''} aria-label={`Persona ${indice + 1}`}
+    onFocus={() => setAperto(true)} onBlur={() => setAperto(false)}
+    onChange={e => onChange(e.target.value ? Number(e.target.value) : null)}>
+    <option value="">Scegli dalla rubrica…</option>
+    {opzioni.map(a => <option key={a.id} value={a.id}>{a.denominazione}</option>)}
+  </Select>
+}
+
 export function PraticaForm({ item, onClose, onSaved }: { item?: Partial<Pratica>; onClose: () => void; onSaved?: (p: Pratica) => void }) {
   const run = useAction()
   const { anagrafica, settings, pratiche, anagraficaById } = useData()
@@ -178,7 +189,21 @@ export function PraticaForm({ item, onClose, onSaved }: { item?: Partial<Pratica
   })
   // `nuovo`: per chi si sta creando l'anagrafica (cliente, controparte o la riga n delle altre persone)
   const [nuovo, setNuovo] = useState<null | 'cliente' | 'controparte' | number>(null)
-  const [persone, setPersone] = useState<{ id: number | null; ruolo: RuoloPersona }[]>(() => leggiPersone(item))
+  const [selezioneAperta, setSelezioneAperta] = useState(false)
+  const [iniziali] = useState(() => leggiPersone(item))
+  const [persone, setPersone] = useState<{ id: number | null; ruolo: RuoloPersona }[]>(iniziali)
+  const attoriOriginali = useMemo(() => idAttori(item), [item])
+  const attori = idAttori(f, persone)
+  const troppi = superaLimite(attoriOriginali, attori)
+  const promuoviCliente = (id: number) => {
+    const precedente = f.cliente_id
+    setF(x => ({ ...x, cliente_id: id }))
+    setPersone(lista => {
+      const altre = lista.filter(x => x.id !== id || x.ruolo !== 'cliente')
+      if (precedente && !altre.some(x => x.id === precedente && x.ruolo === 'cliente')) altre.push({ id: precedente, ruolo: 'cliente' })
+      return altre
+    })
+  }
   const updPersona = (i: number, patch: Partial<{ id: number | null; ruolo: RuoloPersona }>) => setPersone((l) => l.map((x, j) => (j === i ? { ...x, ...patch } : x)))
   const set = (k: keyof Pratica, v: any) => setF((x) => ({ ...x, [k]: v }))
   const L = settings.etichette
@@ -186,25 +211,38 @@ export function PraticaForm({ item, onClose, onSaved }: { item?: Partial<Pratica
   const ruoliPersona: RuoloPersona[] = forense ? ['cliente', 'controparte', 'collaboratore', 'fornitore', 'altro'] : ['cliente', 'fornitore', 'collaboratore', 'altro']
   const ruoloValido = (r: string | undefined): RuoloPersona => (ruoliPersona.includes(r as RuoloPersona) ? r as RuoloPersona : r === 'controparte' ? 'fornitore' : 'altro')
   const datalistRuoli = useId()
-  const confCliente = useMemo(() => conflittiPer(f.cliente_id ? anagraficaById.get(f.cliente_id) : null, 'cliente', pratiche, anagraficaById, f.id), [f.cliente_id, f.id, pratiche, anagraficaById])
-  const confControparte = useMemo(() => conflittiPer(f.controparte_id ? anagraficaById.get(f.controparte_id) : null, 'controparte', pratiche, anagraficaById, f.id), [f.controparte_id, f.id, pratiche, anagraficaById])
+  const conflittiPer = useMemo(() => indiceConflitti(forense ? pratiche : [], anagraficaById, f.id), [forense, pratiche, anagraficaById, f.id])
+  const avvisi = useMemo(() => {
+    const trovati = new Map<string, Conflitto[]>()
+    for (const { id, ruolo } of [{ id: f.cliente_id, ruolo: 'cliente' }, { id: f.controparte_id, ruolo: 'controparte' }, ...persone]) {
+      if (!id || (ruolo !== 'cliente' && ruolo !== 'controparte')) continue
+      const k = `${id}-${ruolo}`
+      if (!trovati.has(k)) trovati.set(k, conflittiPer(anagraficaById.get(id), ruolo))
+    }
+    return [...trovati].filter(([, conflitti]) => conflitti.length)
+  }, [persone, f.cliente_id, f.controparte_id, conflittiPer, anagraficaById])
   // tutte le anagrafiche in entrambi gli elenchi: una persona può essere cliente qui e controparte altrove (e allora scatta l'avviso di conflitto)
   const clienti = anagrafica, controparti = anagrafica
+  const inSalvataggio = useRef(false)
   const save = async () => {
-    if (!f.titolo?.trim()) return
-    const obj: any = { ...f, titolo: f.titolo.trim(), ruolo: f.ruolo?.trim() || null, persone: scriviPersone(persone.filter((x): x is PersonaPratica => !!x.id && x.id !== (x.ruolo === 'cliente' ? f.cliente_id : x.ruolo === 'controparte' ? f.controparte_id : 0))), valore: f.valore === undefined || f.valore === null || (f.valore as any) === '' ? null : parseNumber(f.valore as any) }
-    if (!obj.id && !obj.numero) obj.numero = await api.nextPraticaNumero()
+    if (!f.titolo?.trim() || troppi || inSalvataggio.current) return
+    const obj: Partial<Pratica> = { ...f, titolo: f.titolo.trim(), ruolo: f.ruolo?.trim() || null, persone: scriviPersone(persone.filter((x): x is PersonaPratica => !!x.id && x.id !== (x.ruolo === 'cliente' ? f.cliente_id : x.ruolo === 'controparte' ? f.controparte_id : 0))), valore: f.valore === undefined || f.valore === null || (f.valore as any) === '' ? null : parseNumber(f.valore as any) }
     const closed = settings.stati_pratica.find((s) => s.nome === obj.stato)?.chiusa
     if (closed && !obj.data_chiusura) obj.data_chiusura = todayStr()
     if (!closed) obj.data_chiusura = null
-    const r = await run(() => api.save<Pratica>('pratiche', obj), 'Pratica salvata')
-    if (r) { onSaved?.(r); onClose() }
+    inSalvataggio.current = true
+    try {
+      const r = await run(() => api.salvaPratica(obj, item), 'Pratica salvata')
+      if (r) { onSaved?.(r); onClose() }
+    } finally {
+      inSalvataggio.current = false
+    }
   }
   return (
     <>
-      <Modal title={f.id ? `Modifica ${L.pratica.toLowerCase()}` : nuovoNome(L.pratica)} onClose={onClose} width={700}
-        footer={<><Btn variant="ghost" onClick={onClose}>Annulla</Btn><Btn variant="primary" onClick={save} disabled={!f.titolo?.trim()}>Salva</Btn></>}>
-        <form onSubmit={(e) => { e.preventDefault(); save() }}>
+      <Modal title={f.id ? `Modifica ${L.pratica.toLowerCase()}` : nuovoNome(L.pratica)} onClose={onClose} width={700} hasChanges={persone !== iniziali} subtitle={aiutoFrecce}
+        footer={<><Btn variant="ghost" onClick={onClose}>Annulla</Btn><Btn variant="primary" onClick={save} disabled={!f.titolo?.trim() || troppi}>Salva</Btn></>}>
+        <form onKeyDown={navigaConFrecce} onSubmit={(e) => { e.preventDefault(); save() }}>
           <FormGrid>
             <Field label="Titolo *" span={2}><Input value={f.titolo || ''} onChange={(e) => set('titolo', e.target.value)} placeholder={forense ? 'Es. Rossi c. Bianchi — risarcimento danni' : 'Es. Ristrutturazione uffici'} required /></Field>
             <Field label="Numero" hint="Generato automaticamente se vuoto"><Input value={f.numero || ''} onChange={(e) => set('numero', e.target.value)} placeholder="2026/001" /></Field>
@@ -225,20 +263,23 @@ export function PraticaForm({ item, onClose, onSaved }: { item?: Partial<Pratica
                 <Btn type="button" size="sm" title="Nuova anagrafica" onClick={() => setNuovo('controparte')}><Plus size={14} /></Btn>
               </div>
             </Field>
-            {settings.profilo !== 'ditta' && (confCliente.length > 0 || confControparte.length > 0) && <div style={{ gridColumn: 'span 2' }}><AvvisoConflitto conflitti={confCliente} /><AvvisoConflitto conflitti={confControparte} /></div>}
+            {avvisi.length > 0 && <div style={{ gridColumn: 'span 2' }}>{avvisi.map(([key, conflitti]) => <AvvisoConflitto key={key} conflitti={conflitti} />)}</div>}
             <fieldset className="recapiti" style={{ gridColumn: '1 / -1' }}>
               <legend>Altre persone</legend>
+              <span className="hint" role="status">{attori.size} contatti distinti · massimo {MAX_ATTORI}.{troppi ? ' Riduci la selezione prima di salvare.' : attori.size > MAX_ATTORI ? ' Pratica preesistente: puoi mantenere o rimuovere i contatti già presenti.' : ''}</span>
               {persone.map((x, i) => <div key={i} className="recapito-riga persona-riga">
-                <Select value={x.id ?? ''} aria-label={`Persona ${i + 1}`} onChange={(e) => { const id = e.target.value ? Number(e.target.value) : null; updPersona(i, { id, ...(id && { ruolo: ruoloValido(anagraficaById.get(id)?.ruolo) }) }) }}>
-                  <option value="">Scegli dalla rubrica…</option>{anagrafica.map((a) => <option key={a.id} value={a.id}>{a.denominazione}</option>)}
-                </Select>
+                <PersonaSelect id={x.id} indice={i} onChange={id => updPersona(i, { id, ...(id && { ruolo: ruoloValido(anagraficaById.get(id)?.ruolo) }) })} />
                 <Select value={x.ruolo} aria-label={`Ruolo della persona ${i + 1}`} onChange={(e) => updPersona(i, { ruolo: e.target.value as RuoloPersona })}>
                   {ruoliPersona.map((r) => <option key={r} value={r}>{nomeRuolo(r, settings.profilo, L)}</option>)}
                 </Select>
+                {x.id && x.ruolo === 'cliente' && x.id !== f.cliente_id && <Btn type="button" size="sm" onClick={() => promuoviCliente(x.id!)}>Imposta come principale</Btn>}
                 <Btn type="button" size="sm" title="Nuova anagrafica" aria-label={`Nuova anagrafica per la persona ${i + 1}`} onClick={() => setNuovo(i)}><Plus size={14} /></Btn>
                 <button type="button" className="icon-btn" aria-label={`Togli la persona ${i + 1}`} title="Togli" onClick={() => setPersone((l) => l.filter((_, j) => j !== i))}><Trash2 size={14} /></button>
               </div>)}
-              <Btn type="button" size="sm" variant="ghost" onClick={() => setPersone((l) => [...l, { id: null, ruolo: 'cliente' }])}><Plus size={14} /> Aggiungi una persona</Btn>
+              <div className="row wrap">
+                <Btn type="button" size="sm" onClick={() => setSelezioneAperta(true)}>Seleziona contatti…</Btn>
+                <Btn type="button" size="sm" variant="ghost" onClick={() => setPersone((l) => [...l, { id: null, ruolo: 'cliente' }])}><Plus size={14} /> Aggiungi una persona</Btn>
+              </div>
               {!persone.length && <span className="hint">{forense ? `Altri ${L.clienti.toLowerCase()}, controparti, colleghi e consulenti che seguono la ${L.pratica.toLowerCase()} con te.` : `Altri clienti, fornitori e collaboratori che lavorano a questa ${L.pratica.toLowerCase()}.`}</span>}
             </fieldset>
             <Field label="Tipologia">
@@ -264,6 +305,12 @@ export function PraticaForm({ item, onClose, onSaved }: { item?: Partial<Pratica
           <button type="submit" hidden />
         </form>
       </Modal>
+      {selezioneAperta && <SelezioneContatti ruoli={ruoliPersona} originali={attoriOriginali}
+        presenti={[{ id: f.cliente_id, ruolo: 'cliente' }, { id: f.controparte_id, ruolo: 'controparte' }, ...persone]}
+        onClose={() => setSelezioneAperta(false)} onAggiungi={scelti => {
+          setPersone(l => [...l, ...scelti])
+          setSelezioneAperta(false)
+        }} />}
       {nuovo !== null && <AnagraficaForm ruolo={typeof nuovo === 'number' ? persone[nuovo]?.ruolo : nuovo} onClose={() => setNuovo(null)} onSaved={(a) => (typeof nuovo === 'number' ? updPersona(nuovo, { id: a.id }) : set(nuovo === 'cliente' ? 'cliente_id' : 'controparte_id', a.id))} />}
     </>
   )

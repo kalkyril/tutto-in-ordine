@@ -38,14 +38,14 @@ const appIcon = () => (fs.existsSync(iconPath) ? nativeImage.createFromPath(icon
 
 function getWindow() { return win && !win.isDestroyed() ? win : null }
 
-function send(channel, payload) {
+function send(channel, payload, ...extra) {
   for (const w of BrowserWindow.getAllWindows()) {
-    if (!w.isDestroyed()) w.webContents.send(channel, payload)
+    if (!w.isDestroyed()) w.webContents.send(channel, payload, ...extra)
   }
 }
 
-function notifyChanged(tables) {
-  send('data-changed', tables)
+function notifyChanged(tables, ids) {
+  send('data-changed', tables, ids)
   if (tables.includes('settings')) buildMenu() // i nomi nel menu seguono le etichette (pratica/commessa…)
   if (tables.includes('notifiche')) updateBadge()
 }

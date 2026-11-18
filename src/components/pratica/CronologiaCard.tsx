@@ -19,12 +19,15 @@ export function CronologiaCard({ praticaId }: { praticaId: number }) {
   const [tutte, setTutte] = useState(false)
   // solo le righe di questa pratica, rilette quando cambia la cronologia: caricarla tutta nella finestra la appesantiva col tempo
   useEffect(() => {
-    let attivo = true
-    const carica = () => api.list<Cronologia>('cronologia', { pratica_id: praticaId }, 'id DESC').then((r) => { if (attivo) setRighe(r) }).catch(() => {})
+    let attivo = true, versione = 0
+    const carica = () => {
+      const ticket = ++versione
+      return api.list<Cronologia>('cronologia', { pratica_id: praticaId }, 'id DESC', tutte ? undefined : 9).then(r => { if (attivo && ticket === versione) setRighe(r) }).catch(() => {})
+    }
     carica()
-    const off = window.mngmnt.on('data-changed', (tabelle: string[]) => { if (tabelle.includes('cronologia')) carica() })
+    const off = window.mngmnt.on('data-changed', (tabelle: string[], ids) => { if (tabelle.includes('cronologia') && (!ids?.pratiche || ids.pratiche.includes(praticaId))) carica() })
     return () => { attivo = false; off() }
-  }, [praticaId])
+  }, [praticaId, tutte])
   const visibili = tutte ? righe : righe.slice(0, 8)
   return (
     <section className="card" aria-labelledby="cronologia-titolo">
@@ -43,7 +46,7 @@ export function CronologiaCard({ praticaId }: { praticaId: number }) {
           )
         })}
       </ol>
-      {righe.length > 8 && <button type="button" className="btn btn-ghost btn-sm" onClick={() => setTutte((x) => !x)}>{tutte ? 'Mostra meno' : `Mostra tutte (${righe.length})`}</button>}
+      {righe.length > 8 && <button type="button" className="btn btn-ghost btn-sm" onClick={() => setTutte((x) => !x)}>{tutte ? 'Mostra meno' : 'Mostra tutte'}</button>}
     </section>
   )
 }
