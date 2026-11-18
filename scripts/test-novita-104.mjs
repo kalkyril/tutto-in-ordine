@@ -6,7 +6,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { createRequire } from 'node:module'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const require = createRequire(import.meta.url)
 
@@ -55,9 +55,10 @@ try {
   g.estendiUsciteRicorrenti('2030-07-01')
   assert.deepEqual(voci().filter((x) => x.descrizione === 'Assicurazione').map((x) => x.scadenza), ['2030-01-10', '2030-04-10', '2030-07-10'])
   db.close()
+  // fileURLToPath e non URL.pathname: su Windows pathname dà «/D:/…» e il percorso diventa «D:\D:\…»
   // un backup di una versione precedente, senza le colonne facoltative nuove, si deve poter ancora ripristinare
   const vecchio = fs.mkdtempSync(path.join(os.tmpdir(), 'tio-104-vecchio-'))
-  fs.cpSync(path.join(path.dirname(new URL(import.meta.url).pathname), 'fixtures', 'archivio-1.0.0'), vecchio, { recursive: true })
+  fs.cpSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', 'archivio-1.0.0'), vecchio, { recursive: true })
   assert.equal(require('../electron/backup').isBackup(vecchio), true, 'il backup della 1.0.0 deve restare valido')
   fs.rmSync(vecchio, { recursive: true, force: true })
   ok('uscite ricorrenti: mensili a fine mese e trimestrali, create 30 giorni prima, senza doppioni; eliminate e interrotte non tornano; l’importo nuovo vale per le prossime; i backup delle versioni precedenti restano ripristinabili')
