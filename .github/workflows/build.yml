@@ -25,12 +25,14 @@ jobs:
       # negli strumenti di sviluppo; nell'app installata nessuna eccezione (vedi scripts/controlla-audit.js)
       - name: Dipendenze senza vulnerabilità alte
         run: node scripts/controlla-audit.js
-      - name: Prove automatiche (calcoli, dati, report, controllo dei tipi)
+      - name: Prove automatiche (calcoli, dati, report, controllo dei tipi, prestazioni)
         run: |
           mkdir -p "$RUNNER_TEMP/smoke"
           set -o pipefail
           node scripts/run-tests.js 2>&1 | tee "$RUNNER_TEMP/smoke/suite.log"
         shell: bash
+        # i tempi della prova di prestazioni finiscono anche negli artefatti «registri-…», per confrontarli nel tempo
+        env: { TIO_PRESTAZIONI_RISULTATI: '${{ runner.temp }}/smoke/prestazioni.json' }
       - name: Prove nell'app vera
         run: sh scripts/run-all-smoke.sh "$RUNNER_TEMP/smoke"
         env: { STRICT: '1' }
@@ -41,6 +43,22 @@ jobs:
         with:
           name: registri-${{ matrix.os }}
           path: ${{ runner.temp }}/smoke
+          if-no-files-found: ignore
+      # Copertura delle prove (righe di src/lib ed electron eseguite da `npm test`): per ora solo informativa, senza soglia,
+      # e su un solo sistema (riesegue tutte le prove). Non blocca: il rapporto è nell'artefatto «copertura» e nel riepilogo.
+      - name: Copertura delle prove (informativa)
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        run: |
+          node scripts/copertura.js "$RUNNER_TEMP/copertura"
+          { echo '### Copertura delle prove'; echo '```'; head -n 6 "$RUNNER_TEMP/copertura/riepilogo.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+      - name: Conserva il rapporto di copertura
+        if: always() && runner.os == 'Windows'
+        uses: actions/upload-artifact@v7
+        with:
+          name: copertura
+          path: ${{ runner.temp }}/copertura
           if-no-files-found: ignore
 
   installer:

@@ -62,6 +62,8 @@ npm run test:licenses     # integrità di avvisi, sorgenti e binari nativi
 npm run lint              # oxlint: errori di correttezza e regole di React sugli hook (anche dentro npm test)
 npm run test:archivi      # archivio vero della 1.0.0 aperto con Node e con il Node di Electron (node:sqlite è sperimentale)
 npm run test:campione     # richiamo e precisione di Anonimizza sul campione annotato in scripts/fixtures/campione-anonimizza
+npm run test:prestazioni  # budget di prestazioni: archivio grande, Budget, report, documento lungo in Word e PDF (anche dentro npm test)
+npm run copertura         # righe di src/lib ed electron eseguite da npm test (solo informativa, riesegue tutte le prove)
 node scripts/misura-anonimizza.mjs <cartella> [--dettagli]   # la stessa misura su documenti propri annotati (fuori dal progetto)
 node scripts/misura-import.js <file.csv>                     # importazione di un file vero in un archivio temporaneo: stampa solo numeri
 sh scripts/run-all-smoke.sh [cartella]   # tutti gli scenari nell'app vera, in sequenza
@@ -98,6 +100,60 @@ Ogni scenario ha un tempo massimo (`MNGMNT_TEST_MAX_MIN`, predefinito 15 minuti)
 | `smoke-axe` | rapporto dettagliato di accessibilità (diagnostico, senza riga RISULTATO) |
 
 Gli scenari non usano pause fisse: `scripts/lib/attesa.js` allunga le attese in base al carico e aspetta che la pagina smetta di cambiare. Lo scenario `smoke-ditta` (riordino trascinando) è sensibile al carico del computer.
+
+### Prestazioni
+
+`scripts/test-prestazioni.mjs` (circa 10 secondi, dentro `npm test`) dà un tempo massimo alle operazioni che rallentano per prime quando l'archivio cresce; un limite superato fa fallire la prova, in locale e nella CI su Mac e Windows:
+
+- **archivio grande** (3.000 pratiche, 12.000 scadenze, 12.000 attività, 9.000 ore, 6.000 note): apertura con controllo di integrità come in `electron/main.js`, lettura delle tabelle della prima schermata (le stesse di `src/store.tsx`, lette dal sorgente: se l'elenco cambia la prova lo segue), copia verso la finestra (serializzazione come l'IPC), rubrica e allegati caricati dopo;
+- **Budget e report** su 4.000 documenti, 8.000 voci da pagare e 12.000 ore: la catena di `src/components/budget/contesto.ts` (movimenti, uscite ricorrenti, saldi, stima di tasse e contributi, budget, previsione, indicatori), prima nota, solleciti, redditività, dati di fatturazione;
+- **documento lungo** (1.800 blocchi, 169 pagine): tutti i formati di `electron/documento.js` e il PDF con la stampa isolata dell'app (`electron/print-pdf.js`, in un processo Electron separato: `scripts/prestazioni-pdf.js`);
+- **crescita:** con il doppio dei dati il tempo deve al massimo triplicare (lineare ≈ ×2, quadratico ≈ ×4). Questo controllo non dipende dalla velocità del computer: scopre un algoritmo quadratico anche dove i limiti assoluti, larghi per i runner, non lo noterebbero.
+
+Ogni tempo è il migliore di alcuni giri. I limiti (in `LIMITI`, con accanto il tempo misurato su un Mac con Apple M) sono 5-8 volte i tempi locali, per i runner Windows più lenti. Se un computer è più lento: `TIO_PRESTAZIONI_FATTORE=2 npm run test:prestazioni` raddoppia i limiti. Un rallentamento già noto da correggere nel codice dell'app va in `ECCEZIONI`, con motivo e scadenza come in `scripts/controlla-audit.js`: fino alla scadenza la prova lo stampa con «NOTA» senza bloccare, dopo blocca di nuovo; quando la correzione arriva la prova scrive «eccezione non più necessaria». In CI i tempi sono salvati in `prestazioni.json` negli artefatti `registri-…`, per confrontarli tra un push e l'altro. Eccezioni aperte (scadenza 31/01/2027): `redditivita()` e `solleciti()` in `src/lib/report.ts` filtrano tutte le righe per ogni pratica o documento (tempo quadratico; redditività di 4.000 pratiche circa 0,75 s).
+
+Per aggiungere una misura: una voce in `LIMITI` (tempo locale × 5, arrotondato) e una chiamata `misura(nome, () => …)`; per una funzione che scorre elenchi anche `crescita(nome, (n) => …, n)` con tempi di almeno 5 ms.
+
+### Copertura
+
+`npm run copertura [cartella]` riesegue tutte le prove di `npm test` con la misura di V8 (`NODE_V8_COVERAGE`, nessuna dipendenza in più) e scrive `riepilogo.txt` (percentuale per file e righe scoperte), `copertura.json` e `lcov.info` (per le estensioni «Coverage Gutters» degli editor); senza cartella usa `<temporanei>/tio-copertura`. Le prove che compilano `src/lib` con Vite ricevono le mappe dei sorgenti da `scripts/lib/copertura-hook.mjs`, così le righe tornano ai file `.ts` senza modificare le prove; le righe di soli tipi non contano. Non sono misurati i processi Electron (sito, scenari nell'app vera). Per ora è solo informativa: nella CI gira su Windows, non blocca, il riepilogo compare nella pagina dell'esecuzione e il rapporto completo nell'artefatto `copertura`. Quando i numeri saranno stabili si potrà fissare una soglia minima per cartella, da alzare man mano.
+
+### Proposta: branch, pull request e controlli obbligatori prima del merge
+
+Oggi si lavora direttamente su `main`: le prove su Windows e macOS girano dopo il push, quando il commit è già nella storia pubblica. Così sono arrivati su `main` e poi corretti con un secondo commit i percorsi costruiti con `URL.pathname` (sbagliati su Windows), l'audit delle dipendenze fallito e il contrasto insufficiente del sito. Il workflow `build.yml` gira già sulle pull request: manca solo l'obbligo di passarci.
+
+Flusso proposto:
+
+1. **Ogni modifica su un branch** (`git switch -c correzione/percorsi-windows`); le sessioni di Claude Code lavorano già in branch `claude/…`.
+2. **Prima del push, in locale:** `npm test`; per modifiche all'interfaccia anche `sh scripts/run-all-smoke.sh`.
+3. **Push del branch e pull request** verso `main` (`git push -u origin <branch>`, poi «Compare & pull request» su GitHub o `gh pr create --fill`). Partono «Prove (windows-latest)» e «Prove (macos-latest)»: audit, `npm test` con prestazioni e sito, scenari nell'app vera.
+4. **Merge solo con i controlli verdi** («Squash and merge», poi il branch si cancella). Il workflow riparte su `main` e verifica il risultato dell'unione.
+5. **Tag di versione solo da `main`** dopo il merge, come oggi (`git tag v1.0.5 && git push origin v1.0.5`): le regole dei branch non toccano i tag.
+
+Per attivarlo (lo fa il titolare del repository; nessuno script lo attiva da sé):
+
+1. Apri almeno una pull request, così GitHub conosce i nomi dei controlli.
+2. Su GitHub: *Settings › Rules › Rulesets › New ruleset › New branch ruleset*. Nome «main protetto», *Enforcement status* «Active», *Target branches* «Include default branch».
+3. Spunta *Restrict deletions*, *Block force pushes*, *Require a pull request before merging* (approvazioni richieste: 0, perché chi lavora da solo non può approvare le proprie pull request) e *Require status checks to pass*, con *Require branches to be up to date before merging*; aggiungi i controlli «Prove (windows-latest)» e «Prove (macos-latest)».
+4. *Bypass list* vuota: anche l'amministratore passa dalle pull request. Se serve una via d'uscita per le emergenze, aggiungi «Repository admin» solo per le pull request (*For pull requests only*), non per il push diretto.
+5. Salva con *Create* e prova: `git push origin main` da una copia locale deve essere rifiutato con «Changes must be made through a pull request».
+
+Lo stesso da terminale, con la [GitHub CLI](https://cli.github.com) autenticata come titolare:
+
+```bash
+gh api -X POST repos/kalkyril/tutto-in-ordine/rulesets --input - <<'JSON'
+{ "name": "main protetto", "target": "branch", "enforcement": "active",
+  "conditions": { "ref_name": { "include": ["~DEFAULT_BRANCH"], "exclude": [] } },
+  "rules": [
+    { "type": "deletion" }, { "type": "non_fast_forward" },
+    { "type": "pull_request", "parameters": { "required_approving_review_count": 0, "dismiss_stale_reviews_on_push": false,
+      "require_code_owner_review": false, "require_last_push_approval": false, "required_review_thread_resolution": false } },
+    { "type": "required_status_checks", "parameters": { "strict_required_status_checks_policy": true,
+      "required_status_checks": [ { "context": "Prove (windows-latest)" }, { "context": "Prove (macos-latest)" } ] } } ] }
+JSON
+```
+
+Conseguenze da sapere: ogni modifica, anche di una riga, aspetta le prove su due sistemi (circa 20-40 minuti con gli scenari nell'app vera); le sessioni che oggi committano su `main` dovranno pubblicare un branch e aprire una pull request; se il repository diventa privato, i minuti macOS valgono 10 volte quelli Linux. Facoltativo in seguito: `concurrency` con `cancel-in-progress` per le pull request in `build.yml`, così un nuovo push sullo stesso branch ferma le prove del push precedente.
 
 **App impacchettata:** `npx electron-builder --mac dir`, poi si avvia il binario con `MNGMNT_TEST=1`, `MNGMNT_TEST_SCENARIO=smoke-packaged`, `MNGMNT_DATA_DIR=<cartella temporanea>` (e facoltativamente `SMOKE_OUT=<cartella>`): verifica nel pacchetto PDF, OCR, ricerca, importazioni, backup cifrati, ripristino e anteprime (21 controlli). `npm test` comprende anche le prove di robustezza: archivi precedenti, corrotti o troncati, crash durante la scrittura, più processi insieme, 49.000 righe, input ostili, nomi riservati di Windows, date limite.
 
