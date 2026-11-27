@@ -7,10 +7,10 @@ import { CreaDocumentoModal } from '../components/CreaDocumento'
 import { AnteprimaNota, ImmagineBlocco, RigheEditor } from '../components/ModelloPdfEditor'
 import { GestioneFont, OpzioniFont } from '../components/SceltaFont'
 import { modelloEffettivo } from '../lib/modello'
-import { CAMPI_SPECIALI, MARGINI_PREDEFINITI, NOMI_POSIZIONE_LD, campiDisponibili, duplicaModello, documentoHtml, modelliPredefiniti, modelloPersonalizzato, nuovoModello, rigaVuota, tipiDocumento, valoriCampi } from '../lib/documento'
+import { CAMPI_SPECIALI, MARGINI_PREDEFINITI, NOMI_FORMATO_DATA, NOMI_POSIZIONE_LD, campiDisponibili, testoLuogoData, duplicaModello, documentoHtml, modelliPredefiniti, modelloPersonalizzato, nuovoModello, rigaVuota, tipiDocumento, valoriCampi } from '../lib/documento'
 import { EditorTesto } from '../components/EditorTesto'
 import { AnteprimaGrande } from '../components/AnteprimaGrande'
-import type { Allineamento, ModelloDocumento, PosizioneLuogoData, Settings } from '../types'
+import type { Allineamento, FormatoData, ModelloDocumento, PosizioneLuogoData, Settings } from '../types'
 
 const tipiPer = tipiDocumento
 
@@ -153,20 +153,22 @@ function Editor({ m, settings, scelta, schedaIniziale, onChange, onCrea, onDupli
           {m.firma && !/\{\{\s*firma\s*\}\}/.test(m.corpo) && <p className="muted small">Hai caricato la foto della firma: scrivi {'{{firma}}'} nel testo dove deve comparire (menu «Inserisci campo» › Speciali › Firma).</p>}
         </>}
         {scheda === 'intestazione' && <section className="modello-blocco">
-          <header><div><h3>Intestazione</h3><p className="muted small">Puoi usare i campi, per esempio {'{{studio.nome}}'}.</p></div>
+          <header><div><h2>Intestazione</h2><p className="muted small">Puoi usare i campi, per esempio {'{{studio.nome}}'}.</p></div>
             <Segmented value={m.intestazioneSoloPrima ? 'prima' : 'tutte'} onChange={(v: 'tutte' | 'prima') => onChange({ intestazioneSoloPrima: v === 'prima' })} options={[{ id: 'tutte', label: 'In ogni pagina' }, { id: 'prima', label: 'Solo nella prima' }]} /></header>
           <ImmagineBlocco titolo="Intestazione" src={m.logo} altezza={m.logoAltezza} allineamento={m.logoAllineamento} max={140} onChange={(logo, logoAltezza, logoAllineamento) => onChange({ logo, logoAltezza, logoAllineamento })} />
           <RigheEditor righe={m.intestazione} titolo="Intestazione" opzioniFont={opzioniFont} nuova={() => rigaVuota()} onChange={(intestazione) => onChange({ intestazione })} />
+          <label className="check"><input type="checkbox" checked={m.lineaIntestazione !== false} onChange={(e) => onChange({ lineaIntestazione: e.target.checked })} /> Linea tra intestazione e testo</label>
+          {m.intestazioneSoloPrima && <p className="muted small">Dalla seconda pagina l’intestazione resta vuota, come in un documento nuovo di Word, con il margine in alto di 2,5 cm.</p>}
           <Btn size="sm" variant="ghost" className="btn-a-capo" onClick={daParcelle} title="Copia in questo modello intestazione, piè di pagina, immagini e font del modello dei documenti di vendita (Impostazioni › Modello PDF)">Usa intestazione, piè di pagina e font dei documenti di vendita</Btn>
         </section>}
         {scheda === 'piede' && <section className="modello-blocco">
-          <header><div><h3>Piè di pagina</h3><p className="muted small">In fondo a ogni pagina: sede, recapiti, codice fiscale e partita IVA…</p></div></header>
+          <header><div><h2>Piè di pagina</h2><p className="muted small">In fondo a ogni pagina: sede, recapiti, codice fiscale e partita IVA…</p></div></header>
           <ImmagineBlocco titolo="Piè di pagina" src={m.immagineFooter || null} altezza={m.immagineFooterAltezza ?? 36} allineamento={m.immagineFooterAllineamento || 'centro'} max={64} onChange={(immagineFooter, immagineFooterAltezza, immagineFooterAllineamento) => onChange({ immagineFooter, immagineFooterAltezza, immagineFooterAllineamento })} />
           <RigheEditor righe={m.footer} titolo="Piè di pagina" opzioniFont={opzioniFont} nuova={() => rigaVuota({ dimensione: 'piccola' })} onChange={(footer) => onChange({ footer })} />
         </section>}
         {scheda === 'impaginazione' && <>
           <section className="modello-blocco">
-            <header><div><h3>Disposizione del testo</h3><p className="muted small">Vale per tutto il documento. Nella scheda Contenuto, dalla barra dell’editor, puoi allineare i singoli paragrafi e mettere su due colonne solo una parte del testo.</p></div></header>
+            <header><div><h2>Disposizione del testo</h2><p className="muted small">Vale per tutto il documento. Nella scheda Contenuto, dalla barra dell’editor, puoi allineare i singoli paragrafi e mettere su due colonne solo una parte del testo.</p></div></header>
             <div className="documenti-disposizione" role="group" aria-label="Disposizione del testo">
               <Segmented value={m.allineamento || 'sinistra'} onChange={(allineamento: Allineamento) => onChange({ allineamento })} options={[
               { id: 'sinistra', label: <AlignLeft size={15} aria-hidden />, title: 'Testo a sinistra' }, { id: 'centro', label: <AlignCenter size={15} aria-hidden />, title: 'Testo al centro' },
@@ -175,7 +177,7 @@ function Editor({ m, settings, scelta, schedaIniziale, onChange, onCrea, onDupli
             </div>
           </section>
           <section className="modello-blocco">
-            <header><div><h3>Carattere</h3><p className="muted small">Font e dimensione del testo del documento. Su ogni riga di intestazione e piè di pagina puoi sceglierne un altro.</p></div></header>
+            <header><div><h2>Carattere</h2><p className="muted small">Font e dimensione del testo del documento. Su ogni riga di intestazione e piè di pagina puoi sceglierne un altro.</p></div></header>
             <div className="row wrap modello-font-controlli">
               <Field label="Carattere del documento"><Select value={m.fontDocumento || 'arial'} onChange={(e) => onChange({ fontDocumento: e.target.value })}>{opzioniFont}</Select></Field>
               <Field label="Dimensione del testo"><Select value={String(m.corpoPt ?? 11)} onChange={(e) => onChange({ corpoPt: Number(e.target.value) })}>{[9, 10, 10.5, 11, 12, 13, 14, 16, 18, 20, 24, 28].map((n) => <option key={n} value={n}>{String(n).replace('.', ',')} pt{n >= 18 ? ' · grandissimo' : n >= 14 ? ' · grande' : ''}</option>)}</Select></Field>
@@ -183,7 +185,7 @@ function Editor({ m, settings, scelta, schedaIniziale, onChange, onCrea, onDupli
             <GestioneFont value={m} righe={['intestazione', 'footer']} onChange={onChange} />
           </section>
           <section className="modello-blocco">
-            <header><div><h3>Margini della pagina</h3><p className="muted small">Spazio tra il bordo del foglio A4 e il testo, in millimetri: in cima alla pagina (sopra l’intestazione), in fondo (sotto il piè di pagina) e ai lati.</p></div></header>
+            <header><div><h2>Margini della pagina</h2><p className="muted small">Spazio tra il bordo del foglio A4 e il testo, in millimetri: in cima alla pagina (sopra l’intestazione), in fondo (sotto il piè di pagina) e ai lati.</p></div></header>
             <div className="documenti-margini">
               {([['sopra', 'In alto'], ['sotto', 'In basso'], ['lati', 'Ai lati']] as const).map(([k, l]) =>
                 <Field key={k} label={`${l} (mm)`}><Input type="number" min={5} max={60} step={1} value={margini[k]} onChange={(e) => setMargine(k, Number(e.target.value))} /></Field>)}
@@ -191,19 +193,29 @@ function Editor({ m, settings, scelta, schedaIniziale, onChange, onCrea, onDupli
             </div>
           </section>
           <section className="modello-blocco">
-            <header><div><h3>Firma</h3><p className="muted small">La foto o la scansione della tua firma (meglio su fondo bianco o trasparente). Compare dove scrivi {'{{firma}}'} nel testo.</p></div></header>
+            <header><div><h2>Firma</h2><p className="muted small">La foto o la scansione della tua firma (meglio su fondo bianco o trasparente). Compare dove scrivi {'{{firma}}'} nel testo.</p></div></header>
             <ImmagineBlocco titolo="Firma" src={m.firma || null} altezza={m.firmaAltezza ?? 60} allineamento={m.firmaAllineamento === 'giustificato' ? 'sinistra' : m.firmaAllineamento || 'sinistra'} max={160} onChange={(firma, firmaAltezza, firmaAllineamento) => onChange({ firma, firmaAltezza, firmaAllineamento })} />
             {m.firma && !/\{\{\s*firma\s*\}\}/.test(m.corpo) && <Btn size="sm" variant="ghost" onClick={() => onChange({ corpo: m.corpo + '<p>{{firma}}</p>' })}><PenLine size={14} /> Aggiungi {'{{firma}}'} in fondo al testo</Btn>}
           </section>
+          <section className="modello-blocco luogo-data-blocco">
+            <header><div><h2>Luogo e data</h2><p className="muted small">La riga «città, data» delle lettere. La data è quella del giorno in cui crei il documento.</p></div>
+              <Segmented value={m.mostraLuogoData ? 'si' : 'no'} onChange={(v: 'si' | 'no') => onChange({ mostraLuogoData: v === 'si' })} options={[{ id: 'si', label: 'Mostra' }, { id: 'no', label: 'Nascondi' }]} /></header>
+            {m.mostraLuogoData && <div className="luogo-data-griglia">
+              <Field label="Città" hint={settings.studio.cap_citta ? 'Vuota: la città del tuo indirizzo' : undefined}><Input value={m.luogo} onChange={(e) => onChange({ luogo: e.target.value })} placeholder={(settings.studio.cap_citta || '').replace(/^\d{5}\s*/, '').replace(/\s*\(.*\)\s*$/, '') || 'Es. Modena'} /></Field>
+              <Field label="Forma della data"><Select value={m.formatoData || 'lunga'} onChange={(e) => onChange({ formatoData: e.target.value as FormatoData })}>{Object.entries(NOMI_FORMATO_DATA).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
+              <div className="luogo-data-posizione">
+                <p className="field-label" id="posizione-ld">Posizione</p>
+                <div className="foglio-posizioni" role="radiogroup" aria-labelledby="posizione-ld">
+                  {(Object.keys(NOMI_POSIZIONE_LD) as PosizioneLuogoData[]).map((k) => <button key={k} type="button" role="radio" aria-checked={(m.posizioneLuogoData || 'alto-destra') === k} className={`posizione-${k}`} title={NOMI_POSIZIONE_LD[k]} aria-label={NOMI_POSIZIONE_LD[k]} onClick={() => onChange({ posizioneLuogoData: k })}><span /></button>)}
+                  <i className="foglio-righe" aria-hidden />
+                </div>
+                <span className="muted small">{NOMI_POSIZIONE_LD[m.posizioneLuogoData || 'alto-destra']}</span>
+              </div>
+              <p className="luogo-data-esempio" aria-live="polite"><span className="muted small">Nel documento</span><b>{testoLuogoData(m, { valori: valori })}</b></p>
+            </div>}
+          </section>
           <section className="modello-blocco">
-            <header><h3>Pagina</h3></header>
-            <label className="check"><input type="checkbox" checked={m.mostraLuogoData} onChange={(e) => onChange({ mostraLuogoData: e.target.checked })} /> Luogo e data</label>
-            <div className="row wrap">
-              <input value={m.luogo} onChange={(e) => onChange({ luogo: e.target.value })} disabled={!m.mostraLuogoData} placeholder="Città, es. Modena" aria-label="Città per la data" style={{ maxWidth: 240 }} />
-              <Select value={m.posizioneLuogoData || 'alto-destra'} disabled={!m.mostraLuogoData} onChange={(e) => onChange({ posizioneLuogoData: e.target.value as PosizioneLuogoData })} aria-label="Posizione di luogo e data" style={{ maxWidth: 220 }}>
-                {Object.entries(NOMI_POSIZIONE_LD).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </Select>
-            </div>
+            <header><h2>Pagina</h2></header>
             <label className="check"><input type="checkbox" checked={m.numeriPagina} onChange={(e) => onChange({ numeriPagina: e.target.checked })} /> Numeri di pagina («Pagina 1 di 3»)</label>
             <p className="muted small">Intestazione e piè di pagina si modificano nelle loro schede. In Word, LibreOffice e RTF i font «del computer» devono essere installati sul computer che apre il file.</p>
           </section>
@@ -249,7 +261,7 @@ function EditorWord(p: AzioniModello) {
     <div className="documenti-form">
       <TestaModello {...p} />
       <section className="modello-blocco">
-        <header><div><h3>Modello Word</h3><p className="muted small">Il documento creato è una copia del tuo file con i campi compilati: carta intestata, stili, immagini, intestazione e piè di pagina restano identici. Per aggiungere un campo scrivilo in Word tra doppie graffe, poi sostituisci qui il file.</p></div></header>
+        <header><div><h2>Modello Word</h2><p className="muted small">Il documento creato è una copia del tuo file con i campi compilati: carta intestata, stili, immagini, intestazione e piè di pagina restano identici. Per aggiungere un campo scrivilo in Word tra doppie graffe, poi sostituisci qui il file.</p></div></header>
         <div className="row wrap">
           <Btn size="sm" onClick={sostituisci}><FileUp size={14} /> Sostituisci il file Word…</Btn>
           <Btn size="sm" variant="ghost" onClick={() => run(() => api.scaricaModelloWord(m.id), 'Modello salvato')}><Download size={14} /> Salva una copia del modello…</Btn>
@@ -257,13 +269,13 @@ function EditorWord(p: AzioniModello) {
         {errore && <p className="src-badge err" role="alert">{errore}</p>}
       </section>
       <section className="modello-blocco">
-        <header><h3>Campi nel documento</h3></header>
+        <header><h2>Campi nel documento</h2></header>
         {info && (info.campi.length
           ? <ul className="campi-word">{info.campi.map((c) => <li key={c}><code>{`{{${c}}}`}</code><span className="muted small">{nomi.get(c) || 'campo libero: lo scrivi quando crei il documento'}</span></li>)}</ul>
           : <p className="muted small">Nessun campo trovato. Scrivi nel file Word, per esempio, {'{{destinatario.nome}}'} dove vuoi il nome del destinatario.</p>)}
       </section>
       <section className="modello-blocco">
-        <header><h3>Campi che puoi usare</h3><p className="muted small">Fai clic per copiare il campo e incollalo nel documento Word.</p></header>
+        <header><h2>Campi che puoi usare</h2><p className="muted small">Fai clic per copiare il campo e incollalo nel documento Word.</p></header>
         <div className="campi-disponibili">{[...new Set(campi.map((c) => c.gruppo))].map((g) => <div key={g}><p className="nav-section">{g}</p>{campi.filter((c) => c.gruppo === g).map((c) => <button key={c.id} type="button" className="chip-campo" onClick={() => copia(`{{${c.id}}}`)} title={`Copia {{${c.id}}}`}>{c.etichetta}</button>)}</div>)}</div>
       </section>
     </div>

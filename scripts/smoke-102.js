@@ -101,7 +101,7 @@ function attach({ getWindow, db }) {
       await axe('valore della commessa')
       await clickText('.tabs button', 'Attività'); await sleep(500)
       await clickText('button', 'Nuova attività'); await sleep(500)
-      await setVal('.modal select[aria-label="Come indicare la tariffa oraria"]', 'dopo'); await sleep(300)
+      await setVal('.modal select[aria-label="Come indicare il compenso"]', 'dopo'); await sleep(300)
       check('tariffa oraria: «Da decidere» nasconde l’importo', !(await js(`!!document.querySelector('.modal input[aria-label="Tariffa oraria in euro"]')`)) && /Da decidere/.test(await js(`document.querySelector('.modal').innerText + [...document.querySelectorAll('.modal input')].map(i=>i.value).join(' ')`)))
       await setVal(`#${await js(`${campo('Attività')}.id`)}`, 'Sopralluogo'); await setVal(`#${await js(`${campo('Tempo dedicato')}.id`)}`, '1:30'); await sleep(200)
       await shot('102-5-tariffa')
@@ -124,7 +124,9 @@ function attach({ getWindow, db }) {
       await clickText('.modal-foot button', 'Chiudi'); await sleep(400)
       await shot('102-7-editor')
       await clickText('.tabs button', 'Impaginazione'); await sleep(500)
-      check('impaginazione: firma e posizione di luogo e data', /Firma/.test(await text()) && await js(`[...document.querySelector('select[aria-label="Posizione di luogo e data"]').options].map(o=>o.textContent).join('|')`) === 'In alto a destra|In alto a sinistra|In basso a sinistra|In basso a destra')
+      // 1.0.5: luogo e data in una sezione a sé, con la posizione scelta su un foglio in miniatura
+      await js(`[...document.querySelectorAll('.luogo-data-blocco button')].find(x=>x.textContent.trim()==='Mostra')?.click()`); await sleep(400)
+      check('impaginazione: firma e posizione di luogo e data', /Firma/.test(await text()) && await js(`[...document.querySelectorAll('.foglio-posizioni [role=radio]')].map(b=>b.getAttribute('aria-label')).join('|')`) === 'In alto a destra|In alto a sinistra|In basso a sinistra|In basso a destra')
       await clickText('.tabs button', 'Intestazione'); await sleep(400)
       check('intestazione: dimensione «Grandissima» e sottolineato', await js(`[...document.querySelectorAll('.riga-ed select option')].some(o=>o.textContent==='Grandissima') && !!document.querySelector('.riga-ed button[title="Sottolineato"]')`))
 

@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Braces, Columns2, Eraser, Highlighter, ImagePlus, Italic, List, ListOrdered, ListTree, Redo2, Scissors, Strikethrough, Table, Trash2, Underline, Undo2, Wand2 } from 'lucide-react'
+import { AlignCenter, AlignJustify, AlignLeft, AlignRight, ArrowUpDown, Baseline, Bold, Braces, Check, ChevronDown, Columns2, Eraser, Highlighter, ImagePlus, Italic, List, ListOrdered, ListTree, Redo2, Scissors, Strikethrough, Table, Trash2, Underline, Undo2, Wand2 } from 'lucide-react'
 import { Btn, Field, Input, Modal, useFeedback } from './ui'
-import { blocchiDaHtml, blocchiDaTestoStrutturato, capitoli, CSS_ALLINEA, htmlDaBlocchi, nomeCampoValido, pulisciHtml, riconosciTitoli, type Campo } from '../lib/documento'
+import { blocchiDaHtml, blocchiDaTestoStrutturato, capitoli, CSS_ALLINEA, htmlDaBlocchi, INTERLINEE, interlineaDa, nomeCampoValido, pulisciHtml, RIGA_SINGOLA, riconosciTitoli, SPAZI_PARAGRAFO, spazioDa, type Campo, type StileSottolineatura } from '../lib/documento'
 import type { Allineamento } from '../types'
 
 const DIMENSIONI = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 60, 72]
+/** Colori proposti per testo e sottolineatura: scuri abbastanza da leggersi sulla carta bianca. */
+const COLORI = [['#1f3a5f', 'Blu notte'], ['#2563eb', 'Blu'], ['#0f766e', 'Verde acqua'], ['#15803d', 'Verde'], ['#a16207', 'Ocra'], ['#c2410c', 'Arancione'], ['#b91c1c', 'Rosso'], ['#be185d', 'Rosa'], ['#7c3aed', 'Viola'], ['#4b5563', 'Grigio']] as const
+const TIPI_SOTTOLINEATURA: [StileSottolineatura | 'singola', string, string][] = [['singola', 'Singola', 'solid'], ['doppia', 'Doppia', 'double'], ['punteggiata', 'Punteggiata', 'dotted'], ['tratteggiata', 'Tratteggiata', 'dashed'], ['ondulata', 'Ondulata', 'wavy']]
+const virgola = (n: number | string) => String(n).replace('.', ',')
+type Tendina = 'colore' | 'sottolineatura' | 'paragrafo'
 
 /** Immagine per il corpo del documento: lato lungo fino a 1400 px, JPEG per le foto (PNG se ha trasparenze), al massimo 3 MB. */
 export async function immagineCorpo(file: Blob): Promise<string> {
@@ -51,6 +56,19 @@ export function EditorTesto({ valore, campi, allineamento, colonne, onChange, op
   const [nuovaTabella, setNuovaTabella] = useState<null | { righe: number; colonne: number; intestazione: boolean }>(null)
   const [nuovoCampo, setNuovoCampo] = useState<string | null>(null)
   const [immagineSel, setImmagineSel] = useState<HTMLImageElement | null>(null)
+  const [tendina, setTendina] = useState<Tendina | null>(null)
+  const barra = useRef<HTMLDivElement>(null)
+  // ultima sottolineatura scelta: tipo e colore si combinano (si cambia il colore tenendo il tipo, e viceversa)
+  const [sottolineatura, setSottolineatura] = useState<{ us: StileSottolineatura | 'singola'; uc: string }>({ us: 'singola', uc: '' })
+  // le tendine si chiudono con Esc o con un clic fuori dalla barra
+  useEffect(() => {
+    if (!tendina) return
+    const fuori = (e: MouseEvent) => { if (!barra.current?.contains(e.target as Node)) setTendina(null) }
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { setTendina(null); ripristina() } }
+    document.addEventListener('mousedown', fuori); document.addEventListener('keydown', esc)
+    return () => { document.removeEventListener('mousedown', fuori); document.removeEventListener('keydown', esc) }
+  }, [tendina]) // eslint-disable-line react-hooks/exhaustive-deps -- ripristina legge solo ref
+
   const salvata = useRef<Range | null>(null)
   const fileImg = useRef<HTMLInputElement>(null)
   // il contenuto si imposta una sola volta: rimpiazzarlo a ogni battuta sposterebbe il cursore
@@ -74,6 +92,60 @@ export function EditorTesto({ valore, campi, allineamento, colonne, onChange, op
     cambia()
   }
   const colore = (comando: 'foreColor' | 'hiliteColor', v: string) => { ref.current?.focus(); document.execCommand('styleWithCSS', false, 'true'); document.execCommand(comando, false, v); document.execCommand('styleWithCSS', false, 'false'); cambia() }
+  // ---------- sottolineatura con colore e tipo (1.0.5): il browser sa fare solo quella semplice, si usa un segnaposto
+  const sottolinea = (us: StileSottolineatura | 'singola', uc: string) => {
+    const f = ref.current; if (!f) return
+    ripristina()
+    if (attivo('underline')) document.execCommand('underline')
+    document.execCommand('styleWithCSS', false, 'false'); document.execCommand('fontName', false, 'tio-sottolinea')
+    const nuovi: HTMLElement[] = []
+    for (const el of f.querySelectorAll('font[face="tio-sottolinea"]')) {
+      el.querySelectorAll('u').forEach((x) => x.replaceWith(...x.childNodes))
+      const u = document.createElement('u')
+      if (uc) u.style.textDecorationColor = uc
+      const css = TIPI_SOTTOLINEATURA.find(([k]) => k === us)?.[2]
+      if (css && css !== 'solid') u.style.textDecorationStyle = css
+      u.append(...el.childNodes); el.replaceWith(u); nuovi.push(u)
+    }
+    // il testo resta selezionato: si può cambiare subito colore o tipo
+    if (nuovi.length) { const r = document.createRange(); r.setStartBefore(nuovi[0]); r.setEndAfter(nuovi[nuovi.length - 1]); const sel = window.getSelection(); sel?.removeAllRanges(); sel?.addRange(r) }
+    setSottolineatura({ us, uc }); ricorda(); cambia()
+  }
+  // ---------- interlinea e spazio prima/dopo dei paragrafi selezionati (1.0.5), come in Word
+  const paragrafi = (): HTMLElement[] => {
+    const f = ref.current, sel = window.getSelection()
+    if (!f || !sel?.rangeCount || !f.contains(sel.anchorNode)) return []
+    const r = sel.getRangeAt(0)
+    const toccati = [...f.querySelectorAll<HTMLElement>('p, h1, h2, h3, h4, li, blockquote')].filter((el) => !el.closest('td, th') && r.intersectsNode(el))
+    return toccati.filter((el) => !toccati.some((o) => o !== el && el.contains(o)))
+  }
+  const paragrafoSalvato = () => { const n = salvata.current?.startContainer; const el = n ? (n instanceof Element ? n : n.parentElement) : null; return el && ref.current?.contains(el) ? el.closest<HTMLElement>('p, h1, h2, h3, h4, li, blockquote') : null }
+  const pAttuale = tendina === 'paragrafo' ? paragrafoSalvato() : null
+  const spaziaturaAttuale = { interlinea: pAttuale ? interlineaDa(pAttuale.dataset.interlinea || pAttuale.style.lineHeight) : undefined, prima: pAttuale ? spazioDa(pAttuale.style.marginTop) : undefined, dopo: pAttuale ? spazioDa(pAttuale.style.marginBottom) : undefined }
+  const spazia = (p: { interlinea?: number | null; prima?: number | null; dopo?: number | null }) => {
+    ripristina()
+    let els = paragrafi()
+    if (!els.length) { document.execCommand('formatBlock', false, 'p'); els = paragrafi() }
+    for (const el of els) {
+      if (p.interlinea !== undefined) {
+        if (p.interlinea === null) { delete el.dataset.interlinea; el.style.lineHeight = '' }
+        else { el.dataset.interlinea = String(p.interlinea); el.style.lineHeight = String(Math.round(p.interlinea * RIGA_SINGOLA * 1000) / 1000) }
+      }
+      if (p.prima !== undefined) el.style.marginTop = p.prima === null ? '' : `${p.prima}pt`
+      if (p.dopo !== undefined) el.style.marginBottom = p.dopo === null ? '' : `${p.dopo}pt`
+    }
+    ricorda(); cambia()
+  }
+  const [sinistra, setSinistra] = useState(0)
+  // la tendina si apre sotto il suo pulsante, senza uscire dalla barra
+  const apri = (t: Tendina, b: HTMLElement) => {
+    ricorda()
+    const rb = barra.current?.getBoundingClientRect(), r = b.getBoundingClientRect()
+    if (rb) setSinistra(Math.max(0, Math.min(r.left - rb.left, rb.width - 280)))
+    setTendina((x) => (x === t ? null : t))
+  }
+  const tastoTendina = (t: Tendina, titolo: string, icona: React.ReactNode) => <button type="button" className={`tool tool-tendina${tendina === t ? ' on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={(e) => apri(t, e.currentTarget)} title={titolo} aria-label={titolo} aria-haspopup="dialog" aria-expanded={tendina === t}>{icona}<ChevronDown size={11} aria-hidden /></button>
+  const campione = (colore: string, nome: string, attivoOra: boolean, fn: () => void) => <button key={colore || 'auto'} type="button" className={`campione-colore${attivoOra ? ' on' : ''}${colore ? '' : ' automatico'}`} style={colore ? { background: colore } : undefined} onMouseDown={(e) => e.preventDefault()} onClick={fn} title={nome} aria-label={nome} aria-pressed={attivoOra} />
   // sezione a due colonne: si applica ai paragrafi selezionati; dentro una sezione, la toglie
   const sezioneDi = (n: Node | null | undefined) => (n instanceof Element ? n : n?.parentElement)?.closest('[data-colonne]') as HTMLElement | null
   const inSezione = (() => { const s = window.getSelection(); return !!(s?.rangeCount && ref.current?.contains(s.anchorNode) && sezioneDi(s.anchorNode)) })()
@@ -153,7 +225,7 @@ export function EditorTesto({ valore, campi, allineamento, colonne, onChange, op
   // parole e caratteri del testo (senza i tag): utile per atti con limiti di lunghezza
   const conta = useMemo(() => { const t = valore.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&[a-z]+;/g, 'x').replace(/\s+/g, ' ').trim(); return { parole: t ? t.split(' ').length : 0, caratteri: t.length } }, [valore])
   return <div className={`editor-testo ${opzioni.classe || ''}`}>
-    <div className="editor-barra" role="toolbar" aria-label="Formattazione">
+    <div className="editor-barra" role="toolbar" aria-label="Formattazione" ref={barra}>
       <div className="tool-group">
         {bottone('Annulla (⌘Z)', false, () => cmd('undo'), <Undo2 size={14} />)}
         {bottone('Ripeti', false, () => cmd('redo'), <Redo2 size={14} />)}
@@ -168,12 +240,16 @@ export function EditorTesto({ valore, campi, allineamento, colonne, onChange, op
         {bottone('Grassetto (⌘B)', attivo('bold'), () => cmd('bold'), <Bold size={14} />)}
         {bottone('Corsivo (⌘I)', attivo('italic'), () => cmd('italic'), <Italic size={14} />)}
         {bottone('Sottolineato (⌘U)', attivo('underline'), () => cmd('underline'), <Underline size={14} />)}
+        {tastoTendina('sottolineatura', 'Colore e tipo della sottolineatura', <span className="icona-sottolineatura" style={{ textDecorationColor: sottolineatura.uc || undefined }} aria-hidden>U</span>)}
         {bottone('Barrato', attivo('strikeThrough'), () => cmd('strikeThrough'), <Strikethrough size={14} />)}
       </div>
       <div className="tool-group">
-        <input type="color" aria-label="Colore del testo" title="Colore del testo" defaultValue="#1f3a5f" onMouseDown={ricorda} onChange={(e) => { ripristina(); colore('foreColor', e.target.value) }} />
+        {tastoTendina('colore', 'Colore del testo', <Baseline size={14} />)}
         {bottone('Evidenzia in giallo', false, () => colore('hiliteColor', '#fff3b0'), <Highlighter size={14} />)}
         {bottone('Togli la formattazione', false, () => { cmd('removeFormat'); colore('hiliteColor', 'transparent') }, <Eraser size={14} />)}
+      </div>
+      <div className="tool-group">
+        {tastoTendina('paragrafo', 'Interlinea e spaziatura del paragrafo', <ArrowUpDown size={14} />)}
       </div>
       <div className="tool-group">
         {bottone('Elenco puntato', attivo('insertUnorderedList'), () => cmd('insertUnorderedList'), <List size={14} />)}
@@ -201,6 +277,43 @@ export function EditorTesto({ valore, campi, allineamento, colonne, onChange, op
         {personali.length > 0 && <optgroup label="I tuoi campi">{personali.map((c) => <option key={c} value={c}>{c}</option>)}</optgroup>}
         {gruppi.map((g) => <optgroup key={g} label={g}>{campi.filter((c) => c.gruppo === g).map((c) => <option key={c.id} value={c.id}>{c.etichetta}</option>)}</optgroup>)}
       </select>}
+      {tendina === 'colore' && <div className="tendina-pannello" style={{ left: sinistra }} role="dialog" aria-label="Colore del testo">
+        <p className="tendina-titolo">Colore del testo</p>
+        <div className="campioni">
+          {campione('', 'Automatico (nero)', false, () => { ripristina(); colore('foreColor', '#000000'); setTendina(null) })}
+          {COLORI.map(([c, n]) => campione(c, n, false, () => { ripristina(); colore('foreColor', c); setTendina(null) }))}
+        </div>
+        <label className="tendina-altro">Altro colore <input type="color" defaultValue="#1f3a5f" onChange={(e) => { ripristina(); colore('foreColor', e.target.value) }} /></label>
+      </div>}
+      {tendina === 'sottolineatura' && <div className="tendina-pannello" style={{ left: sinistra }} role="dialog" aria-label="Sottolineatura">
+        <p className="tendina-titolo">Tipo</p>
+        <div className="tendina-voci">
+          {TIPI_SOTTOLINEATURA.map(([k, nome, css]) => <button key={k} type="button" className="tendina-voce" aria-pressed={sottolineatura.us === k} onMouseDown={(e) => e.preventDefault()} onClick={() => sottolinea(k, sottolineatura.uc)}>
+            <span className="anteprima-sottolineatura" style={{ textDecorationStyle: css as 'solid', textDecorationColor: sottolineatura.uc || undefined }}>{nome}</span>{sottolineatura.us === k && <Check size={13} aria-hidden />}</button>)}
+        </div>
+        <p className="tendina-titolo">Colore</p>
+        <div className="campioni">
+          {campione('', 'Come il testo', !sottolineatura.uc, () => sottolinea(sottolineatura.us, ''))}
+          {COLORI.map(([c, n]) => campione(c, n, sottolineatura.uc === c, () => sottolinea(sottolineatura.us, c)))}
+        </div>
+        <label className="tendina-altro">Altro colore <input type="color" defaultValue="#b91c1c" onChange={(e) => sottolinea(sottolineatura.us, e.target.value)} /></label>
+        <button type="button" className="tendina-voce tendina-togli" onMouseDown={(e) => e.preventDefault()} onClick={() => { ripristina(); if (attivo('underline')) cmd('underline'); setTendina(null) }}>Togli la sottolineatura</button>
+      </div>}
+      {tendina === 'paragrafo' && <div className="tendina-pannello tendina-paragrafo" style={{ left: sinistra }} role="dialog" aria-label="Interlinea e spaziatura del paragrafo">
+        <p className="tendina-titolo">Interlinea</p>
+        <div className="tendina-voci">
+          {INTERLINEE.map((n) => <button key={n} type="button" className="tendina-voce" aria-pressed={spaziaturaAttuale.interlinea === n} onMouseDown={(e) => e.preventDefault()} onClick={() => spazia({ interlinea: n })}><span>{virgola(n.toFixed(n === 1.15 ? 2 : 1))}</span>{spaziaturaAttuale.interlinea === n && <Check size={13} aria-hidden />}</button>)}
+          <button type="button" className="tendina-voce" aria-pressed={spaziaturaAttuale.interlinea === undefined} onMouseDown={(e) => e.preventDefault()} onClick={() => spazia({ interlinea: null })}><span>Come il documento</span>{spaziaturaAttuale.interlinea === undefined && <Check size={13} aria-hidden />}</button>
+        </div>
+        <div className="tendina-separatore" role="separator" />
+        <button type="button" className="tendina-voce" onMouseDown={(e) => e.preventDefault()} onClick={() => spazia({ prima: spaziaturaAttuale.prima ? 0 : 12 })}>{spaziaturaAttuale.prima ? 'Rimuovi spazio prima del paragrafo' : 'Aggiungi spazio prima del paragrafo'}</button>
+        <button type="button" className="tendina-voce" onMouseDown={(e) => e.preventDefault()} onClick={() => spazia({ dopo: spaziaturaAttuale.dopo === 0 ? 12 : 0 })}>{spaziaturaAttuale.dopo === 0 ? 'Aggiungi spazio dopo il paragrafo' : 'Rimuovi spazio dopo il paragrafo'}</button>
+        <div className="tendina-separatore" role="separator" />
+        <div className="tendina-spazi">
+          <label>Spazio prima <select value={spaziaturaAttuale.prima ?? ''} onChange={(e) => spazia({ prima: e.target.value === '' ? null : Number(e.target.value) })}><option value="">Automatico</option>{SPAZI_PARAGRAFO.map((n) => <option key={n} value={n}>{n} pt</option>)}</select></label>
+          <label>Spazio dopo <select value={spaziaturaAttuale.dopo ?? ''} onChange={(e) => spazia({ dopo: e.target.value === '' ? null : Number(e.target.value) })}><option value="">Automatico</option>{SPAZI_PARAGRAFO.map((n) => <option key={n} value={n}>{n} pt</option>)}</select></label>
+        </div>
+      </div>}
     </div>
     {tabella && <div className="editor-barra editor-barra-contesto" role="toolbar" aria-label="Tabella">
       <span className="small muted">Tabella:</span>

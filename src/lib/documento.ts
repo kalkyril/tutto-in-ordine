@@ -1,6 +1,6 @@
 // Modelli di documento (sezione Documenti): intestazione e piè di pagina come quelli della nota pro forma,
 // un corpo con formattazione essenziale e campi che si compilano dai dati dell'archivio.
-import type { Allineamento, Anagrafica, MarginiPagina, ModelloDocumento, Pratica, RigaModello, Settings } from '../types'
+import type { Allineamento, Anagrafica, FormatoData, MarginiPagina, ModelloDocumento, Pratica, RigaModello, Settings } from '../types'
 import { modelloEffettivo, riga } from './modello'
 import { esc } from './format'
 import { famigliaFont, fontFaceCss, nomeFont } from './font-documento'
@@ -111,15 +111,54 @@ export const CSS_ALLINEA: Record<Allineamento, string> = { sinistra: 'left', cen
 /**
  * Un pezzo di testo con la sua formattazione: grassetto, corsivo, sottolineato, barrato, dimensione in punti, colore del
  * testo, evidenziatore. `m`: campo senza valore (si evidenzia nell'anteprima, nei file resta tra doppie graffe).
+ * 1.0.5: `uc` colore della sottolineatura (#rrggbb), `us` tipo di sottolineatura (doppia, punteggiata, tratteggiata, ondulata).
  */
-export interface Run { t: string; b?: boolean; i?: boolean; u?: boolean; s?: boolean; pt?: number; c?: string; hl?: string; m?: boolean }
+export interface Run { t: string; b?: boolean; i?: boolean; u?: boolean; uc?: string; us?: StileSottolineatura; s?: boolean; pt?: number; c?: string; hl?: string; m?: boolean }
+export type StileSottolineatura = 'doppia' | 'punteggiata' | 'tratteggiata' | 'ondulata'
+const CSS_SOTTOLINEATURA: Record<StileSottolineatura, string> = { doppia: 'double', punteggiata: 'dotted', tratteggiata: 'dashed', ondulata: 'wavy' }
+const DA_CSS_SOTTOLINEATURA: Record<string, StileSottolineatura> = { double: 'doppia', dotted: 'punteggiata', dashed: 'tratteggiata', wavy: 'ondulata' }
 export type TipoBlocco = 'p' | 'h1' | 'h2' | 'h3' | 'h4' | 'ul' | 'ol' | 'quote' | 'table' | 'img' | 'pagebreak'
 /**
  * Blocco del corpo. Senza allineamento segue la disposizione di tutto il documento; `colonne: 2`: fa parte di una sezione
  * a due colonne. Tabelle: `celle` (righe → celle → pezzi di testo), con la prima riga d'intestazione se `intestazione`.
  * Immagini: `src` (data URL) e `larghezza` in percentuale della riga di testo. `pagebreak`: interruzione di pagina.
  */
-export interface Blocco { tipo: TipoBlocco; allineamento?: Allineamento; colonne?: 2; runs: Run[]; celle?: Run[][][]; intestazione?: boolean; src?: string; larghezza?: number; altezza?: number }
+export interface Blocco extends Spaziatura { tipo: TipoBlocco; allineamento?: Allineamento; colonne?: 2; runs: Run[]; celle?: Run[][][]; intestazione?: boolean; src?: string; larghezza?: number; altezza?: number }
+/**
+ * 1.0.5: interlinea (multipli della riga singola, da 1 a 3) e spazio prima e dopo il paragrafo, in punti (0-72), come
+ * in Word. Se mancano valgono quelli del documento.
+ */
+export interface Spaziatura { interlinea?: number; spazioPrima?: number; spazioDopo?: number }
+export const INTERLINEE = [1, 1.15, 1.5, 2, 2.5, 3]
+export const SPAZI_PARAGRAFO = [0, 3, 6, 9, 12, 18, 24, 36]
+/** Interlinea CSS («1.5», «150%», «18pt» su un testo di `pt` punti) in multipli della riga singola, fra 1 e 3. */
+export function interlineaDa(v: string | null | undefined, pt = 11): number | undefined {
+  if (!v || v === 'normal') return undefined
+  const s = v.trim().toLowerCase()
+  const n = /^[\d.]+$/.test(s) ? parseFloat(s) : /^[\d.]+%$/.test(s) ? parseFloat(s) / 100 : ptDa(s) ? ptDa(s)! / (pt * 1.15) : NaN
+  return Number.isFinite(n) && n > 0 ? Math.min(3, Math.max(1, Math.round(n * 100) / 100)) : undefined
+}
+/** Spazio prima o dopo il paragrafo («12pt», «16px», «0») in punti, fra 0 e 72. */
+export function spazioDa(v: string | null | undefined): number | undefined {
+  if (!v) return undefined
+  const s = v.trim().toLowerCase()
+  const n = /^0(?:px|pt|em|cm|mm|in)?$/.test(s) ? 0 : /^[\d.]+pt$/.test(s) ? parseFloat(s) : /^[\d.]+px$/.test(s) ? parseFloat(s) * 0.75
+    : /^[\d.]+cm$/.test(s) ? parseFloat(s) * 28.35 : /^[\d.]+mm$/.test(s) ? parseFloat(s) * 2.835 : /^[\d.]+in$/.test(s) ? parseFloat(s) * 72 : NaN
+  return Number.isFinite(n) ? Math.min(72, Math.max(0, Math.round(n * 2) / 2)) : undefined
+}
+const spaziaturaDa = (el: HTMLElement | null): Spaziatura => {
+  const st = el?.style
+  if (!st) return {}
+  // l'editor scrive l'interlinea in data-interlinea (come in Word); quella dei testi incollati è nel CSS
+  const interlinea = interlineaDa(el.dataset?.interlinea || st.lineHeight), spazioPrima = spazioDa(st.marginTop), spazioDopo = spazioDa(st.marginBottom)
+  return { ...(interlinea !== undefined && { interlinea }), ...(spazioPrima !== undefined && { spazioPrima }), ...(spazioDopo !== undefined && { spazioDopo }) }
+}
+/**
+ * Stile CSS della spaziatura di un blocco («line-height:1.725;margin-top:12pt»). La riga singola di Word è circa 1,15
+ * volte la dimensione del testo: l'interlinea 1,5 di Word diventa line-height 1,725.
+ */
+export const RIGA_SINGOLA = 1.15
+export const cssSpaziatura = (b: Spaziatura) => [b.interlinea ? `line-height:${Math.round(b.interlinea * RIGA_SINGOLA * 1000) / 1000}` : '', b.spazioPrima !== undefined ? `margin-top:${b.spazioPrima}pt` : '', b.spazioDopo !== undefined ? `margin-bottom:${b.spazioDopo}pt` : ''].filter(Boolean).join(';')
 
 const RE_IMG = /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/=]+$/
 const MAX_IMG = 4 * 1024 * 1024
@@ -145,7 +184,7 @@ export function coloreDa(v: string | null | undefined, sfondo = false): string |
   if (sfondo ? hex === '#ffffff' : hex === '#000000') return undefined
   return hex
 }
-const stessoStile = (a: Run, b: Run) => !!a.b === !!b.b && !!a.i === !!b.i && !!a.u === !!b.u && !!a.s === !!b.s && a.pt === b.pt && a.c === b.c && a.hl === b.hl && !!a.m === !!b.m
+const stessoStile = (a: Run, b: Run) => !!a.b === !!b.b && !!a.i === !!b.i && !!a.u === !!b.u && a.uc === b.uc && a.us === b.us && !!a.s === !!b.s && a.pt === b.pt && a.c === b.c && a.hl === b.hl && !!a.m === !!b.m
 /** Pezzi consecutivi con lo stesso stile diventano uno solo (file più leggeri, nessuna differenza visibile). */
 const unisci = (runs: Run[]) => runs.reduce<Run[]>((out, r) => { const u = out[out.length - 1]; if (u && stessoStile(u, r)) u.t += r.t; else if (r.t) out.push({ ...r }); return out }, [])
 
@@ -157,7 +196,7 @@ export function blocchiDaHtml(html: string): Blocco[] {
   let corrente: Blocco | null = null, inColonne = false
   const nuovo = (tipo: Blocco['tipo'], el: Element | null) => {
     const a = (el as HTMLElement | null)?.style?.textAlign || el?.getAttribute('align') || ''
-    corrente = { tipo, ...(ALLINEA[a] && { allineamento: ALLINEA[a] }), ...(inColonne && { colonne: 2 as const }), runs: [] }; out.push(corrente)
+    corrente = { tipo, ...(ALLINEA[a] && { allineamento: ALLINEA[a] }), ...(inColonne && { colonne: 2 as const }), ...spaziaturaDa(el as HTMLElement | null), runs: [] }; out.push(corrente)
   }
   const formato = (el: HTMLElement, f: Formato): Formato => {
     const tag = el.tagName, st = el.style
@@ -165,7 +204,12 @@ export function blocchiDaHtml(html: string): Blocco[] {
     if (['B', 'STRONG'].includes(tag) || Number(st?.fontWeight) >= 600 || st?.fontWeight === 'bold') g.b = true
     if (st?.fontWeight === 'normal' || st?.fontWeight === '400') g.b = false
     if (['I', 'EM'].includes(tag) || st?.fontStyle === 'italic') g.i = true
-    if (tag === 'U' || /underline/.test(st?.textDecoration || st?.textDecorationLine || '')) g.u = true
+    if (tag === 'U' || /underline/.test(st?.textDecoration || st?.textDecorationLine || '')) {
+      g.u = true
+      // colore e tipo della sottolineatura (1.0.5); «currentcolor» o nessun colore = quello del testo
+      const uc = coloreDa(st?.textDecorationColor); if (uc) g.uc = uc
+      const us = DA_CSS_SOTTOLINEATURA[(st?.textDecorationStyle || '').trim()]; if (us) g.us = us
+    }
     if (['S', 'STRIKE', 'DEL'].includes(tag) || /line-through/.test(st?.textDecoration || st?.textDecorationLine || '')) g.s = true
     const pt = ptDa(st?.fontSize) ?? (tag === 'FONT' ? PT_FONT_SIZE[el.getAttribute('size') || ''] : undefined)
     if (pt) g.pt = pt
@@ -258,7 +302,8 @@ export function runHtml(r: Run): string {
   const stile = [r.pt ? `font-size:${r.pt}pt` : '', r.c ? `color:${r.c}` : '', r.hl && !r.m ? `background-color:${r.hl}` : ''].filter(Boolean).join(';')
   if (stile) t = `<span style="${stile}">${t}</span>`
   if (r.s) t = `<s>${t}</s>`
-  if (r.u) t = `<u>${t}</u>`
+  const stileU = [r.uc ? `text-decoration-color:${r.uc}` : '', r.us ? `text-decoration-style:${CSS_SOTTOLINEATURA[r.us]}` : ''].filter(Boolean).join(';')
+  if (r.u) t = stileU ? `<u style="${stileU}">${t}</u>` : `<u>${t}</u>`
   if (r.i) t = `<em>${t}</em>`
   if (r.b) t = `<strong>${t}</strong>`
   if (r.m) t = `<mark>${t}</mark>`
@@ -273,7 +318,8 @@ export function htmlDaBlocchi(blocchi: Blocco[]): string {
     if (sezione && !b.colonne) { h += '</div>'; sezione = false }
     if (!sezione && b.colonne) { h += '<div data-colonne="2">'; sezione = true }
     if (l && !lista) { h += `<${l}>`; lista = l }
-    const stile = b.allineamento ? ` style="text-align:${CSS_ALLINEA[b.allineamento]}"` : ''
+    const css = [b.allineamento ? `text-align:${CSS_ALLINEA[b.allineamento]}` : '', b.tipo !== 'img' && b.tipo !== 'table' ? cssSpaziatura(b) : ''].filter(Boolean).join(';')
+    const stile = (css ? ` style="${css}"` : '') + (b.interlinea && b.tipo !== 'img' && b.tipo !== 'table' ? ` data-interlinea="${b.interlinea}"` : '')
     if (b.tipo === 'pagebreak') { h += '<hr data-interruzione="1">'; continue }
     if (b.tipo === 'img') { if (b.src && RE_IMG.test(b.src)) h += `<figure${stile}><img src="${attr(b.src)}" style="${b.altezza ? `height:${b.altezza}px;width:auto` : `width:${b.larghezza || 100}%`}" alt=""></figure>`; continue }
     if (b.tipo === 'table') {
@@ -500,7 +546,20 @@ const POSIZIONI_LD: Record<string, { alto: boolean; allineamento: Allineamento }
 }
 export const NOMI_POSIZIONE_LD: Record<string, string> = { 'alto-destra': 'In alto a destra', 'alto-sinistra': 'In alto a sinistra', 'basso-sinistra': 'In basso a sinistra', 'basso-destra': 'In basso a destra' }
 export const posizioneLuogoData = (m: Pick<ModelloDocumento, 'posizioneLuogoData'>) => POSIZIONI_LD[m.posizioneLuogoData || 'alto-destra'] || POSIZIONI_LD['alto-destra']
-const testoLuogoData = (m: ModelloDocumento, c: Compilazione) => m.mostraLuogoData ? [c.luogo || c.valori.luogo || m.luogo, c.valori.oggi || dataLunga()].filter(Boolean).join(', ') : ''
+export const NOMI_FORMATO_DATA: Record<FormatoData, string> = { lunga: '27 novembre 2026', breve: '27/11/2026', li: 'lì 27 novembre 2026' }
+/** «Modena, 27 novembre 2026» (o «27/11/2026», «Modena, lì 27 novembre 2026»); senza luogo solo la data. */
+export function testoLuogoData(m: Pick<ModelloDocumento, 'mostraLuogoData' | 'luogo' | 'formatoData'>, c: Pick<Compilazione, 'luogo' | 'valori'>, oggi = new Date()): string {
+  if (!m.mostraLuogoData) return ''
+  // la città del modello vince su quella dell'indirizzo dell'attività (che arriva nei valori dei campi)
+  const luogo = (c.luogo || m.luogo || c.valori.luogo || '').trim()
+  const data = m.formatoData === 'breve' ? oggi.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : c.valori.oggi || dataLunga(oggi)
+  return luogo ? `${luogo}, ${m.formatoData === 'li' ? 'lì ' : ''}${data}` : data
+}
+/**
+ * Margine in alto delle pagine senza intestazione quando l'intestazione sta solo sulla prima: come in un documento
+ * vuoto di Word (2,5 cm), o di più se il modello chiede un margine più ampio.
+ */
+export const margineSenzaIntestazione = (sopra: number) => Math.max(25, sopra)
 
 /** HTML A4 del documento: intestazione ripetuta in ogni pagina, piè di pagina fisso in fondo, luogo e data per le lettere. */
 export function documentoHtml(m: ModelloDocumento, c: Compilazione, anteprima = false): string {
@@ -508,7 +567,7 @@ export function documentoHtml(m: ModelloDocumento, c: Compilazione, anteprima = 
   const righe = (r: RigaModello[]) => righeHtml(r.map((x) => ({ ...x, testo: compila(x.testo, v) })), m)
   const corpoHtml = htmlDaBlocchi(corpoCompilato(m, c))
   const luogoData = testoLuogoData(m, c), pos = posizioneLuogoData(m)
-  const ld = luogoData ? `<p class="luogo-data" style="text-align:${CSS_ALLINEA[pos.allineamento]};${pos.alto ? '' : 'margin:8mm 0 0'}">${esc(luogoData)}</p>` : ''
+  const ld = luogoData ? `<p class="luogo-data ${pos.alto ? 'in-alto' : 'in-basso'}" style="text-align:${CSS_ALLINEA[pos.allineamento]}">${esc(luogoData)}</p>` : ''
   const footer = `<div class="piede">${footerImmagineHtml(m)}${righe(m.footer)}${m.numeriPagina && anteprima ? '<span class="num-pagina">Pagina 1 di 1</span>' : ''}</div>`
   const haTesta = !!m.logo || !vuoto(m.intestazione)
   // in cima a ogni pagina (nell'intestazione della tabella di impaginazione) oppure solo sulla prima, prima del testo
@@ -520,11 +579,14 @@ export function documentoHtml(m: ModelloDocumento, c: Compilazione, anteprima = 
   const ptNum = ultima ? DIM_PT_RIGA[ultima.dimensione] || 10 : 8
   const stileNum = `font:${ptNum}pt/1.3 ${ultima?.font ? famigliaFont(ultima.font, m.fontPersonali) : famigliaFont(m.fontDocumento, m.fontPersonali)};color:#536276;white-space:nowrap`
   const numeriCss = m.numeriPagina && !anteprima ? `@bottom-right{content:"Pagina " counter(page) " di " counter(pages);${stileNum};vertical-align:top;margin-top:-${ultima ? (ptNum * 1.3).toFixed(2) : 0}pt}` : ''
+  // intestazione solo sulla prima: le pagine seguenti hanno il margine di un documento vuoto di Word
+  const soloPrima = !!m.intestazioneSoloPrima && haTesta && !anteprima
+  const linea = m.lineaIntestazione !== false
   return `<!doctype html><html lang="it"><head><meta charset="utf-8"><title>${esc(compila(m.nome, v))}</title><style>
   ${fontFaceCss({ ...m, pagamento: [] })}
-  @page{size:A4;margin:${mg.sopra}mm ${mg.lati}mm ${mg.sotto + (m.numeriPagina && !ultima ? 4 : 0)}mm;${numeriCss}}*{box-sizing:border-box}
+  @page{size:A4;margin:${soloPrima ? margineSenzaIntestazione(mg.sopra) : mg.sopra}mm ${mg.lati}mm ${mg.sotto + (m.numeriPagina && !ultima ? 4 : 0)}mm;${numeriCss}}${soloPrima ? `@page:first{margin-top:${mg.sopra}mm}` : ''}*{box-sizing:border-box}
   body{font:${pt}pt/1.5 ${famigliaFont(m.fontDocumento, m.fontPersonali)};color:#14202e;margin:0;${anteprima ? `padding:${mg.sopra}mm ${mg.lati}mm ${mg.sotto}mm;min-height:297mm;position:relative;` : ''}}
-  .testa{padding-bottom:3.5mm;margin-bottom:7mm;border-bottom:1pt solid #9aa5b1}.luogo-data{text-align:right;margin:0 0 6mm}
+  .testa{${linea ? 'padding-bottom:3.5mm;border-bottom:1pt solid #9aa5b1;' : ''}margin-bottom:7mm}.luogo-data{margin:0;font-variant-numeric:lining-nums}.luogo-data.in-alto{margin:1mm 0 9mm}.luogo-data.in-basso{margin:10mm 0 0;break-inside:avoid;break-before:avoid}
   .corpo{text-align:${CSS_ALLINEA[m.allineamento || 'sinistra']};${m.allineamento === 'giustificato' ? 'hyphens:auto;' : ''}${m.colonne === 2 ? 'column-count:2;column-gap:9mm;' : ''}}.corpo h1,.corpo h2,.corpo h3,.corpo h4{break-after:avoid}.corpo [data-colonne]{column-count:2;column-gap:9mm;margin:0 0 .55em}
   .corpo p{margin:0 0 .55em;orphans:3;widows:3}.corpo h1{font-size:${Math.max(18, pt + 7)}pt;margin:.6em 0 .35em}.corpo h2{font-size:${Math.max(13.5, pt + 3)}pt;margin:.9em 0 .3em}.corpo h3{font-size:${Math.max(12, pt + 1)}pt;margin:.8em 0 .3em}.corpo h4{font-size:${pt}pt;font-style:italic;margin:.7em 0 .25em}
   .corpo ul,.corpo ol{margin:0 0 .6em;padding-left:7mm}.corpo li{margin:0 0 .2em}mark{background:#fff3b0;color:inherit}
@@ -578,14 +640,14 @@ export async function documentoEsportabile(m: ModelloDocumento, c: Compilazione)
     return { ...base, src: undefined, runs: senzaSegni(b.runs), ...(b.celle && { celle: b.celle.map((riga) => riga.map(senzaSegni)) }) }
   }))
   const luogoData = testoLuogoData(m, c), pos = posizioneLuogoData(m)
-  const ld = luogoData ? [{ tipo: 'p' as const, allineamento: pos.allineamento, runs: [{ t: luogoData }] }] : []
+  const ld = luogoData ? [{ tipo: 'p' as const, allineamento: pos.allineamento, runs: [{ t: luogoData }], ...(pos.alto ? { spazioDopo: 24 } : { spazioPrima: 28 }) }] : []
   const font = nomeFont(m.fontDocumento, m)
   return {
-    titolo: compila(m.nome, v), font, numeriPagina: m.numeriPagina, intestazioneSoloPrima: !!m.intestazioneSoloPrima, ...(m.margini && { margini: { ...MARGINI_PREDEFINITI, ...m.margini } }), ...(m.corpoPt && { corpoPt: m.corpoPt }), allineamento: m.allineamento || 'sinistra', colonne: m.colonne === 2 ? 2 : 1,
+    titolo: compila(m.nome, v), font, numeriPagina: m.numeriPagina, intestazioneSoloPrima: !!m.intestazioneSoloPrima, lineaIntestazione: m.lineaIntestazione !== false, ...(m.margini && { margini: { ...MARGINI_PREDEFINITI, ...m.margini } }), ...(m.corpoPt && { corpoPt: m.corpoPt }), allineamento: m.allineamento || 'sinistra', colonne: m.colonne === 2 ? 2 : 1,
     intestazione: righe(m.intestazione), footer: righe(m.footer),
     logo: await png(m.logo, m.logoAltezza, m.logoAllineamento),
     immagineFooter: await png(m.immagineFooter, m.immagineFooterAltezza ?? 36, m.immagineFooterAllineamento || 'centro'),
-    corpo: [...(pos.alto ? ld : []), ...corpoBlocchi.filter((x): x is NonNullable<typeof x> => !!x), ...(pos.alto ? [] : [{ tipo: 'p' as const, runs: [{ t: '' }] }, ...ld])],
+    corpo: [...(pos.alto ? ld : []), ...corpoBlocchi.filter((x): x is NonNullable<typeof x> => !!x), ...(pos.alto ? [] : ld)],
   }
 }
 

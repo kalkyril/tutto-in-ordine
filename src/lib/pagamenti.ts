@@ -16,9 +16,12 @@ export const coloriMovimento = (s: { colori_pagamenti?: Partial<Record<StatoMovi
 export interface CostoBase { id: number; pratica_id: number | null; fornitore_id: number | null; data: string; descrizione: string; categoria: string; importo: number; scadenza: string | null; pagata: number; contabile?: string | null
   /** 1.0.4: uscita ricorrente (ogni mese, ogni tre mesi, ogni anno), serie a cui appartiene e giorno del mese */
   ripeti?: string | null; serie?: number | null; ripeti_giorno?: number | null
+  /** 1.0.5: ultima scadenza della serie (rate con una fine), se c'è */
+  ripeti_fine?: string | null
   /** 1.0.4: quando è stata pagata e da quale conto */
   pagata_il?: string | null; conto_id?: number | null }
-export const NOMI_RIPETI: Record<string, string> = { mensile: 'ogni mese', trimestrale: 'ogni 3 mesi', annuale: 'ogni anno' }
+export const NOMI_RIPETI: Record<string, string> = { mensile: 'ogni mese', bimestrale: 'ogni 2 mesi', trimestrale: 'ogni 3 mesi', semestrale: 'ogni 6 mesi', annuale: 'ogni anno' }
+const MESI_FREQUENZA: Record<string, number> = { mensile: 1, bimestrale: 2, trimestrale: 3, semestrale: 6, annuale: 12 }
 export { rateAperte, type RataAperta, type RataBase } from './report'
 export interface PagamentoBase { id: number; parcella_id: number; data: string | null; importo: number; metodo: string; conto_id?: number | null }
 /** Fattura letta dai file del servizio di fatturazione (sola lettura): dati del file e scelte fatte in TIO. */
@@ -94,7 +97,7 @@ export function movimenti(parcelle: Parcella[], costi: CostoBase[], pagamenti: P
 
 /** Scadenza successiva di un'uscita ricorrente, con il giorno del mese riportato all'ultimo se il mese è più corto. */
 export function prossimaScadenza(data: string, frequenza: string, giornoMese: number): string {
-  const [y, m] = data.split('-').map(Number), passo = frequenza === 'annuale' ? 12 : frequenza === 'trimestrale' ? 3 : 1
+  const [y, m] = data.split('-').map(Number), passo = MESI_FREQUENZA[frequenza] || 1
   const t = new Date(Date.UTC(y, m - 1 + passo, 1)), ultimo = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 0)).getUTCDate()
   t.setUTCDate(Math.min(giornoMese, ultimo)); return t.toISOString().slice(0, 10)
 }
@@ -112,7 +115,7 @@ export function usciteRicorrentiPreviste(costi: CostoBase[], fino: string): Movi
     let data = (ultima.scadenza || ultima.data).slice(0, 10)
     const g = ultima.ripeti_giorno || Number(data.slice(8))
     for (let i = 0; i < 400; i++) {
-      data = prossimaScadenza(data, ultima.ripeti, g); if (data > fino) break
+      data = prossimaScadenza(data, ultima.ripeti, g); if (data > fino || (ultima.ripeti_fine && data > ultima.ripeti_fine)) break
       out.push({ chiave: `prev-${id}-${data}`, data, stato: 'da_pagare', importo: tondo(ultima.importo), descrizione: ultima.descrizione, dettaglio: `${ultima.categoria} · prevista`, categoria: ultima.categoria, pratica_id: ultima.pratica_id, scaduto: false, previsto: true })
     }
   }

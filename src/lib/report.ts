@@ -1,6 +1,7 @@
 import type { Anagrafica, Ora, Parcella, Pratica, Settings, Spesa } from '../types'
 import { parse } from './dates'
 import { fmtNum } from './format'
+import { valoreOra } from './attivita'
 
 export const incassatoNetto = (p: Parcella) => p.stato === 'pagata' ? p.netto : p.stato === 'emessa' ? Math.min(p.netto, Math.max(0, p.incassato || 0)) : 0
 export const residuo = (p: Parcella) => Math.max(0, Math.round((p.netto - incassatoNetto(p)) * 100) / 100)
@@ -93,9 +94,9 @@ export function redditivita(pratiche: Pratica[], ore: Ora[], spese: Spesa[], par
     const o = ore.filter((x) => x.pratica_id === pratica.id), s = spese.filter((x) => x.pratica_id === pratica.id)
     const f = parcelle.filter((x) => x.pratica_id === pratica.id && x.tipo === 'parcella' && (x.stato === 'emessa' || x.stato === 'pagata'))
     return {
-      pratica, minuti: o.reduce((t, x) => t + x.minuti, 0), valoreOre: o.reduce((t, x) => t + (x.minuti / 60) * x.tariffa_oraria, 0), spese: s.reduce((t, x) => t + x.importo, 0),
+      pratica, minuti: o.reduce((t, x) => t + x.minuti, 0), valoreOre: o.reduce((t, x) => t + valoreOra(x), 0), spese: s.reduce((t, x) => t + x.importo, 0),
       fatturato: f.reduce((t, x) => t + x.imponibile, 0), incassato: f.reduce((t, x) => t + (x.netto ? x.imponibile * incassatoNetto(x) / x.netto : 0), 0), daIncassare: f.filter((x) => x.stato === 'emessa').reduce((t, x) => t + residuo(x), 0),
-      oreNonFatturate: o.filter((x) => !x.parcella_id).reduce((t, x) => t + (x.minuti / 60) * x.tariffa_oraria, 0),
+      oreNonFatturate: o.filter((x) => !x.parcella_id).reduce((t, x) => t + valoreOra(x), 0),
     }
   }).filter((r) => r.minuti || r.spese || r.fatturato).sort((a, b) => b.fatturato - a.fatturato || b.valoreOre - a.valoreOre)
 }

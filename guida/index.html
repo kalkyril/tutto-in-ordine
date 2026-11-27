@@ -15,7 +15,7 @@
 <div class="guida">
 
 <aside class="indice" aria-label="Indice della guida">
-  <a class="marchio" href="#inizio"><img src="img/icona.png" alt=""><span>Guida di TIO<small>Versione 1.0.4</small></span></a>
+  <a class="marchio" href="#inizio"><img src="img/icona.png" alt=""><span>Guida di TIO<small>Versione 1.0.5</small></span></a>
   <button class="apri-indice" type="button" data-apri-indice aria-expanded="false">Indice</button>
   <nav>
     <div class="cerca">
@@ -145,7 +145,7 @@
 <div class="testo">
 
 <header class="copertina" id="inizio">
-  <p class="sopra">Guida completa · TIO 1.0.4</p>
+  <p class="sopra">Guida completa · TIO 1.0.5</p>
   <h1>Tutto In Ordine, spiegato bene.</h1>
   <p class="sotto">Il manuale di TIO, l’app unica per tutto il lavoro: dall’installazione al primo documento, dall’agenda ai pagamenti e alla fattura elettronica, fino a Documenti, Anonimizza ed Editor PDF, e a come TIO si collega ai programmi che usi già. Gratuito, sul tuo computer, anche senza internet.</p>
 </header>
@@ -171,16 +171,16 @@
 <div class="tabella"><table>
   <thead><tr><th>Sistema</th><th>File da scaricare</th></tr></thead>
   <tbody>
-    <tr><td>Mac con chip Apple (M1, M2…)</td><td><code>TIO-1.0.4-arm64.dmg</code> · macOS 13 Ventura o successivo</td></tr>
-    <tr><td>Mac con processore Intel</td><td><code>TIO-1.0.4.dmg</code> · macOS 13 o successivo</td></tr>
-    <tr><td>Windows</td><td><code>TIO-Setup-1.0.4.exe</code> · Windows 10 o 11 a 64 bit</td></tr>
+    <tr><td>Mac con chip Apple (M1, M2…)</td><td><code>TIO-1.0.5-arm64.dmg</code> · macOS 13 Ventura o successivo</td></tr>
+    <tr><td>Mac con processore Intel</td><td><code>TIO-1.0.5.dmg</code> · macOS 13 o successivo</td></tr>
+    <tr><td>Windows</td><td><code>TIO-Setup-1.0.5.exe</code> · Windows 10 o 11 a 64 bit</td></tr>
   </tbody>
 </table></div>
 <p>L’app occupa circa 420 MB su Mac e 510 MB su Windows, più l’archivio e i backup. Non sai che Mac hai? Menu Apple › <span class="percorso">Informazioni su questo Mac</span>: «Chip Apple M…» indica Apple Silicon, «Processore Intel» un Mac Intel.</p>
 <p>Gli installer sono nella pagina <strong>Releases</strong> del progetto su GitHub, insieme al file <code>SHA256SUMS.txt</code>. Per controllare che il file scaricato sia integro e sia proprio quello pubblicato, confronta il suo codice:</p>
 <ul>
-  <li>Mac, nel Terminale: <code>shasum -a 256 TIO-1.0.4-arm64.dmg</code></li>
-  <li>Windows, nel Prompt dei comandi: <code>certutil -hashfile TIO-Setup-1.0.4.exe SHA256</code></li>
+  <li>Mac, nel Terminale: <code>shasum -a 256 TIO-1.0.5-arm64.dmg</code></li>
+  <li>Windows, nel Prompt dei comandi: <code>certutil -hashfile TIO-Setup-1.0.5.exe SHA256</code></li>
 </ul>
 
 <h3 id="installare-mac">Su Mac</h3>
@@ -194,7 +194,7 @@
 
 <h3 id="installare-windows">Su Windows</h3>
 <ol class="passi">
-  <li>Scarica <code>TIO-Setup-1.0.4.exe</code>. Se il browser dice che il file «non viene scaricato comunemente», scegli di conservarlo (in Edge: menu <strong>…</strong> › <strong>Mantieni</strong> › <strong>Mantieni comunque</strong>).</li>
+  <li>Scarica <code>TIO-Setup-1.0.5.exe</code>. Se il browser dice che il file «non viene scaricato comunemente», scegli di conservarlo (in Edge: menu <strong>…</strong> › <strong>Mantieni</strong> › <strong>Mantieni comunque</strong>).</li>
   <li>Fai doppio clic. Se compare <strong>«Windows ha protetto il PC»</strong> (SmartScreen), premi <strong>Ulteriori informazioni</strong> e poi <strong>Esegui comunque</strong>. L’avviso dipende dalla mancanza di una firma digitale a pagamento.</li>
   <li>Segui l’installazione in italiano: non servono permessi da amministratore. TIO crea l’icona sul desktop e nel menu Start e alla fine si apre.</li>
 </ol>
@@ -373,7 +373,7 @@
 <p>L’elenco delle pratiche esportato dal tuo gestionale (XLSX o CSV) si importa da <span class="percorso">Impostazioni › Integrazioni › Importa i dati esistenti</span>: TIO riconosce cliente, controparte (anche dall’oggetto «ROSSI MARIO c/ BIANCHI SRL»), autorità, RG e giudice, e conserva nelle note le colonne senza un campo corrispondente.</p>
 
 <h3 id="attivita-spese">Attività, ore e spese</h3>
-<p>In <strong>Attività e spese</strong> registri le ore lavorate (data, durata, descrizione, tariffa oraria) e le spese anticipate (con o senza IVA), anche con un allegato. Nel menu della <strong>tariffa oraria</strong> scegli <strong>Inserisci</strong> per scriverla subito o <strong>Da decidere</strong> per fissarla dopo: l’attività conta le ore e, nel documento contabile, diventa una voce a 0 € con la nota «tariffa oraria da decidere», da completare. Quando prepari un documento contabile dal lavoro, ore e spese non ancora fatturate si possono importare come voci; se elimini il documento tornano «da fatturare».</p>
+<p>In <strong>Attività e spese</strong> registri le ore lavorate (data, durata, descrizione, tariffa oraria) e le spese anticipate (con o senza IVA), anche con un allegato. Nel menu <strong>Compenso</strong> scegli <strong>Tariffa oraria</strong> (tempo × tariffa), <strong>Tariffa totale</strong> per un importo deciso a corpo, senza calcolo sulle ore (il tempo diventa facoltativo e nel documento contabile l’attività è una voce a sé con quell’importo) o <strong>Da decidere</strong> per fissarla dopo: l’attività conta le ore e, nel documento contabile, diventa una voce a 0 € con la nota «tariffa oraria da decidere», da completare. Quando prepari un documento contabile dal lavoro, ore e spese non ancora fatturate si possono importare come voci; se elimini il documento tornano «da fatturare».</p>
 
 <figure><img src="img/funzione-commessa.webp" width="1600" height="1012" loading="lazy" alt="La scheda «Fatture e pagamenti» di una commessa: grafico a torta con incassate, da incassare, pagate e da pagare e margine previsto"><figcaption>Il valore di una commessa, con il grafico a torta.</figcaption></figure>
 <p>Nella scheda <strong>Parcelle</strong> (per professionisti e ditte <strong>Fatture e pagamenti</strong>) di ogni lavoro, <strong>Valore della pratica</strong> riassume fatture incassate e da incassare, voci pagate e da pagare collegate al lavoro, con un <strong>grafico a torta</strong> e il margine previsto. I colori del grafico si scelgono in <span class="percorso">Impostazioni › Generale › Aspetto</span>.</p>
@@ -581,7 +581,7 @@
   <li><strong>Esporta CSV</strong> per Excel o il commercialista.</li>
 </ul>
 <p>Le voci sono gli stessi costi di Incassi › Costi e fornitori e contano nella redditività dei lavori e nel grafico del valore della pratica.</p>
-<p><strong>Uscite ricorrenti.</strong> Per affitto, utenze, abbonamenti, assicurazioni o rate, nel modulo della voce scegli <strong>Si ripete</strong>: ogni mese, ogni 3 mesi o ogni anno, a partire dalla data «Da pagare entro». La voce successiva compare da sola 30 giorni prima della scadenza, con lo stesso importo dell’ultima (se cambi l’importo, vale per le prossime). Le scadenze dei mesi successivi si vedono già nello <strong>Scadenzario</strong> come «previste», scritte più tenui. Una voce eliminata non torna; per fermare la serie modifica una voce e scegli <strong>No, una volta sola</strong>: le successive non ancora pagate vengono tolte.</p>
+<p><strong>Uscite ricorrenti.</strong> Per affitto, utenze, abbonamenti, assicurazioni o rate, nel modulo della voce scegli <strong>Si ripete</strong>: ogni mese, ogni 2, 3 o 6 mesi o ogni anno, a partire dalla data «Da pagare entro». Per rate con una fine (auto, finanziamento, leasing) indica l’<strong>Ultima scadenza</strong>: dopo quella la serie si ferma. Le categorie comprendono <strong>Affitto</strong>, <strong>Utenze</strong>, <strong>Rate e finanziamenti</strong>, <strong>Assicurazioni</strong> e <strong>Imposte e contributi</strong>. La voce successiva compare da sola 30 giorni prima della scadenza, con lo stesso importo dell’ultima (se cambi l’importo, vale per le prossime). Le scadenze dei mesi successivi si vedono già nello <strong>Scadenzario</strong> come «previste», scritte più tenui. Una voce eliminata non torna; per fermare la serie modifica una voce e scegli <strong>No, una volta sola</strong>: le successive non ancora pagate vengono tolte.</p>
 
 <h3 id="budget-sezione">Budget</h3>
 <p><strong>Budget</strong> è una voce a sé della barra laterale, subito sotto Pagamenti. Pagamenti è dove registri il denaro; Budget guarda avanti e prepara ciò che serve al commercialista. Sette schede:</p>
@@ -639,9 +639,9 @@
 <figure><img src="img/strumento-editor.webp" width="1600" height="1012" loading="lazy" alt="L’editor dei documenti: barra degli strumenti, barra della tabella, indice dei capitoli, testo con titoli e tabella e anteprima A4"><figcaption>L’editor con i capitoli riconosciuti, una tabella e l’indice.</figcaption></figure>
 <p>Il modello ha quattro schede:</p>
 <ul>
-  <li><strong>Contenuto</strong>: il testo, con un editor quasi da programma di videoscrittura: stili di paragrafo (titolo, sottotitolo, titoletto, paragrafo, citazione), dimensione del testo (fino a 72 pt), grassetto, corsivo, sottolineato, barrato, colore ed evidenziatore, elenchi, <strong>tabelle</strong> (con riga d’intestazione che si ripete su ogni pagina), <strong>immagini</strong> (anche incollate o trascinate), <strong>interruzioni di pagina</strong>, annulla e ripeti;</li>
-  <li><strong>Intestazione</strong> e <strong>Piè di pagina</strong>: righe, logo, dimensione (anche <strong>Grandissima</strong>), grassetto, corsivo, <strong>sottolineato</strong> e allineamento;</li>
-  <li><strong>Impaginazione</strong>: carattere e dimensione del testo (fino a 28 pt), margini della pagina, <strong>firma</strong>, luogo e data (in alto o in basso, a destra o a sinistra), numeri di pagina.</li>
+  <li><strong>Contenuto</strong>: il testo, con un editor quasi da programma di videoscrittura: stili di paragrafo (titolo, sottotitolo, titoletto, paragrafo, citazione), dimensione del testo (fino a 72 pt), grassetto, corsivo, sottolineato (anche <strong>doppio, punteggiato, tratteggiato od ondulato, del colore che vuoi</strong>, dalla freccia accanto alla U), barrato, <strong>colore del testo</strong> da una tavolozza, evidenziatore, <strong>interlinea</strong> (1,0 · 1,15 · 1,5 · 2,0 · 2,5 · 3,0) e <strong>spazio prima e dopo il paragrafo</strong> come in Word (dalla freccia su e giù), elenchi, <strong>tabelle</strong> (con riga d’intestazione che si ripete su ogni pagina), <strong>immagini</strong> (anche incollate o trascinate), <strong>interruzioni di pagina</strong>, annulla e ripeti;</li>
+  <li><strong>Intestazione</strong> e <strong>Piè di pagina</strong>: righe, logo, dimensione (anche <strong>Grandissima</strong>), grassetto, corsivo, <strong>sottolineato</strong> e allineamento; la <strong>linea tra intestazione e testo</strong> si può togliere. Con l’intestazione <strong>solo nella prima</strong> pagina, dalla seconda l’intestazione è quella vuota di un documento nuovo di Word, con il margine in alto di 2,5 cm;</li>
+  <li><strong>Impaginazione</strong>: carattere e dimensione del testo (fino a 28 pt), margini della pagina, <strong>firma</strong>, <strong>luogo e data</strong> (città, forma della data, «27 novembre 2026», «27/11/2026» o «lì 27 novembre 2026», e posizione scelta su un foglio in miniatura: in alto o in basso, a destra o a sinistra), numeri di pagina.</li>
 </ul>
 <p><strong>Capitoli e titoli:</strong> incollando un testo da Word o da una pagina web TIO conserva titoli, elenchi e tabelle; incollando testo semplice (da un PDF o da un’email) riconosce da solo capitoli («CAPITOLO 1», «Art. 3», «1.2 Oggetto», righe in maiuscolo), elenchi e tabelle. Il pulsante con la bacchetta <strong>Riconosci titoli e capitoli</strong> lo fa sul testo già scritto e l’<strong>indice</strong> elenca i capitoli: un clic porta al punto giusto.</p>
 <p><strong>Firma:</strong> in <span class="percorso">Impaginazione › Firma</span> carichi la foto o la scansione della firma (meglio su fondo bianco o trasparente); compare dove scrivi <code>{{firma}}</code>, con l’altezza e l’allineamento scelti.</p>

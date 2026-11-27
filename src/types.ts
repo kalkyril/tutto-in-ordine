@@ -40,7 +40,9 @@ export interface Documento { id: number; pratica_id: number; nome: string; file:
 export interface Link { id: number; pratica_id: number | null; titolo: string; url: string; categoria?: string; descrizione?: string; colore?: string; ordine: number }
 export interface Ora { id: number; pratica_id: number; data: string; minuti: number; descrizione: string; dettagli?: string | null; tariffa_oraria: number; parcella_id: number | null
   /** 1.0.2: tariffa ancora da decidere (si inserisce dopo, anche nel documento di vendita) */
-  tariffa_da_decidere?: number }
+  tariffa_da_decidere?: number
+  /** 1.0.5: «Tariffa totale», compenso a corpo dell'attività (null = tempo × tariffa oraria) */
+  tariffa_totale?: number | null }
 export interface Spesa { id: number; pratica_id: number; data: string; descrizione: string; importo: number; esente: number; parcella_id: number | null }
 export interface VoceParcella { id?: number; tipo: 'compenso' | 'spesa_esente' | 'spesa_imponibile'; descrizione: string; quantita: number; importo: number }
 export interface Parcella {
@@ -118,7 +120,12 @@ export interface ModelloDocumento extends ModelloPdf {
   campiPersonali?: string[]
   /** 1.0.4: intestazione solo sulla prima pagina (se manca: in cima a ogni pagina) */
   intestazioneSoloPrima?: boolean
+  /** 1.0.5: linea che separa l'intestazione dal testo (se manca: c'è) */
+  lineaIntestazione?: boolean
+  /** 1.0.5: forma della data accanto al luogo («27 novembre 2026», «27/11/2026», «lì 27 novembre 2026») */
+  formatoData?: FormatoData
 }
+export type FormatoData = 'lunga' | 'breve' | 'li'
 export interface MarginiPagina { sopra: number; sotto: number; lati: number }
 export type Allineamento = 'sinistra' | 'centro' | 'destra' | 'giustificato'
 export interface Labels {

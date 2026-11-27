@@ -76,6 +76,22 @@ app.whenReady().then(async () => {
       await evaluate("document.querySelector('[data-vista=budget]').click();document.querySelector('.demo-interruttore').click()")
       check('demo del Budget: previsione, scenario «se gli incassi tardano» e avviso, senza uscire dalla finestra a ' + width + 'px', await evaluate("(()=>{const f=document.querySelector('.demo-finestra').getBoundingClientRect();return document.querySelectorAll('.demo-mese').length===6&&document.querySelectorAll('.demo-mese.sotto').length===1&&/sotto zero/.test(document.querySelector('.demo-avviso')?.textContent||'')&&[...document.querySelectorAll('.demo-vista *')].every(e=>{const r=e.getBoundingClientRect();return !r.width||r.right<=f.right+1})})()"))
       check('foto delle funzioni apribili a grandezza piena a ' + width + 'px', await evaluate("[...document.querySelectorAll('.funz-riga .foto-grande')].length===6&&[...document.querySelectorAll('.funz-riga .foto-grande')].every(a=>a.getAttribute('href')===a.querySelector('img').getAttribute('src')&&a.getAttribute('aria-label'))"))
+      // 1.0.5: la demo completa. Cliente in Anagrafica, pratica nuova per quel cliente, attività a tariffa totale, spesa,
+      // parcella dalle voci (400 + 15% + CPA 4% + IVA 22% + 16 esenti = 599,65), compito; «Ricomincia» e nessuna archiviazione
+      const flusso = await evaluate(`(async()=>{const q=s=>document.querySelector(s),set=(el,v)=>{el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}))},tasto=t=>[...document.querySelectorAll('.demo-vista button')].find(b=>b.textContent===t)
+        document.querySelector('[data-demo-ricomincia]').click();q('[data-vista=anagrafica]').click();tasto('+ Nuovo contatto').click();set(q('.demo-modulo [name=nome]'),'Paolo Neri');q('.demo-modulo').requestSubmit()
+        q('[data-vista=pratiche]').click();tasto('+ Nuova pratica').click();const moduloAperto=!!q('.demo-modulo');set(q('.demo-modulo [name=titolo]'),'Recupero crediti Neri');const sel=q('.demo-modulo [name=cliente]');sel.value=[...sel.options].find(o=>o.text==='Paolo Neri').value;q('.demo-modulo').requestSubmit()
+        tasto('+ Attività').click();set(q('.demo-modulo [name=descrizione]'),'Parere scritto');const m=q('.demo-modulo [name=modo]');m.value='totale';m.dispatchEvent(new Event('change'));set(q('.demo-modulo [name=importo]'),'400');q('.demo-modulo').requestSubmit()
+        tasto('+ Spesa').click();set(q('.demo-modulo [name=descrizione]'),'Marca da bollo');set(q('.demo-modulo [name=importo]'),'16');q('.demo-modulo').requestSubmit()
+        tasto('Crea la parcella').click();const totale=q('.demo-parcella-totale td:last-child')?.textContent
+        q('[data-vista=compiti]').click();q('.demo-compito:not(.fatto) input').click()
+        const f=q('.demo-finestra').getBoundingClientRect(),dentro=[...document.querySelectorAll('.demo-vista *')].every(e=>{const r=e.getBoundingClientRect();return !r.width||r.right<=f.right+1})
+        const passi=q('[data-demo-avanzamento]').textContent,cliente=[...document.querySelectorAll('.demo-compito small')].length
+        q('[data-vista=pratiche]').click();const dopoParcella=[...document.querySelectorAll('.demo-pratica b')].some(b=>b.textContent==='Recupero crediti Neri')
+        document.querySelector('[data-demo-ricomincia]').click();q('[data-vista=pratiche]').click()
+        return {moduloAperto,totale,dentro,passi,dopoParcella,azzerata:![...document.querySelectorAll('.demo-pratica b')].some(b=>b.textContent==='Recupero crediti Neri')&&q('[data-demo-avanzamento]').textContent==='0 di 6 passi',archivio:localStorage.length+sessionStorage.length}})()`)
+      check('demo completa (anagrafica, pratica, attività a tariffa totale, spesa, parcella 599,65, compito), dentro la finestra e «Ricomincia» a ' + width + 'px', flusso.moduloAperto && /599,65/.test(flusso.totale || '') && flusso.dentro && /Fatto tutto/.test(flusso.passi) && flusso.dopoParcella && flusso.azzerata && flusso.archivio === 0, flusso)
+      if (width === 390 || width === 1440) { await evaluate("document.querySelector('[data-vista=anagrafica]').click();[...document.querySelectorAll('.demo-vista button')].find(b=>b.textContent==='+ Nuovo contatto').click()"); await axe('accessibilità della demo con un modulo aperto a ' + width + 'px') ; await evaluate("document.querySelector('[data-demo-ricomincia]').click()") }
       if (width === 390 || width === 1440) await axe('accessibilità a ' + width + 'px, movimento ridotto')
     }
     // La sezione dei dati nei due aspetti, chiaro e scuro, con movimento normale.

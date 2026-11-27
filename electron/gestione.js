@@ -8,10 +8,12 @@ const giorno = (s, required = true) => { if (!s && !required) return null; v.dat
 const ref = (table, id) => { if (!id) return null; const r = db.get(table, v.id(id)); if (!r) throw new Error('Elemento non trovato'); return r.id }
 const importo = (n, zero = false) => { if (!Number.isFinite(Number(n)) || cent(n) < (zero ? 0 : 1) || cent(n)>1e12) throw new Error('Importo non valido'); return euro(n) }
 const oggi = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+// mesi fra due scadenze (1.0.5: anche ogni 2 e ogni 6 mesi, per bollette e assicurazioni)
+const MESI_FREQUENZA = { mensile: 1, bimestrale: 2, trimestrale: 3, semestrale: 6, annuale: 12 }
 function successiva(data, frequenza, anchor) {
   const [y,m,d] = data.split('-').map(Number), n = new Date(Date.UTC(y,m-1,d))
   if (frequenza === 'settimanale') n.setUTCDate(n.getUTCDate()+7)
-  else { n.setUTCDate(1); n.setUTCMonth(n.getUTCMonth()+(frequenza==='annuale'?12:frequenza==='trimestrale'?3:1)); const ultimo = new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth()+1,0)).getUTCDate(); n.setUTCDate(Math.min(anchor,ultimo)) }
+  else { n.setUTCDate(1); n.setUTCMonth(n.getUTCMonth()+(MESI_FREQUENZA[frequenza]||1)); const ultimo = new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth()+1,0)).getUTCDate(); n.setUTCDate(Math.min(anchor,ultimo)) }
   return n.toISOString().slice(0,10)
 }
 function generaRicorrenze(adesso = oggi()) {
@@ -29,7 +31,7 @@ function generaRicorrenze(adesso = oggi()) {
     return creati
   })
 }
-const FREQUENZE_COSTO = ['mensile', 'trimestrale', 'annuale']
+const FREQUENZE_COSTO = ['mensile', 'bimestrale', 'trimestrale', 'semestrale', 'annuale']
 const piuGiorni = (s, n) => { const [y, m, d] = s.split('-').map(Number); const x = new Date(Date.UTC(y, m - 1, d + n)); return x.toISOString().slice(0, 10) }
 /**
  * Uscite ricorrenti: per ogni serie attiva crea la voce «da pagare» successiva quando mancano al massimo `anticipo` giorni
@@ -48,9 +50,9 @@ function estendiUsciteRicorrenti(adesso = oggi(), anticipo = 30) {
       let ultima = s.ultima || modello.scadenza || modello.data
       for (let i = 0; i < 240; i++) {
         const prossima = successiva(ultima, modello.ripeti, s.g || Number(ultima.slice(8)))
-        if (prossima > limite) break
-        sql.prepare('INSERT INTO costi(pratica_id,fornitore_id,data,descrizione,categoria,importo,scadenza,pagata,recuperabile,ripeti,serie,ripeti_giorno) VALUES(?,?,?,?,?,?,?,0,?,?,?,?)')
-          .run(modello.pratica_id, modello.fornitore_id, prossima, modello.descrizione, modello.categoria, modello.importo, prossima, modello.recuperabile, modello.ripeti, s.serie, s.g || Number(ultima.slice(8)))
+        if (prossima > limite || (modello.ripeti_fine && prossima > modello.ripeti_fine)) break
+        sql.prepare('INSERT INTO costi(pratica_id,fornitore_id,data,descrizione,categoria,importo,scadenza,pagata,recuperabile,ripeti,serie,ripeti_giorno,ripeti_fine) VALUES(?,?,?,?,?,?,?,0,?,?,?,?,?)')
+          .run(modello.pratica_id, modello.fornitore_id, prossima, modello.descrizione, modello.categoria, modello.importo, prossima, modello.recuperabile, modello.ripeti, s.serie, s.g || Number(ultima.slice(8)), modello.ripeti_fine || null)
         ultima = prossima; creati++
       }
       sql.prepare('UPDATE costi SET ripeti_ultima=? WHERE serie=?').run(ultima, s.serie)
@@ -103,6 +105,9 @@ function esegui(azione, a = {}) {
       const ripeti = a.ripeti ? String(a.ripeti) : null
       if (ripeti && !FREQUENZE_COSTO.includes(ripeti)) throw new Error('Frequenza non valida')
       const base = values[6] || values[2], giornoMese = Number(base.slice(8))
+      // 1.0.5: ultima scadenza della serie (rate con una fine), facoltativa; non prima della voce stessa
+      const fine = ripeti && a.ripeti_fine ? giorno(a.ripeti_fine) : null
+      if (fine && fine < base) throw new Error('L’ultima scadenza non può venire prima di questa voce')
       let id
       // 1.0.4: quando e da quale conto è stata pagata (per il saldo reale dei conti): oggi e il conto predefinito, se non indicati
       const contoCosto = (x) => (a.conto_id ? sql.prepare('SELECT id FROM conti WHERE id=?').get(v.id(a.conto_id))?.id ?? null : x ?? require('./budget').predefinito())
@@ -122,12 +127,17 @@ function esegui(azione, a = {}) {
             sql.prepare('UPDATE costi SET ripeti=?, serie=?, ripeti_giorno=COALESCE(ripeti_giorno, ?) WHERE id=? OR serie=?').run(ripeti, serie, giornoMese, id, serie)
             // l'ultima scadenza già creata si fissa solo quando la serie nasce: modificare una voce non deve far tornare quelle eliminate
             if (!prima.serie) sql.prepare('UPDATE costi SET ripeti_ultima=? WHERE serie=?').run(base, serie)
+            if (a.ripeti_fine !== undefined) {
+              sql.prepare('UPDATE costi SET ripeti_fine=? WHERE serie=?').run(fine, serie)
+              // fine anticipata: le voci ancora da pagare oltre la nuova fine se ne vanno
+              if (fine) sql.prepare('DELETE FROM costi WHERE serie=? AND pagata=0 AND id<>? AND COALESCE(scadenza,data)>?').run(serie, id, fine)
+            }
           }
         }
       } else {
         id=Number(sql.prepare('INSERT INTO costi(pratica_id,fornitore_id,data,descrizione,categoria,importo,scadenza,pagata,recuperabile) VALUES(?,?,?,?,?,?,?,?,?)').run(...values).lastInsertRowid)
         if (values[7]) sql.prepare('UPDATE costi SET pagata_il=?, conto_id=? WHERE id=?').run(a.pagata_il ? giorno(a.pagata_il) : values[2], contoCosto(null), id)
-        if (ripeti) sql.prepare('UPDATE costi SET ripeti=?, serie=?, ripeti_ultima=?, ripeti_giorno=? WHERE id=?').run(ripeti, id, base, giornoMese, id)
+        if (ripeti) sql.prepare('UPDATE costi SET ripeti=?, serie=?, ripeti_ultima=?, ripeti_giorno=?, ripeti_fine=? WHERE id=?').run(ripeti, id, base, giornoMese, fine, id)
       }
       if (ripeti) estendiUsciteRicorrenti()
       return id

@@ -305,7 +305,7 @@ input[type=radio] { width: 16px; height: 16px; accent-color: var(--accent); marg
 .modello { display: grid; grid-template-columns: minmax(0, 1fr) 430px; gap: 22px; align-items: start; }
 .modello-form { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .modello-blocco { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; background: var(--surface); }
-.modello-blocco > header { margin-bottom: 8px; } .modello-blocco h3 { font-size: var(--fs-md); }
+.modello-blocco > header { margin-bottom: 8px; } .modello-blocco :is(h2, h3) { font-size: var(--fs-md); }
 .riga-ed { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 12px; }
 .riga-ed > input { flex: 1 0 100%; width: 100%; }
 .riga-ed > select:first-of-type { flex: 1; min-width: 96px; }

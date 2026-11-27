@@ -2,6 +2,24 @@
 
 Novità di ogni versione di TIO, dalla più recente. Come installare e usare TIO è spiegato nel [README](README.md).
 
+## Versione 1.0.5 — Documenti come in Word, Tariffa totale, parcella più leggibile, demo completa
+
+Si installa sopra la 1.0.4: l'archivio non cambia formato (schema 6). Due colonne nuove e facoltative (tariffa totale delle attività, ultima scadenza delle uscite ricorrenti) che le versioni precedenti ignorano.
+
+- **Documenti, editor del testo:**
+  - **interlinea** del paragrafo (1,0 · 1,15 · 1,5 · 2,0 · 2,5 · 3,0) e **spazio prima e dopo il paragrafo**, con «Aggiungi spazio prima» e «Rimuovi spazio dopo» come in Word, o in punti;
+  - **sottolineatura colorata** e di più tipi: singola, doppia, punteggiata, tratteggiata, ondulata;
+  - **colore del testo** da una tavolozza (più «Altro colore»), al posto del solo selettore di sistema;
+  - tutto arriva in PDF, Word, OpenDocument, RTF e pagina web.
+- **Documenti, intestazione:** la **linea tra intestazione e testo** si può togliere (scheda Intestazione). Con l'intestazione **solo nella prima** pagina, dalla seconda c'è l'intestazione vuota di un documento nuovo di Word, con il margine in alto di 2,5 cm, invece dello spazio lasciato all'intestazione che non c'è; anche in OpenDocument, dove prima l'intestazione restava su ogni pagina.
+- **Documenti, luogo e data:** sezione a sé in Impaginazione, con città, forma della data («27 novembre 2026», «27/11/2026», «lì 27 novembre 2026»), posizione scelta su un foglio in miniatura ed esempio di come apparirà. Nel documento la riga ha più spazio dal testo.
+  - corretto: nell'anteprima del modello la città scritta nel modello lasciava il posto a quella dell'indirizzo dell'attività.
+- **Attività, «Tariffa totale»:** nel menu **Compenso** dell'attività, oltre a «Tariffa oraria» e «Da decidere», un importo deciso a corpo, senza calcolo sulle ore; il tempo diventa facoltativo. Nel documento contabile creato dalle voci l'attività è una voce a sé con quell'importo; valore, da fatturare, report e budget del lavoro lo usano. Le versioni precedenti mostrano lo stesso valore (la tariffa oraria equivalente è salvata accanto).
+- **Nuova parcella con il calcolo forense:** più respiro, a parità di finestra (entra ancora intera a 1220×772): colonne del prospetto e dei dati più larghe, caselle delle fasi prima del nome e pallini prima dell'importo, righe meno compresse, prospetto finale con le etichette su meno righe e il totale in evidenza.
+- **Budget, spese fisse:** uscite ricorrenti anche **ogni 2 mesi** (bollette) e **ogni 6 mesi**; **Ultima scadenza** per le rate con una fine (auto, finanziamento, leasing), anche anticipata: le rate oltre la fine se ne vanno; nuove categorie **Rate e finanziamenti** e **Assicurazioni**. Affitto, utenze, imposte e contributi c'erano già.
+- **Sito, demo più completa:** Anagrafica (nuovo contatto), nuova pratica per un cliente, attività a tariffa oraria o totale, spese anticipate e **parcella dalle voci** con spese generali, CPA e IVA; un percorso «Prova questi passi» che si spunta da solo e «Ricomincia da capo». Tutto resta in memoria: ricaricando o chiudendo la pagina si riparte da zero, senza cookie né archiviazione del browser.
+- **Prove:** `test-novita-105` (esportazione in Word, OpenDocument, RTF e HTML con XML verificato, archivio, rate), scenario `smoke-105` nell'app vera, percorso completo della demo in `test-sito` a cinque larghezze con controllo di accessibilità.
+
 ## Versione 1.0.4 — Priorità, Budget, Editor PDF, sottocartelle sistemate, sito nuovo
 
 Si installa sopra la 1.0.3: l'archivio non cambia formato (schema 6).

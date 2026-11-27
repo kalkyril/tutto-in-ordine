@@ -24,4 +24,15 @@ assert.deepEqual(r.gruppi.map((g) => [g.titolo, g.volte, g.minuti, g.allegati]),
 assert.equal(Math.round(r.gruppi[0].quota * 100), 80); assert.equal(r.primaData, '2026-02-20'); assert.equal(r.ultimaData, '2026-03-10')
 ok('riepilogo: «Invio PEC» ripetuta (anche scritta in modo diverso) in una riga con volte, tempo e allegati; allegati non collegati ad attività esclusi; valore e quota')
 const v = m.riepilogoAttivita([], []); assert.deepEqual([v.minuti, v.valore, v.attivita, v.gruppi.length, v.primaData], [0, 0, 0, 0, undefined]); ok('pratica senza attività')
+// 1.0.5: «Tariffa totale» (compenso a corpo): vale l'importo deciso, non tempo × tariffa; la tariffa oraria equivalente
+// salvata accanto fa vedere lo stesso valore alle versioni precedenti, che non conoscono la colonna
+assert.equal(m.valoreOra({ minuti: 90, tariffa_oraria: 100 }), 150)
+assert.equal(m.valoreOra({ minuti: 90, tariffa_oraria: 100, tariffa_totale: 400 }), 400)
+assert.equal(m.valoreOra({ minuti: 0, tariffa_oraria: 0, tariffa_totale: 250 }), 250)
+assert.equal(m.valoreOra({ minuti: 90, tariffa_oraria: 0, tariffa_totale: null, tariffa_da_decidere: 1 }), 0)
+assert.equal(m.valoreOra({ minuti: 60, tariffa_oraria: 0, tariffa_totale: 0 }), 0)
+for (const [tot, min] of [[400, 90], [1000, 7], [333.33, 45], [250, 0]]) { const eq = m.orariaEquivalente(tot, min); assert.ok(min ? Math.abs((min / 60) * eq - tot) < 0.01 : eq === 0, `${tot} in ${min} min`) }
+const t = m.riepilogoAttivita([...ore, { id: 5, descrizione: 'Parere scritto', minuti: 0, tariffa_oraria: 0, tariffa_totale: 500, data: '2026-03-11', parcella_id: null }], docs)
+assert.equal(Math.round(t.valore * 100) / 100, 775); assert.equal(Math.round(t.daFatturare * 100) / 100, 750)
+ok('tariffa totale: importo a corpo nel valore e nel da fatturare; tariffa oraria equivalente per le versioni precedenti')
 console.log(`\n${n} prove superate`)

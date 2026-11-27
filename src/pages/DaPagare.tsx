@@ -77,7 +77,7 @@ export default function DaPagare({ incorporata = false }: { incorporata?: boolea
         {righe.length > 0 && <div className="table-wrap"><table className="table">
           <thead><tr><th>Voce</th><th className="nowrap">A chi</th><th>{L.pratica}</th><th className="n">Importo</th><th>Entro</th><th>Stato</th><th>Azioni</th></tr></thead>
           <tbody>{visible.map((x) => <tr key={x.id} className={x.pagata ? 'pagata' : undefined}>
-            <td>{x.descrizione}<br /><small className="muted">{x.categoria}{x.ripeti && NOMI_RIPETI[x.ripeti] ? ` · si ripete ${NOMI_RIPETI[x.ripeti]}` : ''}{x.recuperabile ? ' · da riaddebitare al cliente' : ''}</small></td>
+            <td>{x.descrizione}<br /><small className="muted">{x.categoria}{x.ripeti && NOMI_RIPETI[x.ripeti] ? ` · si ripete ${NOMI_RIPETI[x.ripeti]}${x.ripeti_fine ? ` fino al ${fmtDate(x.ripeti_fine)}` : ''}` : ''}{x.recuperabile ? ' · da riaddebitare al cliente' : ''}</small></td>
             <td>{anagraficaById.get(x.fornitore_id || 0)?.denominazione || '—'}</td>
             <td>{x.pratica_id ? <button type="button" className="link-btn" onClick={() => go({ page: 'pratica', id: x.pratica_id! })}>{praticaById.get(x.pratica_id)?.titolo}</button> : 'Generale'}</td>
             <td className="n nowrap">{money(x.importo)}</td>

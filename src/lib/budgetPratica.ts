@@ -1,5 +1,6 @@
 // Budget della pratica (1.0.4): ore previste, importo concordato e consegna confrontati con ciò che è registrato.
 // Gli avvisi scattano all'80% (attenzione) e oltre il 100% (superato); la consegna avvisa nei 7 giorni prima e dopo.
+import { valoreOra } from './attivita'
 
 export interface PraticaBudget { id: number; titolo: string; numero?: string; stato?: string | null; budget_ore?: number | null; budget_importo?: number | null; consegna?: string | null }
 export interface Consumo { ore: number; valoreOre: number; costi: number }
@@ -14,13 +15,13 @@ const euro = (n: number) => n.toLocaleString('it-IT', { style: 'currency', curre
 
 /** Ore, valore delle ore e costi registrati per ogni pratica: attività, spese anticipate e voci da pagare collegate. */
 export function consumoPratiche(
-  oreReg: { pratica_id: number | null; minuti: number; tariffa_oraria?: number | null }[],
+  oreReg: { pratica_id: number | null; minuti: number; tariffa_oraria?: number | null; tariffa_totale?: number | null; tariffa_da_decidere?: number }[],
   spese: { pratica_id: number | null; importo: number }[],
   costi: { pratica_id: number | null; importo: number }[],
 ): Map<number, Consumo> {
   const m = new Map<number, Consumo>()
   const di = (id: number) => { let c = m.get(id); if (!c) m.set(id, (c = { ore: 0, valoreOre: 0, costi: 0 })); return c }
-  for (const o of oreReg) if (o.pratica_id != null) { const c = di(o.pratica_id); c.ore += o.minuti / 60; c.valoreOre += (o.minuti / 60) * (Number(o.tariffa_oraria) || 0) }
+  for (const o of oreReg) if (o.pratica_id != null) { const c = di(o.pratica_id); c.ore += o.minuti / 60; c.valoreOre += valoreOra({ ...o, tariffa_oraria: Number(o.tariffa_oraria) || 0 }) }
   for (const s of [...spese, ...costi]) if (s.pratica_id != null) di(s.pratica_id).costi += Number(s.importo) || 0
   for (const c of m.values()) { c.ore = tondo(c.ore); c.valoreOre = tondo(c.valoreOre); c.costi = tondo(c.costi) }
   return m

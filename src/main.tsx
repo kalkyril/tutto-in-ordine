@@ -14,6 +14,7 @@ import './stile-dati.css'
 import './strumenti.css'
 import './rifiniture.css'
 import './novita-102.css'
+import './novita-105.css'
 
 // errori fuori dalle schermate (per esempio in un'operazione asincrona): nel registro locale, per un'eventuale segnalazione
 window.addEventListener('error', (e) => { api.registraErrore(`${e.message} @ ${(e.filename || '').split('/').pop()}:${e.lineno}`).catch(() => {}) })

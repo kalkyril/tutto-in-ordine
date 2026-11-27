@@ -95,6 +95,7 @@ Ogni scenario ha un tempo massimo (`MNGMNT_TEST_MAX_MIN`, predefinito 15 minuti)
 | `smoke-aggiornamenti` | controllo degli aggiornamenti, acceso per tutti e disattivabile (GitHub simulato) |
 | `smoke-profilo-ditta` | nel profilo ditta Agenda, Panoramica, stampa e scheda della pratica non parlano di udienze |
 | `smoke-103` | ruoli e contatti per pratica, limite di 25, selezione multipla, cliente principale e cronologia, ricerca in rubrica, documenti e accessibilità |
+| `smoke-105` | editor dei documenti (interlinea, spazio prima e dopo, sottolineature colorate, colore del testo), linea dell’intestazione, luogo e data, «Tariffa totale» e parcella dalle voci, rate con l’ultima scadenza |
 | `smoke-axe` | rapporto dettagliato di accessibilità (diagnostico, senza riga RISULTATO) |
 
 Gli scenari non usano pause fisse: `scripts/lib/attesa.js` allunga le attese in base al carico e aspetta che la pagina smetta di cambiare. Lo scenario `smoke-ditta` (riordino trascinando) è sensibile al carico del computer.

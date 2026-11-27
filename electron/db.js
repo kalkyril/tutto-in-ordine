@@ -272,11 +272,16 @@ function open(dir, { restoring = false } = {}) {
   // Colonne facoltative che le versioni precedenti ignorano: la versione dello schema non cambia.
   { const c = db.prepare('PRAGMA table_info(pratiche)').all().map((x) => x.name); for (const nome of ['persone', 'ruolo']) if (!c.includes(nome)) db.exec(`ALTER TABLE pratiche ADD COLUMN ${nome} TEXT`) }
   if (!db.prepare('PRAGMA table_info(anagrafica)').all().some((c) => c.name === 'indirizzi')) db.exec('ALTER TABLE anagrafica ADD COLUMN indirizzi TEXT')
+  // 1.0.5: «Tariffa totale» di un'attività: compenso deciso a corpo, senza tempo × tariffa oraria (NULL = a ore).
+  // Colonna facoltativa: la tariffa oraria salvata accanto (totale ÷ ore) fa sì che le versioni precedenti mostrino lo stesso valore.
+  if (!db.prepare('PRAGMA table_info(ore)').all().some((c) => c.name === 'tariffa_totale')) db.exec('ALTER TABLE ore ADD COLUMN tariffa_totale REAL')
   // 1.0.4: file delle cartelle collegate a cui l'utente ha tolto il collegamento: la sincronizzazione automatica non li ricollega
   db.exec('CREATE TABLE IF NOT EXISTS documenti_esclusi (pratica_id INTEGER NOT NULL REFERENCES pratiche(id) ON DELETE CASCADE, percorso TEXT NOT NULL, PRIMARY KEY (pratica_id, percorso))')
   // 1.0.4: uscite ricorrenti (affitto, utenze, abbonamenti): frequenza, serie a cui appartiene la voce, ultima scadenza già
   // creata e giorno del mese da rispettare. Colonne facoltative: la versione dello schema non cambia.
   { const c = db.prepare('PRAGMA table_info(costi)').all().map((x) => x.name); for (const [nome, tipo] of [['ripeti', 'TEXT'], ['serie', 'INTEGER'], ['ripeti_ultima', 'TEXT'], ['ripeti_giorno', 'INTEGER']]) if (!c.includes(nome)) db.exec(`ALTER TABLE costi ADD COLUMN ${nome} ${tipo}`) }
+  // 1.0.5: fine di un'uscita ricorrente (rate dell'auto, finanziamenti, leasing): ultima scadenza da creare. Facoltativa.
+  if (!db.prepare('PRAGMA table_info(costi)').all().some((c) => c.name === 'ripeti_fine')) db.exec('ALTER TABLE costi ADD COLUMN ripeti_fine TEXT')
   // 1.0.4: sezione Budget. Conti (banca, carta, contanti) con il saldo a una data, movimenti scritti a mano (prelievi,
   // spese bancarie, giroconti) e fatture lette dai file esportati dal servizio di fatturazione dell'utente: TIO le legge
   // soltanto; qui ricorda solo ciò che decide l'utente (incassata o pagata, su quale conto, categoria, nascosta).

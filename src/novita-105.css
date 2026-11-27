@@ -1,0 +1,102 @@
+/* TIO 1.0.5 — tendine dell'editor (colore, sottolineatura, interlinea), luogo e data, compenso della parcella */
+
+/* ---------- tendine della barra dell'editor ---------- */
+.tool.tool-tendina { width: auto; padding: 0 5px 0 7px; display: inline-flex; gap: 2px; align-items: center; }
+.icona-sottolineatura { font-weight: 700; font-size: 13px; line-height: 1; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; }
+.tendina-pannello {
+  position: absolute; top: calc(100% + 6px); z-index: 40; width: 272px; max-height: min(70vh, 520px); overflow: auto;
+  padding: 10px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow-lg);
+  display: grid; gap: 6px; text-align: left;
+}
+.tendina-titolo { margin: 2px 2px 0; font-size: 11px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.tendina-voci { display: grid; gap: 1px; }
+.tendina-voce {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 30px; padding: 5px 8px;
+  border: 0; border-radius: 6px; background: transparent; color: var(--text); font: inherit; font-size: 13px; text-align: left; cursor: pointer;
+}
+.tendina-voce:hover, .tendina-voce:focus-visible { background: var(--accent-soft); }
+.tendina-voce[aria-pressed="true"] { font-weight: 650; color: var(--accent); }
+.tendina-voce svg { flex: none; }
+.tendina-togli { color: var(--muted); }
+.anteprima-sottolineatura { text-decoration-line: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.tendina-separatore { height: 1px; background: var(--border); margin: 3px 0; }
+.campioni { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 2px; }
+.campione-colore { aspect-ratio: 1; width: 100%; min-height: 26px; border-radius: 6px; border: 1px solid rgba(0,0,0,.18); cursor: pointer; padding: 0; }
+.campione-colore:hover { transform: scale(1.08); }
+.campione-colore.on { outline: 2px solid var(--accent); outline-offset: 2px; }
+.campione-colore.automatico { background: linear-gradient(135deg, #fff 0 46%, #111 46% 54%, #fff 54%); }
+.tendina-altro { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); padding: 2px 4px; }
+.tendina-altro input[type=color] { width: 34px; height: 26px; padding: 0; border: 1px solid var(--border-strong); border-radius: 6px; background: none; }
+.tendina-spazi { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tendina-spazi label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+.tendina-spazi select { width: 100%; }
+@media (prefers-reduced-motion: reduce) { .campione-colore:hover { transform: none; } }
+
+/* ---------- Documenti › Impaginazione › Luogo e data ---------- */
+.luogo-data-griglia { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 14px 18px; align-items: start; }
+.luogo-data-posizione { display: grid; justify-items: center; gap: 6px; grid-row: span 2; grid-column: 3; }
+.luogo-data-posizione .field-label { justify-self: stretch; text-align: center; margin: 0; }
+.foglio-posizioni {
+  position: relative; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0;
+  width: 78px; height: 104px; padding: 7px; border: 1px solid var(--border-strong); border-radius: 5px; background: var(--surface-2);
+}
+.foglio-posizioni button { position: relative; z-index: 1; display: flex; padding: 3px; border: 0; background: transparent; cursor: pointer; border-radius: 4px; }
+.foglio-posizioni button span { display: block; width: 26px; height: 5px; border-radius: 3px; background: var(--border-strong); }
+.foglio-posizioni .posizione-alto-destra, .foglio-posizioni .posizione-basso-destra { justify-content: flex-end; }
+.foglio-posizioni .posizione-alto-sinistra, .foglio-posizioni .posizione-alto-destra { align-items: flex-start; }
+.foglio-posizioni .posizione-basso-sinistra, .foglio-posizioni .posizione-basso-destra { align-items: flex-end; }
+.foglio-posizioni .posizione-alto-sinistra { grid-area: 1 / 1; } .foglio-posizioni .posizione-alto-destra { grid-area: 1 / 2; }
+.foglio-posizioni .posizione-basso-sinistra { grid-area: 2 / 1; } .foglio-posizioni .posizione-basso-destra { grid-area: 2 / 2; }
+.foglio-posizioni button:hover span { background: var(--muted); }
+.foglio-posizioni button[aria-checked="true"] span { background: var(--accent); height: 6px; }
+.foglio-posizioni button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.foglio-righe { position: absolute; inset: 30px 10px 30px; background: repeating-linear-gradient(to bottom, var(--border) 0 2px, transparent 2px 8px); opacity: .9; pointer-events: none; }
+.luogo-data-esempio { grid-column: 1 / 3; display: grid; gap: 3px; margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--surface-2); border: 1px dashed var(--border-strong); }
+.luogo-data-esempio b { font-weight: 550; font-variant-numeric: lining-nums; }
+@media (max-width: 720px) {
+  .luogo-data-griglia { grid-template-columns: 1fr; }
+  .luogo-data-posizione { grid-column: auto; grid-row: auto; justify-items: start; }
+  .luogo-data-esempio { grid-column: auto; }
+}
+
+/* ---------- Nuova parcella con il calcolo forense: più respiro (1.0.5) ----------
+ * Lettura: dati del documento | calcolo (tabelle, fasi, aumenti e riduzioni) | prospetto. Le tre colonne restano, ma le
+ * distanze seguono un ritmo: stretto dentro un gruppo (etichetta e suo controllo), largo fra un gruppo e l'altro. */
+.fasi-site .fase-row > .check, .fasi-site .fase-head > .check { display: inline-flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 10px; }
+.fasi-site .vsel { flex-direction: row-reverse; justify-content: flex-end; gap: 7px; }
+.fasi-site .fase-head .fh-col { flex-direction: row-reverse; justify-content: flex-end; gap: 7px; }
+.fasi-site .fase-row { min-height: 46px; }
+.fase-tot { padding: 11px 14px; }
+.site-form .srow .ctrl { gap: 8px 12px; }
+.site-form .srow .ctrl > .check { gap: 8px; }
+.calc-result.prospetto h3 { font-size: 11px; letter-spacing: .09em; padding: 11px 16px; margin: -14px -14px 10px; }
+.prospetto td { font-weight: 500; padding: 8px 4px; border-bottom-color: color-mix(in srgb, var(--border) 70%, transparent); line-height: 1.35; }
+.prospetto td:last-child { font-weight: 650; padding-left: 14px; }
+.prospetto tr.sub td { font-weight: 600; }
+.prospetto tr.totale td { font-weight: 700; padding: 12px 6px; line-height: 1.3; }
+.prospetto tr.totale td:first-child { font-size: var(--fs-sm); letter-spacing: .02em; }
+
+@media (min-width: 1150px) {
+  .parc-layout.con-calcolo { grid-template-columns: 276px minmax(0, 1fr) 304px; column-gap: 26px; }
+  .parc-layout.con-calcolo .calc-result { padding: 14px 16px; }
+  .parc-layout.con-calcolo .calc-result.prospetto h3 { margin: -14px -16px 10px; }
+  .parc-layout.con-calcolo .site-form .srow { grid-template-columns: 132px minmax(0, 1fr); gap: 14px; padding: 7px 2px; }
+  .parc-layout.con-calcolo .fase-head, .parc-layout.con-calcolo .fase-row { grid-template-columns: minmax(140px, 1.4fr) repeat(3, minmax(68px, 1fr)) minmax(92px, .9fr); gap: 8px; padding: 6px 14px; }
+  .parc-layout.con-calcolo .vsel { padding: 4px 6px; gap: 6px; }
+  .parc-layout.con-calcolo .fase-euro { padding-left: 6px; }
+  .parc-layout.con-calcolo .fasi-site { margin-top: 14px; }
+  .parc-layout.con-calcolo .calc-src { margin: 10px 0 6px; }
+  .parc-layout.con-calcolo .site-form .tabs { margin-top: 14px; margin-bottom: 10px; }
+  .parc-layout.con-calcolo .prospetto td { padding: 8px 2px; }
+  .parc-layout.con-calcolo .prospetto td:last-child { padding-left: 12px; }
+  .parc-layout.con-calcolo > .card-section.altre { margin-top: 18px; }
+}
+/* finestre basse (circa 1220×772): il respiro si toglie dalle righe, non fra i gruppi */
+@media (min-width: 1150px) and (max-height: 820px) {
+  .parc-layout.con-calcolo .site-form .srow { padding-block: 2px; }
+  .parc-layout.con-calcolo .fasi-site { margin-top: 10px; }
+  .parc-layout.con-calcolo .fasi-site .fase-row { min-height: 38px; padding-block: 3px; }
+  .parc-layout.con-calcolo .calc-src { margin: 6px 0 2px; }
+  .parc-layout.con-calcolo .prospetto td { padding-block: 6px; }
+  .parc-layout.con-calcolo .site-form .tabs { margin-top: 6px; margin-bottom: 4px; }
+}

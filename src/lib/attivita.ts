@@ -20,6 +20,15 @@ export function testoDurata(min: number): string {
   return h && r ? `${h} h ${r} min` : h ? `${h} h` : `${r} min`
 }
 
+/** Valore di un'attività: la «Tariffa totale» se c'è, altrimenti tempo × tariffa oraria (0 se la tariffa è da decidere). */
+export function valoreOra(o: Pick<Ora, 'minuti' | 'tariffa_oraria'> & { tariffa_totale?: number | null; tariffa_da_decidere?: number }): number {
+  if (o.tariffa_da_decidere) return 0
+  if (o.tariffa_totale != null && Number.isFinite(Number(o.tariffa_totale))) return Number(o.tariffa_totale)
+  return (o.minuti / 60) * (Number(o.tariffa_oraria) || 0)
+}
+/** Tariffa oraria da salvare accanto alla tariffa totale: le versioni precedenti, che la ignorano, mostrano lo stesso valore. */
+export const orariaEquivalente = (totale: number, minuti: number) => (minuti > 0 ? Math.round((totale * 60 / minuti) * 10000) / 10000 : 0)
+
 const chiave = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
 
 export interface GruppoAttivita { titolo: string; volte: number; minuti: number; valore: number; allegati: number; quota: number }
@@ -31,7 +40,7 @@ export function riepilogoAttivita(ore: Ora[], documenti: Documento[]): Riepilogo
   const gruppi = new Map<string, GruppoAttivita>()
   let minuti = 0, valore = 0, allegati = 0, daFatturare = 0
   for (const o of ore) {
-    const v = (o.minuti / 60) * o.tariffa_oraria, a = perOra.get(o.id) || 0
+    const v = valoreOra(o), a = perOra.get(o.id) || 0
     minuti += o.minuti; valore += v; allegati += a; if (!o.parcella_id) daFatturare += v
     const k = chiave(o.descrizione) || '(senza titolo)'
     const g = gruppi.get(k) || { titolo: o.descrizione.trim(), volte: 0, minuti: 0, valore: 0, allegati: 0, quota: 0 }

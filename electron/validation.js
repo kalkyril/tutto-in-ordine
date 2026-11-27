@@ -40,7 +40,7 @@ function record(table, obj) {
     if (key === 'id' || key.endsWith('_id')) id(value)
     if (['data', 'data_ora', 'data_apertura', 'data_chiusura', 'data_pagamento', 'scadenza_pagamento', 'scadenza', 'inizio', 'fine', 'validita', 'consegna'].includes(key)) date(value, key)
     if (['budget_ore', 'budget_importo'].includes(key) && (!Number.isFinite(Number(value)) || Number(value)<0)) throw new Error('Budget non valido')
-    if (['minuti', 'tariffa_oraria', 'importo', 'quantita', 'valore', 'sg_perc', 'cpa_perc', 'iva_perc', 'rit_perc', 'bollo', 'compensi', 'spese_generali', 'cpa', 'imponibile', 'iva', 'spese_esenti', 'ritenuta', 'totale', 'netto', 'incassato', 'dimensione', 'promemoria_min'].includes(key)) {
+    if (['minuti', 'tariffa_oraria', 'tariffa_totale', 'importo', 'quantita', 'valore', 'sg_perc', 'cpa_perc', 'iva_perc', 'rit_perc', 'bollo', 'compensi', 'spese_generali', 'cpa', 'imponibile', 'iva', 'spese_esenti', 'ritenuta', 'totale', 'netto', 'incassato', 'dimensione', 'promemoria_min'].includes(key)) {
       if (!Number.isFinite(Number(value)) || Number(value) < 0) throw new Error(`Il campo ${key} deve essere un numero non negativo`)
     }
     if (key === 'priorita' && ![0, 1, 2].includes(Number(value))) throw new Error('Priorità non valida')

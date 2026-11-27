@@ -6,7 +6,7 @@ import { useData } from '../../store'
 import { Btn, Empty, Field, FormGrid, Input, Modal, Pill, Select, Textarea, useAction, useFeedback } from '../ui'
 import { fmtDate, todayStr } from '../../lib/dates'
 import { fmtBytes, money, parseNumber } from '../../lib/format'
-import { parseDurata, riepilogoAttivita, testoDurata } from '../../lib/attivita'
+import { orariaEquivalente, parseDurata, riepilogoAttivita, testoDurata, valoreOra } from '../../lib/attivita'
 import type { Documento, Ora, Spesa } from '../../types'
 
 const DURATE_RAPIDE = [['15 min', '15m'], ['30 min', '30m'], ['1 h', '1h'], ['2 h', '2h'], ['Mezza giornata', '4h']] as const
@@ -20,18 +20,26 @@ function AttivitaModal({ praticaId, ora, titoliNoti, onClose }: { praticaId: num
   const [f, setF] = useState<Partial<Ora>>({ data: todayStr(), tariffa_oraria: settings.tariffa_oraria, tariffa_da_decidere: 0, ...ora })
   // il testo del campo resta com'è scritto («150,» mentre si digita), il numero si ricava a parte
   const [tariffa, setTariffa] = useState(() => String((ora.tariffa_da_decidere ? '' : ora.tariffa_oraria ?? settings.tariffa_oraria) ?? '').replace('.', ','))
+  // 1.0.5: come si decide il compenso: tempo × tariffa oraria, «Tariffa totale» a corpo, oppure da decidere più avanti
+  const [modo, setModo] = useState<'oraria' | 'totale' | 'dopo'>(() => (ora.tariffa_da_decidere ? 'dopo' : ora.tariffa_totale != null ? 'totale' : 'oraria'))
+  const [totale, setTotale] = useState(() => (ora.tariffa_totale != null ? String(ora.tariffa_totale).replace('.', ',') : ''))
   const [durata, setDurata] = useState(ora.minuti ? `${Math.floor(ora.minuti / 60)}:${String(ora.minuti % 60).padStart(2, '0')}` : '')
   const [nuovi, setNuovi] = useState<string[]>([]) // file scelti, collegati al salvataggio
   const [over, setOver] = useState(false)
   const esistenti = ora.id ? documenti.filter((d) => d.ora_id === ora.id) : []
   const minuti = parseDurata(durata)
-  const valido = !!f.descrizione?.trim() && minuti > 0
+  const importoTotale = parseNumber(totale)
+  // con la tariffa totale il tempo è facoltativo: il compenso non dipende dalle ore
+  const valido = !!f.descrizione?.trim() && (modo === 'totale' ? importoTotale > 0 && (minuti > 0 || !durata.trim()) : minuti > 0)
   const aggiungi = (paths: string[]) => setNuovi((x) => [...new Set([...x, ...paths.filter(Boolean)])])
   const scegli = async () => { const p = await run(() => api.scegliAllegati()); if (p?.length) aggiungi(p) }
   const salva = async () => {
     if (!valido) return
     const r = await run(async () => {
-      const saved = await api.save<Ora>('ore', { ...f, pratica_id: praticaId, minuti, descrizione: f.descrizione!.trim(), dettagli: f.dettagli?.trim() || null, tariffa_oraria: f.tariffa_da_decidere ? 0 : Number(f.tariffa_oraria) || 0, tariffa_da_decidere: f.tariffa_da_decidere ? 1 : 0 })
+      const compenso = modo === 'totale'
+        ? { tariffa_totale: importoTotale, tariffa_oraria: orariaEquivalente(importoTotale, minuti), tariffa_da_decidere: 0 }
+        : { tariffa_totale: null, tariffa_oraria: modo === 'dopo' ? 0 : Number(f.tariffa_oraria) || 0, tariffa_da_decidere: modo === 'dopo' ? 1 : 0 }
+      const saved = await api.save<Ora>('ore', { ...f, pratica_id: praticaId, minuti, descrizione: f.descrizione!.trim(), dettagli: f.dettagli?.trim() || null, ...compenso })
       if (nuovi.length) await api.addDocumentiPaths(praticaId, nuovi, 'Allegato attività', saved.id)
       return saved
     }, 'Attività salvata')
@@ -47,23 +55,25 @@ function AttivitaModal({ praticaId, ora, titoliNoti, onClose }: { praticaId: num
           </Field>
           <datalist id="attivita-note">{titoliNoti.map((t) => <option key={t} value={t} />)}</datalist>
           <Field label="Data"><Input type="date" value={f.data || ''} onChange={(e) => setF({ ...f, data: e.target.value })} /></Field>
-          <Field label="Tempo dedicato in totale *" hint={minuti ? `= ${testoDurata(minuti)}` : 'Es. 1:30, 45m, 1,5'}>
+          <Field label={modo === 'totale' ? 'Tempo dedicato (facoltativo)' : 'Tempo dedicato in totale *'} hint={minuti ? `= ${testoDurata(minuti)}` : 'Es. 1:30, 45m, 1,5'}>
             <Input value={durata} onChange={(e) => setDurata(e.target.value)} placeholder="1:30" inputMode="text" />
           </Field>
           <div style={{ gridColumn: 'span 2', marginTop: -6 }} className="chips" role="group" aria-label="Durate rapide">
             {DURATE_RAPIDE.map(([l, v]) => <button type="button" key={v} className={`chip ${parseDurata(durata) === parseDurata(v) ? 'on' : ''}`} onClick={() => setDurata(v)}>{l}</button>)}
           </div>
           <Field label="Note sull'attività" span={2}><Textarea rows={3} value={f.dettagli || ''} onChange={(e) => setF({ ...f, dettagli: e.target.value })} placeholder="Facoltative: destinatari, esito, riferimenti…" /></Field>
-          <Field label="Tariffa oraria" hint={f.tariffa_da_decidere ? 'La inserisci dopo, modificando l’attività o nel documento di vendita' : undefined}>
+          <Field label="Compenso" hint={modo === 'dopo' ? 'Lo inserisci dopo, modificando l’attività o nel documento di vendita' : modo === 'totale' ? 'Importo deciso a corpo, senza calcolo sulle ore' : undefined}>
             <div className="tariffa-scelta">
-              <Select value={f.tariffa_da_decidere ? 'dopo' : 'inserisci'} aria-label="Come indicare la tariffa oraria" onChange={(e) => {
-                const dopo = e.target.value === 'dopo'
-                setF({ ...f, tariffa_da_decidere: dopo ? 1 : 0, tariffa_oraria: dopo ? 0 : f.tariffa_oraria || settings.tariffa_oraria }); setTariffa(dopo ? '' : String(f.tariffa_oraria || settings.tariffa_oraria || '').replace('.', ','))
-              }}><option value="inserisci">Inserisci</option><option value="dopo">Da decidere</option></Select>
-              {!f.tariffa_da_decidere && <Input inputMode="decimal" value={tariffa} onChange={(e) => { setTariffa(e.target.value); setF({ ...f, tariffa_oraria: parseNumber(e.target.value) }) }} aria-label="Tariffa oraria in euro" placeholder="€ / ora" />}
+              <Select value={modo} aria-label="Come indicare il compenso" onChange={(e) => {
+                const m = e.target.value as typeof modo
+                setModo(m)
+                if (m === 'oraria' && !f.tariffa_oraria) { setF({ ...f, tariffa_oraria: settings.tariffa_oraria }); setTariffa(String(settings.tariffa_oraria || '').replace('.', ',')) }
+              }}><option value="oraria">Tariffa oraria</option><option value="totale">Tariffa totale</option><option value="dopo">Da decidere</option></Select>
+              {modo === 'oraria' && <Input inputMode="decimal" value={tariffa} onChange={(e) => { setTariffa(e.target.value); setF({ ...f, tariffa_oraria: parseNumber(e.target.value) }) }} aria-label="Tariffa oraria in euro" placeholder="€ / ora" />}
+              {modo === 'totale' && <Input inputMode="decimal" value={totale} onChange={(e) => setTotale(e.target.value)} aria-label="Tariffa totale in euro" placeholder="€ totali" />}
             </div>
           </Field>
-          <Field label="Valore" hint="Tempo × tariffa"><Input readOnly value={f.tariffa_da_decidere ? 'Da decidere' : money((minuti / 60) * (Number(f.tariffa_oraria) || 0))} /></Field>
+          <Field label="Valore" hint={modo === 'totale' ? 'Tariffa totale' : 'Tempo × tariffa'}><Input readOnly value={modo === 'dopo' ? 'Da decidere' : money(modo === 'totale' ? importoTotale : (minuti / 60) * (Number(f.tariffa_oraria) || 0))} /></Field>
         </FormGrid>
         <div className={`allegati-zona ${over ? 'over' : ''}`} onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)}
           onDrop={(e) => { e.preventDefault(); setOver(false); aggiungi([...e.dataTransfer.files].map((x) => window.mngmnt.pathForFile(x))) }}>
@@ -130,7 +140,9 @@ export function EconomiaTab({ praticaId, ore, spese, onParcella }: { praticaId: 
     const voci: any[] = []
     // le ore con la tariffa da decidere fanno una voce a parte, a 0 €: l'importo orario si scrive nel documento
     const byRate = new Map<string, Ora[]>()
-    nonFattOre.forEach((o) => { const k = o.tariffa_da_decidere ? 'dopo' : String(o.tariffa_oraria); byRate.set(k, [...(byRate.get(k) || []), o]) })
+    // le attività a tariffa totale diventano voci a sé: quantità 1, importo deciso a corpo
+    nonFattOre.filter((o) => o.tariffa_totale != null && !o.tariffa_da_decidere).forEach((o) => voci.push({ tipo: 'compenso', descrizione: o.descrizione, quantita: 1, importo: Number(o.tariffa_totale) }))
+    nonFattOre.filter((o) => o.tariffa_totale == null || o.tariffa_da_decidere).forEach((o) => { const k = o.tariffa_da_decidere ? 'dopo' : String(o.tariffa_oraria); byRate.set(k, [...(byRate.get(k) || []), o]) })
     byRate.forEach((list, k) => voci.push({ tipo: 'compenso', descrizione: `Attività professionale (${list.map((o) => o.descrizione).slice(0, 3).join('; ')}${list.length > 3 ? '…' : ''})${k === 'dopo' ? ' — tariffa oraria da decidere' : ''}`, quantita: Math.round(list.reduce((s, o) => s + o.minuti, 0) / 60 * 100) / 100, importo: k === 'dopo' ? 0 : Number(k) }))
     nonFattSpese.forEach((s) => voci.push({ tipo: s.esente ? 'spesa_esente' : 'spesa_imponibile', descrizione: s.descrizione, quantita: 1, importo: s.importo }))
     onParcella({ voci, importa_ore: nonFattOre.map((o) => o.id), importa_spese: nonFattSpese.map((s) => s.id) })
@@ -164,7 +176,7 @@ export function EconomiaTab({ praticaId, ore, spese, onParcella }: { praticaId: 
                   {o.dettagli && <p className="muted small prewrap">{o.dettagli}</p>}
                   {allegati.length > 0 && <div className="allegati-chips">{allegati.map((d) => <button key={d.id} className="allegato-chip" onClick={() => run(() => api.openDocumento(d.id))} title={`Apri ${d.nome}`}><Paperclip size={12} aria-hidden /> {d.nome}</button>)}</div>}
                 </div>
-                <div className="attivita-tempo"><b>{testoDurata(o.minuti)}</b>{o.tariffa_da_decidere ? <span className="small da-decidere">tariffa da decidere</span> : <span className="muted small">{money((o.minuti / 60) * o.tariffa_oraria)}</span>}{o.parcella_id ? <Pill>fatturata</Pill> : null}</div>
+                <div className="attivita-tempo"><b>{o.minuti ? testoDurata(o.minuti) : '—'}</b>{o.tariffa_da_decidere ? <span className="small da-decidere">tariffa da decidere</span> : <span className="muted small">{money(valoreOra(o))}{o.tariffa_totale != null ? ' · a corpo' : ''}</span>}{o.parcella_id ? <Pill>fatturata</Pill> : null}</div>
                 <div className="attivita-azioni">
                   <button className="icon-btn" aria-label={`Modifica ${o.descrizione}`} onClick={() => setOraEd(o)}><Pencil size={14} /></button>
                   <button className="icon-btn" aria-label={`Elimina ${o.descrizione}`} onClick={() => eliminaConAnnulla('ore', o.id, 'Attività')}><Trash2 size={14} /></button>
