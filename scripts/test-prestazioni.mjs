@@ -28,6 +28,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import v8 from 'node:v8'
+import vm from 'node:vm'
 
 const require = createRequire(import.meta.url)
 const radice = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -66,7 +67,8 @@ const CRESCITA_MAX = 3 // tempo con il doppio dei dati / tempo con i dati di bas
 
 // Rallentamenti già noti, da correggere nel codice dell'app: la prova li misura e li stampa senza bloccare fino alla
 // scadenza; dopo blocca di nuovo, così non restano dimenticati (come le eccezioni di scripts/controlla-audit.js).
-// Quando la correzione arriva, la prova lo dice («eccezione non più necessaria») e la voce va tolta.
+// Quando la correzione arriva, la prova lo dice («eccezione non necessaria su questo computer»): se vale su Mac e Windows, la voce va tolta.
+// Sui computer più veloci la parte quadratica di solleciti() può restare sotto il limite: conta il risultato di tutti i sistemi.
 const ECCEZIONI = [
   {
     prove: ['report: redditività per pratica e CSV', 'crescita redditività per pratica'], scade: '2027-01-31',
@@ -85,7 +87,7 @@ for (const e of ECCEZIONI) assert.ok(e.scade >= OGGI_ISO, `eccezione scaduta il 
 /** Esito di una misura: superata, eccezione nota (stampata, non blocca) o fallita. */
 function esito(nome, superata, riga) {
   const e = eccezione(nome)
-  if (superata) { ok(riga + (e ? ' — eccezione non più necessaria: toglila da ECCEZIONI' : '')); return }
+  if (superata) { ok(riga + (e ? ' — eccezione non necessaria su questo computer: se il limite è rispettato anche sugli altri sistemi, togli la voce da ECCEZIONI' : '')); return }
   if (e) { console.log(`ok ${++n} - NOTA ${riga} — rallentamento noto, eccezione fino al ${e.scade}: ${e.motivo}`); return }
   assert.fail(riga)
 }
@@ -113,15 +115,23 @@ function registra(nome, ms, extra = '') {
   esito(nome, ms <= max, ms <= max ? riga : `troppo lento — ${riga}`)
 }
 const misura = (nome, f, giri = 3) => { const [ms, r] = migliore(f, giri); registra(nome, ms); return r }
+// Pulizia della memoria prima di ogni misura di crescita: senza, una raccolta lasciata a metà dai giri precedenti cade
+// a caso su una delle due misure (sui runner macOS di GitHub ha portato un calcolo lineare a × 3,2).
+const raccogli = (() => { try { v8.setFlagsFromString('--expose-gc'); const gc = vm.runInNewContext('gc'); return typeof gc === 'function' ? gc : () => {} } catch { return () => {} } })()
+const TENTATIVI = 3 // un runner disturbato può sforare una volta; un algoritmo quadratico resta oltre il limite a ogni tentativo
 function crescita(nome, f, base, giri = 5) {
   f(base); f(base * 2) // riscaldamento: il compilatore JIT ottimizza dopo le prime chiamate e falserebbe il primo tempo
-  let t1 = Infinity, t2 = Infinity
-  for (let i = 0; i < giri; i++) { // giri alternati: un disturbo del runner pesa allo stesso modo sulle due misure
-    let t0 = ora(); f(base); t1 = Math.min(t1, durata(t0))
-    t0 = ora(); f(base * 2); t2 = Math.min(t2, durata(t0))
-  }
-  const rapporto = t2 / Math.max(t1, 0.001)
-  const riga = `crescita ${nome}: ${t1.toFixed(1)} ms → ${t2.toFixed(1)} ms con il doppio dei dati (× ${rapporto.toFixed(2)}, massimo × ${CRESCITA_MAX})`
+  let t1, t2, rapporto, tentativo = 0
+  do {
+    tentativo++; t1 = Infinity; t2 = Infinity
+    for (let i = 0; i < giri; i++) { // giri alternati: un disturbo del runner pesa allo stesso modo sulle due misure
+      raccogli(); let t0 = ora(); f(base); t1 = Math.min(t1, durata(t0))
+      raccogli(); t0 = ora(); f(base * 2); t2 = Math.min(t2, durata(t0))
+    }
+    rapporto = t2 / Math.max(t1, 0.001)
+  } while (rapporto > CRESCITA_MAX && t1 >= 5 && tentativo < TENTATIVI && !SOLO_MISURA)
+  const riga = `crescita ${nome}: ${t1.toFixed(1)} ms → ${t2.toFixed(1)} ms con il doppio dei dati (× ${rapporto.toFixed(2)}, massimo × ${CRESCITA_MAX})` +
+    (tentativo > 1 ? ` al tentativo ${tentativo} di ${TENTATIVI}` : '')
   misure.push({ nome: 'crescita ' + nome, ms: Math.round(t2 * 10) / 10, rapporto: Math.round(rapporto * 100) / 100 })
   if (SOLO_MISURA) { console.log('misura ' + riga); return }
   // sotto i 5 ms il rumore del timer conta più dell'algoritmo: la crescita non si giudica
@@ -266,7 +276,7 @@ try {
 
   // PDF: processo Electron separato con la stampa dell'app (l'avvio di Electron non entra nel tempo)
   const fileHtml = path.join(tmp, 'atto.html'); fs.writeFileSync(fileHtml, html)
-  const env = { ...process.env, TIO_PDF_HTML: fileHtml, TIO_PDF_GIRI: '2' }
+  const env = { ...process.env, TIO_PDF_HTML: fileHtml, TIO_PDF_PROFILO: path.join(tmp, 'profilo-electron'), TIO_PDF_GIRI: '2' }
   delete env.ELECTRON_RUN_AS_NODE
   const r = spawnSync(require('electron'), [path.join(radice, 'scripts/prestazioni-pdf.js')], { env, encoding: 'utf8', timeout: 180000 })
   const riga = String(r.stdout || '').trim().split('\n').filter((x) => x.startsWith('{')).pop()
@@ -283,5 +293,6 @@ try {
   console.log(SOLO_MISURA ? `\n${misure.length} tempi misurati (misura della copertura in corso: limiti non applicati)` : `\n${n} prove di prestazioni superate`)
 } finally {
   try { db.close() } catch { /* già chiuso */ }
-  fs.rmSync(tmp, { recursive: true, force: true })
+  // su Windows i file del profilo di Electron possono restare bloccati qualche istante dopo l'uscita: si ritenta
+  fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 })
 }

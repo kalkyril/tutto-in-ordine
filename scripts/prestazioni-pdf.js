@@ -2,16 +2,19 @@
 // Processo Electron di scripts/test-prestazioni.mjs: trasforma in PDF l'HTML di un documento lungo con la stessa stampa
 // isolata dell'app (electron/print-pdf.js, finestra nascosta e sessione separata). L'avvio di Electron non entra nel tempo:
 // si misura solo renderPdf, più volte, e si stampa una riga JSON con i risultati.
-// Uso (lo avvia la prova): TIO_PDF_HTML=<file.html> TIO_PDF_GIRI=3 electron scripts/prestazioni-pdf.js
+// Uso (lo avvia la prova): TIO_PDF_HTML=<file.html> TIO_PDF_PROFILO=<cartella> TIO_PDF_GIRI=3 electron scripts/prestazioni-pdf.js
+//
+// La cartella del profilo la crea e la cancella chi avvia questo processo, dopo la sua uscita: finché Electron è aperto
+// Windows tiene bloccati i file di Chromium e la cancellazione da qui fallirebbe (EPERM).
 const { app } = require('electron')
 const fs = require('node:fs'), os = require('node:os'), path = require('node:path')
 
-const profilo = fs.mkdtempSync(path.join(os.tmpdir(), 'tio-prestazioni-pdf-'))
+const profilo = process.env.TIO_PDF_PROFILO || fs.mkdtempSync(path.join(os.tmpdir(), 'tio-prestazioni-pdf-'))
+fs.mkdirSync(profilo, { recursive: true })
 app.setPath('userData', profilo)
 app.dock?.hide()
 const fine = (codice, dati) => {
   process.stdout.write(JSON.stringify(dati) + '\n')
-  fs.rmSync(profilo, { recursive: true, force: true })
   app.exit(codice)
 }
 // una stampa bloccata non deve tenere ferma la suite: la prova principale segnala l'errore
