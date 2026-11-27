@@ -53,7 +53,7 @@ const LIMITI = {
   'budget: indicatori': 100, // (12)
   'report: prima nota CSV': 60, // (5)
   'report: solleciti': 120, // (14)
-  'report: redditività per pratica e CSV': 100, // (750: eccezione nota più sotto; con il raggruppamento per pratica pochi ms)
+  'report: redditività per pratica e CSV': 100, // (750 prima del raggruppamento per pratica di novembre 2026)
   'report: dati di fatturazione CSV': 30, // (0,3)
   'documento lungo: Word (.docx)': 120, // (15)
   'documento lungo: OpenDocument (.odt)': 120, // (12)
@@ -68,18 +68,8 @@ const CRESCITA_MAX = 3 // tempo con il doppio dei dati / tempo con i dati di bas
 // Rallentamenti già noti, da correggere nel codice dell'app: la prova li misura e li stampa senza bloccare fino alla
 // scadenza; dopo blocca di nuovo, così non restano dimenticati (come le eccezioni di scripts/controlla-audit.js).
 // Quando la correzione arriva, la prova lo dice («eccezione non necessaria su questo computer»): se vale su Mac e Windows, la voce va tolta.
-// Sui computer più veloci la parte quadratica di solleciti() può restare sotto il limite: conta il risultato di tutti i sistemi.
 const ECCEZIONI = [
-  {
-    prove: ['report: redditività per pratica e CSV', 'crescita redditività per pratica'], scade: '2027-01-31',
-    motivo: 'redditivita() in src/lib/report.ts filtra tutte le ore, le spese e i documenti per ogni pratica (pratiche × righe): ' +
-      'con 4.000 pratiche e 12.000 ore circa 0,75 s al primo calcolo. Correzione: raggruppare una volta per pratica_id con una Map.',
-  },
-  {
-    prove: ['crescita solleciti'], scade: '2027-01-31',
-    motivo: 'solleciti() in src/lib/report.ts filtra tutte le rate per ogni documento aperto (documenti × rate). ' +
-      'Correzione: raggruppare le rate per parcella_id una volta sola, come fa movimenti() in src/lib/pagamenti.ts.',
-  },
+  // { prove: ['nome della misura'], scade: 'AAAA-MM-GG', motivo: 'cosa rallenta, dove, e come si corregge' },
 ]
 const OGGI_ISO = new Date().toISOString().slice(0, 10)
 const eccezione = (nome) => ECCEZIONI.find((e) => e.prove.includes(nome))
@@ -236,9 +226,12 @@ try {
   const generati = new Map([[4000, g]])
   const dati = (k) => { if (!generati.has(k)) generati.set(k, gestione(k)); return generati.get(k) }
   crescita('movimenti e saldi del Budget', (k) => { const d = dati(k), m = tuttiMovimenti(d); return bud.saldiConti(d.conti, d.manuali, m, OGGI) }, 2000)
+  generati.clear() // libera la memoria: i dati grandi servono a una prova sola
   crescita('indicatori', (k) => { const d = dati(k); return ind.calcolaIndicatori({ anno: ANNO, oggi: OGGI, parcelle: d.parcelle, movimenti: tuttiMovimenti(d), fatture: d.fatture, costi: d.costi, spese: d.spese, pratiche: d.pratiche, nomeCliente: (id) => d.cli.get(id)?.denominazione }) }, 2000)
-  crescita('redditività per pratica', (k) => { const d = dati(k); return rep.redditivita(d.pratiche, d.ore, d.spese, d.parcelle) }, 2000)
-  crescita('solleciti', (k) => { const d = dati(k); return rep.solleciti(d.parcelle, d.cli, new Date(2026, 10, 20), 30, d.rate) }, 4000)
+  generati.clear() // libera la memoria: i dati grandi servono a una prova sola
+  crescita('redditività per pratica', (k) => { const d = dati(k); return rep.redditivita(d.pratiche, d.ore, d.spese, d.parcelle) }, 8000)
+  generati.clear() // libera la memoria: i dati grandi servono a una prova sola
+  crescita('solleciti', (k) => { const d = dati(k); return rep.solleciti(d.parcelle, d.cli, new Date(2026, 10, 20), 30, d.rate) }, 16000)
   generati.clear()
 
   // ---------- 3. documento lungo ----------

@@ -56,11 +56,14 @@ export interface Sollecito { parcella: Parcella; cliente?: Anagrafica; giorni: n
 export function solleciti(parcelle: Parcella[], anagrafica: Map<number, Anagrafica>, oggi = new Date(), terminiGiorni = 30, rate: RataBase[] = []): Sollecito[] {
   const o = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate())
   const ymd = (x: Date) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`
+  // rate raggruppate una volta per documento (come movimenti() in pagamenti.ts), non rilette per ogni documento aperto
+  const ratePer = new Map<number, RataBase[]>()
+  for (const r of rate) { const l = ratePer.get(r.parcella_id); if (l) l.push(r); else ratePer.set(r.parcella_id, [r]) }
   return parcelle.filter((p) => p.tipo === 'parcella' && p.stato === 'emessa' && residuo(p) > 0).map((p) => {
     const d = parse(p.data, 0) || o
     let sc = p.scadenza_pagamento ? parse(p.scadenza_pagamento, 0) || d : new Date(d.getFullYear(), d.getMonth(), d.getDate() + terminiGiorni)
     const base = { parcella: p, cliente: p.cliente_id ? anagrafica.get(p.cliente_id) : undefined }
-    const piano = rate.filter((r) => r.parcella_id === p.id)
+    const piano = ratePer.get(p.id) || []
     if (piano.length) {
       // piano di pagamento: conta la rata aperta più vecchia; l'importo è ciò che è già scaduto (o la prossima rata)
       const aperte = rateAperte(piano, residuo(p), incassatoNetto(p), ymd(sc)), prima = aperte[0]
@@ -87,12 +90,21 @@ export function testoSollecito(s: Sollecito, st: Settings['studio']): { oggetto:
   }
 }
 
+/** Righe raggruppate per pratica, nell'ordine in cui arrivano (le somme restano identiche al centesimo). */
+function perPratica<T extends { pratica_id: number | null }>(righe: T[]): Map<number | null, T[]> {
+  const m = new Map<number | null, T[]>()
+  for (const r of righe) { const l = m.get(r.pratica_id); if (l) l.push(r); else m.set(r.pratica_id, [r]) }
+  return m
+}
+
 export interface RedditivitaPratica { pratica: Pratica; minuti: number; valoreOre: number; spese: number; fatturato: number; incassato: number; daIncassare: number; oreNonFatturate: number }
 /** Per ogni pratica: ore, valore delle ore, spese anticipate, fatturato e incassato; utile per capire quali pratiche rendono. */
 export function redditivita(pratiche: Pratica[], ore: Ora[], spese: Spesa[], parcelle: Parcella[]): RedditivitaPratica[] {
+  // righe raggruppate una volta per pratica: con migliaia di pratiche non si rileggono tutte le righe per ognuna
+  const orePer = perPratica(ore), spesePer = perPratica(spese)
+  const fattPer = perPratica(parcelle.filter((x) => x.tipo === 'parcella' && (x.stato === 'emessa' || x.stato === 'pagata')))
   return pratiche.map((pratica) => {
-    const o = ore.filter((x) => x.pratica_id === pratica.id), s = spese.filter((x) => x.pratica_id === pratica.id)
-    const f = parcelle.filter((x) => x.pratica_id === pratica.id && x.tipo === 'parcella' && (x.stato === 'emessa' || x.stato === 'pagata'))
+    const o = orePer.get(pratica.id) || [], s = spesePer.get(pratica.id) || [], f = fattPer.get(pratica.id) || []
     return {
       pratica, minuti: o.reduce((t, x) => t + x.minuti, 0), valoreOre: o.reduce((t, x) => t + valoreOra(x), 0), spese: s.reduce((t, x) => t + x.importo, 0),
       fatturato: f.reduce((t, x) => t + x.imponibile, 0), incassato: f.reduce((t, x) => t + (x.netto ? x.imponibile * incassatoNetto(x) / x.netto : 0), 0), daIncassare: f.filter((x) => x.stato === 'emessa').reduce((t, x) => t + residuo(x), 0),
